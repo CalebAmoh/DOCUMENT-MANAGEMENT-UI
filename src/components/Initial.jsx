@@ -17,54 +17,85 @@ import Modal from "@mui/joy/Modal";
 import ModalClose from "@mui/joy/ModalClose";
 import Sheet from "@mui/joy/Sheet";
 import Input from "@mui/joy/Input";
+import Textarea from '@mui/joy/Textarea';
 import Swal from "sweetalert2";
 import { Alert, notification, Result } from "antd";
 import dayjs from "dayjs";
 import {API_SERVER, headers} from "../constant";
-//ppp
+import DocumentScan from "./DocumentScan";
+// import { Textarea } from "flowbite-react";
+// import Modal from "react-bootstrap/Modal";
+
 const Initial = () => {
   const [open, setOpen] = useState(false);
   const [codeTypes, setCodeTypes] = useState([]);
-  // const [licenseType, setLicenseType] = useState([]);
+  const [branches, setBranches] = useState([]);
   // const [frequency, setFrequency] = useState([]);
   // const [notificationFreq, setNotificationFreq] = useState([]);
-  const [selectedBank, setSelectedBank] = useState("");
-  const [selectedLicenseType, setSelectedLicenseType] = useState("");
+  const [selectedDocType, setSelectedDocType] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
+  const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
+  const [details, setDetails] = useState("");
   const [selectedFrequency, setSelectedFrequency] = useState("");
   const [selectedNotificationFreq, setSelectedNotificationFreq] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notificationStart, setNotificationStart] = useState("");
-  const [gracePeriod, setGracePeriod] = useState("");
+  const [requestAmount, setRequestAmount] = useState("");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [validationError, setValidationError] = useState("");
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    handleFile(file);
+  };
+
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    handleFile(file);
+  };
+
+  const handleFile = (file) => {
+    setSelectedFile(file);
+    setLoading(true); // Set loading to true immediately after file selection
+    setTimeout(() => {
+      setModalOpened(true);
+      setLoading(false); // Set loading to false when modal is opened
+    }, 2000); // Simulate delay for demonstration purpose (2 seconds)
+  };
+
+  const closeModal = () => {
+    setSelectedFile(null);
+    setModalOpened(false);
+  };
+
   const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
-// console.log("ENDPOINT",ENDPOINT);
+
   useEffect(() => {
-    const fetchBankNames = async () => {
+    const fetchParameters = async () => {
       try {
-        const response = await axios.get(API_SERVER + `/code_creation_details`,{
+        const response = await axios.get(API_SERVER + `/get-parameters`,{
           headers: headers});
-        setCodeTypes(response.data.code_details);
-        // setLicenseType(response.data.licenseTypeParams);
+        setCodeTypes(response.data.doc_types);
+        setBranches(response.data.branches);
         // setFrequency(response.data.licenseFrequencyParams);
         // setNotificationFreq(response.data.notificationFrequencyParams);
-        console.log("code types:", response.data.code_details);
+        console.log("code types:", response.data.doc_types);
       } catch (error) {
         console.error("Error fetching bank names:", error);
       }
     };
 
-    fetchBankNames();
+    fetchParameters();
   }, []);
 
-  useEffect(() => {
-    if (startDate && selectedFrequency) {
-      setEndDate(calculateEndDate(startDate, selectedFrequency));
-    }
-  }, [startDate, selectedFrequency]);
 
   useEffect(() => {
     if (startDate && endDate && notificationStart) {
@@ -85,36 +116,46 @@ const Initial = () => {
   }, [startDate, endDate, notificationStart]);
 
   const handleConsole = () => {
-    console.log("Selected Bank:", selectedBank);
-    console.log("Selected License Type:", selectedLicenseType);
+    console.log("Selected Bank:", selectedDocType);
+    console.log("Selected License Type:", selectedBranch);
     // console.log("Selected Frequency:", selectedFrequency);
     console.log("Selected Notification Frequency:", selectedNotificationFreq);
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
     console.log("Notification Start:", notificationStart);
-    console.log("Grace Period:", gracePeriod);
+    console.log("Details:", details);
   };
 
   const handleClear = () => {
-    setSelectedBank("");
-    setSelectedLicenseType("");
-    setSelectedFrequency("");
-    setSelectedNotificationFreq("");
-    setStartDate("");
-    setEndDate("");
-    setNotificationStart("");
-    setGracePeriod("");
+    setSelectedDocType("");
+    setSelectedBranch("");
+    setSelectedRequestedAmount("");
+    setSelectedCustomerNumber("");
+    details("");
     setValidationError("");
   };
 
   const handleSave = async () => {
-    if (
-      dayjs(notificationStart).isBefore(startDate) ||
-      dayjs(notificationStart).isAfter(endDate)
-    ) {
-      setValidationError(
-        "Notification start date must be between start date and end date."
-      );
+
+    //validate form
+
+    //this checks if the user has selected document type
+    if (!selectedDocType) {
+      setValidationError("Please select a document type.");
+      setOpen(true); // Open the modal to show the validation error
+      return;
+    }
+
+    //this checks if the user has selected branch
+    if (!selectedBranch) {
+      setValidationError("Please select a branch.");
+      setOpen(true); // Open the modal to show the validation error
+      return;
+    }
+
+    //this checks if the user has provided details for the document
+    if (!details) {
+      setValidationError("Please provide details to the document.");
       setOpen(true); // Open the modal to show the validation error
       return;
     }
@@ -124,25 +165,23 @@ const Initial = () => {
 
     
 
-    // const formData = {
-    //   bank_desc: codeTypes.find((bank) => bank.id === selectedBank).code_desc,
-    //   bank_id: selectedBank,
-    //   license_type_id: selectedLicenseType,
-    //   license_type_desc: licenseType.find(
-    //     (license) => license.id === selectedLicenseType
-    //   ).code_desc,
-    //   license_frequency_id: selectedFrequency,
-    //   license_frequency_desc: frequency.find(
-    //     (freq) => freq.id === selectedFrequency
-    //   ).code_desc,
-    //   notification_frequency_id: notificationFrequencyId,
-    //   notification_frequency_desc: selectedNotificationFreq,
-    //   // notification_frequency_id: 1,
-    //   start_date: startDate,
-    //   end_date: endDate,
-    //   notification_start: notificationStart,
-    //   grace_period: gracePeriod,
-    // };
+    const formData = {
+      doc_type: selectedDocType,
+      branch: selectedBranch,
+      requested_amount: selectedRequestedAmount,
+      
+      license_frequency_id: selectedFrequency,
+      license_frequency_desc: frequency.find(
+        (freq) => freq.id === selectedFrequency
+      ).code_desc,
+      notification_frequency_id: notificationFrequencyId,
+      notification_frequency_desc: selectedNotificationFreq,
+      // notification_frequency_id: 1,
+      start_date: startDate,
+      end_date: endDate,
+      notification_start: notificationStart,
+      grace_period: gracePeriod,
+    };
 
     // console.log("Form Data:", formData);
 
@@ -194,41 +233,11 @@ const Initial = () => {
         "and selectedFrequency:",
         selectedFrequency
       );
-      setEndDate(calculateEndDate(startDate, selectedFrequency));
+      // setEndDate(calculateEndDate(startDate, selectedFrequency));
     }
   }, [startDate, selectedFrequency]);
 
-  const calculateEndDate = (startDate, frequencyId) => {
-    const start = dayjs(startDate);
-    let end;
-
-    // Find the frequency object based on the frequencyId
-    // const frequencyObj = frequency.find((freq) => freq.id === frequencyId);
-
-    // if (frequencyObj) {
-    //   switch (frequencyObj.code_desc) {
-    //     case "Monthly":
-    //       end = start.add(1, "month");
-    //       break;
-    //     case "Quarterly":
-    //       end = start.add(3, "month");
-    //       break;
-    //     case "Semiannually":
-    //       end = start.add(6, "month");
-    //       break;
-    //     case "Annually":
-    //       end = start.add(1, "year");
-    //       break;
-    //     default:
-    //       end = start;
-    //   }
-    // } else {
-    //   end = start;
-    // }
-
-    console.log("Calculated end date:", end.format("YYYY-MM-DD"));
-    return end.format("YYYY-MM-DD");
-  };
+ 
 
   const calculateNotificationFrequency = (
     startDate,
@@ -265,27 +274,42 @@ const Initial = () => {
       >
         <Card>
           <Box sx={{ mb: 1 }}>
-            <Typography level="title-md">Initial Document Request</Typography>
-            <Typography level="body-sm">
+            <Typography level="title-md">Document Request</Typography>
+            {/* <Typography level="body-sm">
               Fill the form to generate document
-            </Typography>
+            </Typography> */}
           </Box>
           <Divider />
           <Stack spacing={4}>
-            <Stack spacing={1}>
-              <FormLabel required>Document Type</FormLabel>
+            <Stack direction="row" spacing={4}>
               <FormControl sx={{ width: "100%" }}>
+              <FormLabel required>Document</FormLabel>
                 <Select
                   autoFocus={true}
                   size="sm"
                   startDecorator={<AccountBalanceIcon />}
                   defaultValue="0"
                   placeholder="Select Document Type"
-                  onChange={(e, newValue) => setSelectedBank(newValue)}
+                  onChange={(e, newValue) => setSelectedDocType(newValue)}
                 >
                   {codeTypes.map((codeType) => (
                     <Option key={codeType.id} value={codeType.id}>
-                      {" " + codeType.description}
+                      {codeType.description}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl sx={{ width: "100%" }}>
+                <FormLabel required>Branch</FormLabel>
+                <Select
+                  size="sm"
+                  defaultValue="0"
+                  placeholder="Select Type"
+                  onChange={(e, newValue) => setSelectedBranch(newValue)}
+                >
+                  {branches.map((branch) => (
+                    <Option key={branch.id} value={branch.id}>
+                      {branch.description}
                     </Option>
                   ))}
                 </Select>
@@ -294,85 +318,53 @@ const Initial = () => {
 
             <Stack direction="row" spacing={4}>
               <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>License Type</FormLabel>
-                <Select
-                  size="sm"
-                  defaultValue="0"
-                  placeholder="Select Type"
-                  onChange={(e, newValue) => setSelectedLicenseType(newValue)}
-                >
-                  {/* {licenseType.map((license) => (
-                    <Option key={license.id} value={license.id}>
-                      {license.code_desc}
-                    </Option>
-                  ))} */}
-                </Select>
+                <FormLabel>Requested Amount</FormLabel>
+                <Input
+                    size="sm"
+                    placeholder="Enter requested Amount"
+                    onChange={(e) => setSelectedRequestedAmount(e.target.value)}
+                  />
               </FormControl>
               <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>Frequency</FormLabel>
-                <Select
-                  size="sm"
-                  defaultValue="0"
-                  placeholder="Select Frequency"
-                  onChange={(e, newValue) => setSelectedFrequency(newValue)}
-                >
-                  {/* {frequency.map((freq) => (
-                    <Option key={freq.id} value={freq.id}>
-                      {freq.code_desc}
-                    </Option>
-                  ))} */}
-                </Select>
+                <FormLabel>Customer number</FormLabel>
+                <Input
+                    size="sm"
+                    placeholder="Enter customer number"
+                    onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                  />
+              </FormControl>
+            </Stack>
+            <Stack direction="row" spacing={4}>
+              <FormControl sx={{ width: "100%" }}>
+                <FormLabel required>Details</FormLabel>
+                <Textarea
+                    color="neutral"
+                    minRows={2}
+                    // size="sm"
+                    height="100px"
+                    placeholder="Enter customer number"
+                    onChange={(e) => setDetails(e.target.value)}
+                  />
               </FormControl>
             </Stack>
 
-            <Stack direction="row" spacing={4}>
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>Start Date</FormLabel>
-                <Input
-                  size="sm"
-                  type="date"
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </FormControl>
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>End Date</FormLabel>
-                <Input size="sm" type="date" value={endDate} readOnly />
-              </FormControl>
-            </Stack>
-            <Stack direction="row" spacing={4}>
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>Notification Start</FormLabel>
-                <Input
-                  size="sm"
-                  type="date"
-                  onChange={(e) => setNotificationStart(e.target.value)}
-                />
-              </FormControl>
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>Notification Frequency</FormLabel>
-                <Input
-                  size="sm"
-                  type="text"
-                  value={selectedNotificationFreq}
-                  readOnly
-                />
-              </FormControl>
-            </Stack>
 
             {validationError && (
               <Alert type="error" message={validationError} showIcon />
             )}
 
-            <div>
-              <Stack direction="row" spacing={4}>
-                <FormControl sx={{ width: "47.5%" }}>
-                  <FormLabel>Grace Period</FormLabel>
-                  <Input
-                    size="sm"
-                    placeholder="Select Grace Period"
-                    onChange={(e) => setGracePeriod(e.target.value)}
-                  />
-                </FormControl>
+              <div className="w-full">
+              <Stack direction="row" spacing={4} sx={{ width: '100%' }} >
+                <DocumentScan
+                  selectedFile={selectedFile}
+                  modalOpened={modalOpened}
+                  loading={loading}
+                  handleFileDrop={handleFileDrop}
+                  handleFile={handleFile}
+                  closeModal={closeModal}
+                  handleFileChange={handleFileChange}
+                  sx={{ flexGrow: 1 }}
+                />
               </Stack>
             </div>
           </Stack>

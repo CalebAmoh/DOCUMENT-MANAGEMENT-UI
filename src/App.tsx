@@ -21,6 +21,7 @@ import "./App.css";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import Box from "@mui/joy/Box";
+// import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => (
   <AuthProvider>
