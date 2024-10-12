@@ -18,7 +18,7 @@ export default class PieC extends PureComponent {
   render() {
     return (
       <div>
-        <p className="font-medium text-md mb-2">Activation Chart</p>
+        <p className="font-medium text-md mb-2">Approval Chart</p>
         <Divider />
         <div
           style={{

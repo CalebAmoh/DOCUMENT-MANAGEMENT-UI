@@ -70,10 +70,10 @@ export default function Categories() {
               Initial Request
             </Tab>
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={1}>
-              Document Approval
+              Document Submission
             </Tab>
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={2}>
-              License Amendment
+              Document Approval
             </Tab>
           </TabList>
           <TabPanel value={0}>

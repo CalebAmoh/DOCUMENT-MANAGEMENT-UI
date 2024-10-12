@@ -166,63 +166,59 @@ const Initial = () => {
     
 
     const formData = {
-      doc_type: selectedDocType,
+      doctype_id: selectedDocType,
       branch: selectedBranch,
       requested_amount: selectedRequestedAmount,
-      
-      license_frequency_id: selectedFrequency,
-      license_frequency_desc: frequency.find(
-        (freq) => freq.id === selectedFrequency
-      ).code_desc,
-      notification_frequency_id: notificationFrequencyId,
-      notification_frequency_desc: selectedNotificationFreq,
-      // notification_frequency_id: 1,
-      start_date: startDate,
-      end_date: endDate,
-      notification_start: notificationStart,
-      grace_period: gracePeriod,
+      customer_number: selectedCustomerNumber,
+      details: details,
     };
 
     // console.log("Form Data:", formData);
 
     // Uncomment the below code for actual API call
-    // try {
-    //   const response = await axios.post(
-    //     ENDPOINT + `/generate-license`,
-    //     formData
-    //   );
-    //   console.log("Response:", response.data);
-    //   setResponse(response.data);
-    //   setError(null);
-    //   setOpen(true); // Open the modal to show the response
+    try {
+      // const response = await axios.post(
+      //   API_SERVER + `/generate-doc`,
+      //   {headers: headers},
+      //   formData
+      // );
+      // console.log("Response:", response.data);
+      // const FormData = require('form-data');
+      // let data = new FormData();
+      // data.append('doctype_id', '101');
+      // data.append('branch', '000');
+      // data.append('requested_amount', '1000');
+      // data.append('customer_no', '092499');
+      // data.append('details', 'document generation sample');
 
-    //   const content = response.data.data;
+      let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: API_SERVER+`/generate-doc`,
+        headers: headers,
+        data:formData
+      };
 
-    //   // Create a Blob with the string content
-    //   const blob = new Blob([content], { type: "text/plain" });
+      const response = axios.request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
-    //   // Create a URL for the Blob
-    //   const url = window.URL.createObjectURL(blob);
+      console.log(response);
+      setResponse(response.data);
+      setError(null);
+      setOpen(true); // Open the modal to show the response
 
-    //   // Create a temporary anchor element to trigger the download
-    //   const a = document.createElement("a");
-    //   a.href = url;
-    //   a.download = "license.txt";
 
-    //   // Append anchor to the document and click to trigger download
-    //   document.body.appendChild(a);
-    //   a.click();
-
-    //   // Clean up: Remove the anchor from the document and revoke the Blob URL
-    //   document.body.removeChild(a);
-    //   window.URL.revokeObjectURL(url);
-    //   // }
-    // } catch (error) {
-    //   console.error("Error generating license:", error);
-    //   setError(error);
-    //   setResponse(null);
-    //   setOpen(true); // Open the modal to show the error
-    // }
+    } catch (error) {
+      console.error("Error generating document:", error);
+      setError(error);
+      setResponse(null);
+      setOpen(true); // Open the modal to show the error
+    }
   };
 
   useEffect(() => {
@@ -321,6 +317,7 @@ const Initial = () => {
                 <FormLabel>Requested Amount</FormLabel>
                 <Input
                     size="sm"
+                    type="number"
                     placeholder="Enter requested Amount"
                     onChange={(e) => setSelectedRequestedAmount(e.target.value)}
                   />

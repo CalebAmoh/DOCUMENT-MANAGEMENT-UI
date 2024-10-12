@@ -171,7 +171,7 @@ const Dashboard = () => {
               <div className=" rounded  shadow">
                 <div className="px-6 py-4">
                   <div className="font-bold text-sm mb-2 flex align-center justify-between">
-                    Live Bank Status
+                    Document Approval Status
                     <span className="inline-block bg-gray-200 rounded px-2 py-1 text-sm font-medium text-gray-700">
                       {<FilterListIcon />}Filter
                     </span>

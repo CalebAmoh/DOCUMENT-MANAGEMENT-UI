@@ -23,6 +23,7 @@
     "chartjs-adapter-moment": "^1.0.1",
     "firebase": "^10.12.0",
     "flowbite-react": "^0.10.2",
+    "form-data": "^4.0.1",
     "moment": "^2.29.4",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.5",
