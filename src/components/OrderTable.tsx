@@ -220,7 +220,7 @@ export default function Amendment() {
         }}
       >
         <FormControl sx={{ flex: 1 }} size="sm">
-          <FormLabel>Search for bank</FormLabel>
+          <FormLabel>Search for bank2</FormLabel>
           <Input
             size="sm"
             placeholder="Search"

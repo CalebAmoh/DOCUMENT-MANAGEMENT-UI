@@ -18,6 +18,9 @@ import dayjs from "dayjs";
 import Modal from "@mui/joy/Modal";
 import ModalClose from "@mui/joy/ModalClose";
 import Sheet from "@mui/joy/Sheet";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import TableHover from "../components/tableStatus";
+
 // import Result from "@mui/joy/Result";
 import { Alert, Result } from "antd";
 // require("dotenv").config();
@@ -288,206 +291,22 @@ const Renewal = () => {
             py: { xs: 2, md: 3 },
           }}
         >
-          {/* <Card>
-            <Box sx={{ mb: 1 }}>
-              <Typography level="title-md">Document Approval</Typography>
-              <Typography level="body-sm">
-                Fill the form to generate encrypted key
-              </Typography>
-            </Box>
-            <Divider />
-            <Stack spacing={4}>
-              <Stack spacing={1}>
-                <FormLabel>Bank Name</FormLabel>
-                <FormControl sx={{ width: "100%" }}>
-                  <Select
-                    size="sm"
-                    startDecorator={<AccountBalanceIcon />}
-                    defaultValue="0"
-                    placeholder="Select Bank"
-                    onChange={handleBankChange}
-                  >
-                    {bankNames.map((bank) => (
-                      <Option key={bank.bank_id} value={bank.bank_id}>
-                        {" " + bank.bank_desc}
-                      </Option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-
-              <Stack direction="row" spacing={4}>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>License Type</FormLabel>
-                  <Select size="sm" defaultValue="1" disabled>
-                    <Option value="1">{details.license_type}</Option>
-                  </Select>
-                </FormControl>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Frequency</FormLabel>
-                  <Select disabled size="sm" defaultValue="1">
-                    <Option value="1">{details.license_frequency}</Option>
-                  </Select>
-                </FormControl>
-              </Stack>
-
-              <Stack direction="row" spacing={4}>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Previous Subscription Date</FormLabel>
-                  <Input
-                    size="sm"
-                    type="date"
-                    disabled
-                    value={frontendDate(details.start_date)}
-                  />
-                </FormControl>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Next Subscription Date</FormLabel>
-                  <Input
-                    size="sm"
-                    type="date"
-                    disabled
-                    value={frontendDate(details.end_date)}
-                  />
-                </FormControl>
-              </Stack>
-
-              <Stack direction="row" spacing={4}>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Start Date</FormLabel>
-                  <Input
-                    disabled
-                    size="sm"
-                    type="date"
-                    value={frontendDate(details.end_date)}
-                  />
-                </FormControl>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>End Date</FormLabel>
-                  <Input size="sm" type="date" disabled value={endDate} />
-                </FormControl>
-              </Stack>
-              <Stack direction="row" spacing={4}>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Notification Start</FormLabel>
-                  <Input
-                    size="sm"
-                    type="date"
-                    disabled
-                    value={notificationDate}
-                  />
-                </FormControl>
-                <FormControl sx={{ width: "100%" }}>
-                  <FormLabel>Notification Frequency</FormLabel>
-                  <Input
-                    size="sm"
-                    disabled
-                    value={details.notification_frequency}
-                    // value={selectedNotificationFreq}
-                  />
-                </FormControl>
-              </Stack>
-
-              <div>
-                <Stack direction="row" spacing={4}>
-                  <FormControl sx={{ width: "47.5%" }}>
-                    <FormLabel>Grace Period</FormLabel>
-                    <Input size="sm" disabled value={details.grace_period} />
-                  </FormControl>
-                </Stack>
+          <div className=" bg-[#ffffff] mr-5">
+              <div className=" rounded  shadow">
+                <div className="px-6 py-4">
+                  <div className="font-bold text-sm mb-2 flex align-center justify-between">
+                    Document Approval Status
+                    <span className="inline-block bg-gray-200 rounded px-2 py-1 text-sm font-medium text-gray-700">
+                      {<FilterListIcon />}Filter
+                    </span>
+                  </div>
+                  <Divider />
+                  <div className="w-full">
+                    <TableHover />
+                  </div>
+                </div>
               </div>
-            </Stack>
-
-            <CardOverflow
-              sx={{ borderTop: "1px solid", borderColor: "divider" }}
-            >
-              <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-                <Button size="sm" variant="outlined" color="neutral">
-                  Clear
-                </Button>
-                <Button
-                  size="sm"
-                  variant="solid"
-                  sx={{ backgroundColor: "#00357A" }}
-                  onClick={() => {
-                    setOpen(true);
-                    handleSave();
-                  }}
-                >
-                  Save
-                </Button>
-              </CardActions>
-            </CardOverflow>
-            <Modal
-              aria-labelledby="modal-title"
-              aria-describedby="modal-desc"
-              open={open}
-              onClose={() => setOpen(false)}
-              slotProps={{
-                backdrop: {
-                  sx: {
-                    backgroundColor: "rgba(0, 0, 0, 0.6)",
-                    backdropFilter: "none",
-                  }, // Example backdrop styling
-                },
-              }}
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginLeft: "15%",
-              }}
-            >
-              <Sheet
-                variant="outlined"
-                sx={{
-                  maxWidth: 500,
-                  borderRadius: "md",
-                  p: 3,
-                  boxShadow: "lg",
-                }}
-              >
-                <ModalClose variant="plain" sx={{ m: 1 }} />
-                <Typography id="modal-desc" textColor="text.tertiary">
-                  {response && response.data.code === "200" && (
-                    <Result
-                      status="success"
-                      title={response.data.result}
-                      subTitle="Your license has been successfully generated."
-                      extra={[
-                        <Button
-                          type="primary"
-                          key="console"
-                          onClick={() => {
-                            const subject = encodeURIComponent(
-                              "License Information"
-                            );
-                            const body = encodeURIComponent(
-                              `Dear Sir/Madam,\n\nWe are pleased to inform you that your license has been successfully generated. Below are the details:\n\n${response.data.data}\n\nBest regards,\nUNION SYSTEMS GLOBAL`
-                            );
-                            window.location.href = `mailto:?subject=${subject}&body=${body}`;
-                          }}
-                        >
-                          Send Mail
-                        </Button>,
-                        <Button key="buy" onClick={() => setOpen(false)}>
-                          Renew Another License
-                        </Button>,
-                      ]}
-                    />
-                  )}
-
-                  {error && (
-                    <Result
-                      status="error"
-                      title={error.response.data.result}
-                      subTitle="Please check and modify the following information before resubmitting."
-                    />
-                  )}
-                </Typography>
-              </Sheet>
-            </Modal>
-          </Card> */}
+            </div>
         </Stack>
       </div>
     </div>

@@ -20,6 +20,7 @@ import Card from "@mui/joy/Card";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import axios from "axios";
+import {API_SERVER, headers} from "../constant";
 // import DeleteIcon from "@mui/icons-material/Delete";
 
 const Params = () => {
@@ -57,10 +58,11 @@ const Params = () => {
   const fetchParameters = async (codeType) => {
     try {
       const response = await axios.get(
-        ENDPOINT + `/get-param?code_type='${codeType}'`
-      );
-      setParameters(response.data.result);
-      console.log("Parameters:", response);
+        ENDPOINT + `/code_creation_details/code_id/${codeType}`
+      ,{
+        headers: headers});
+      setParameters(response.data.code_details);
+      console.log("Parameters:", response.data);
     } catch (error) {
       console.error("Error fetching parameters:", error);
     }
@@ -77,22 +79,28 @@ const Params = () => {
   };
 
   const rows = [
-    { parameter: "Bank", fields: ["Bank Name", "Code Type", "Status"] },
-    { parameter: "Frequency", fields: ["Frequency", "Code Type", "Status"] },
-    { parameter: "License Type", fields: ["License", "Code Type", "Status"] },
-    {
-      parameter: "Notification Frequency",
-      fields: ["Notification Frequency", "Code Type", "Status"],
-    },
+    { parameter: "Document type", fields: ["Description", "Status"] },
+    { parameter: "Branch", fields: ["Description","Status"] },
+    { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
+    {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
   ];
 
   const codeTypeMapping = {
-    Bank: "Bank",
-    Frequency: "LicenseFrequency",
-    "License Type": "LicenseType",
-    "Notification Frequency": "NotificationFrequency",
+    "Document type": "1",
+    "Branch": "2",
+    "Approvers": "Approvers",
+    "Temporary Approvers": "TemporaryApprovers",
   };
 
+    /**
+   * Handles the opening of a modal based on the provided row and type.
+   * 
+   * @param {Object} row - The row data that is selected.
+   * @param {string} type - The type of action to perform ("add" or other).
+   * 
+   * If the type is "add", it sets the form values to default and opens the add modal.
+   * If the type is not "add", it fetches parameters based on the row's parameter and opens the view modal.
+   */
   const handleOpen = (row, type) => {
     setSelectedRow(row);
     setFormValues({
@@ -149,7 +157,7 @@ const Params = () => {
           <Box sx={{ mb: 1 }}>
             <Typography level="title-md"></Typography>
             <Typography level="body-sm">
-              Manage parameters for licenses
+              Manage parameters
             </Typography>
           </Box>
           <Divider />
@@ -370,7 +378,8 @@ const Params = () => {
                           </Button>,
                         ]}
                       >
-                        {item.code_desc} - {item.status}
+                        {item.description}
+                        {/* {item.code_desc} - {item.status} */}
                       </List.Item>
                     )}
                   />
