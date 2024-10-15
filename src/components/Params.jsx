@@ -39,9 +39,19 @@ const Params = () => {
   const [success, setSuccess] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [parameterId, setParameterId] = useState(null);
+  const [codeId, setCodeId] = useState(null);
 
   const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
+  //set the transaction type to expense code if the transaction type is not 1
+  useEffect(() => {
+    if (formValues.trans_type == "1") {
+      handleInputChange("expense_code", null);
+    }
+  }, [formValues.trans_type]);
+
+
+  //debounce function to handle input change in the form fields 
   const debounce = (func, delay) => {
     let timeout;
     return (...args) => {
@@ -49,7 +59,6 @@ const Params = () => {
       timeout = setTimeout(() => func(...args), delay);
     };
   };
-
 
 
   //handles post update request
@@ -71,15 +80,32 @@ const Params = () => {
     }
   };
 
+
   //fetches parameters
-  const fetchParameters = async (description) => {
+  // const fetchParameters = async (description) => {
+  //   try {
+  //     const response = await axios.get(
+  //       ENDPOINT + `/code_creation_details/code_id/${description}`
+  //     ,{
+  //       headers: headers});
+  //     setParameters(response.data.code_details);
+  //     console.log("Parameters:", response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching parameters:", error);
+  //   }
+  // };
+
+  const fetchCodeTypes = async (code) => {
     try {
+      // console.log("Description:", description);
       const response = await axios.get(
-        ENDPOINT + `/code_creation_details/code_id/${description}`
-      ,{
-        headers: headers});
-      setParameters(response.data.code_details);
-      console.log("Parameters:", response.data);
+            ENDPOINT + `/code_creations/code/${code}`
+            ,{
+              headers: headers});
+
+      //setCodeId
+      setCodeId(response.data.id);
+
     } catch (error) {
       console.error("Error fetching parameters:", error);
     }
@@ -91,7 +117,7 @@ const Params = () => {
       const response = await axios.put(`${ENDPOINT}/code_creation_details/deactivate/${id}`,{},{
         headers: headers});
       console.log("Delete response:", response.data);
-      fetchParameters(formValues.description);
+      // fetchParameters(formValues.description);
     } catch (error) {
       console.error("Error deleting parameter:", error);
     }
@@ -102,7 +128,7 @@ const Params = () => {
     try {
 
       // Set the parameter ID to the selected row
-      setParameterId(row);
+      // setParameterId(row);
 
       // Fetch the details of the selected row
       const response = await axios.get(`${ENDPOINT}/code_creation_details/${row}`, {
@@ -128,15 +154,22 @@ const Params = () => {
   };
 
   const rows = [
-    { parameter: "Document type", fields: ["Description", "Status"] },
-    { parameter: "Branch", fields: ["Description","Status"] },
+    { parameter: "DOCS" },
+    { parameter: "BRA" },
     // { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
     // {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
   ];
 
+  // const rows = [
+  //   { parameter: "Document type", fields: ["Description", "Status"] },
+  //   { parameter: "Branch", fields: ["Description","Status"] },
+  //   // { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
+  //   // {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
+  // ];
+  
   const codeTypeMapping = {
-    "Document type": "1",
-    "Branch": "2",
+    "DOCS": "1",
+    "BRA": "2",
     // "Approvers": "Approvers",
     // "Temporary Approvers": "TemporaryApprovers",
   };
@@ -154,17 +187,21 @@ const Params = () => {
     
     setSelectedRow(row);
     setFormValues({
-      description: codeTypeMapping[row.parameter],
-      CodeDesc: "",
+      description: "",
+      trans_type: "",
+      expense_code: "",
       Status: "1",
     });
     if (type === "add") {
+      console.log("Selected Row:", row.parameter); // Debug log
+      fetchCodeTypes(row.parameter);
       setModalType(type);
     } else {
-      fetchParameters(codeTypeMapping[row.parameter]);
+      // fetchParameters(codeTypeMapping[row.parameter]);
       setModalType(type);
     }
   };
+
   const handleClose = () => setModalType(null);
 
   /**
@@ -173,10 +210,10 @@ const Params = () => {
    * @param {string} value - The value to update the field with
    */
   const handleInputChange = (field, value) => {
+    console.log(`Updating ${field} with value:`, value); // Debug log
     setFormValues((prevValues) => ({
       ...prevValues,
       [field]: value,
-      ...(field === selectedRow?.fields[0] && { CodeDesc: value }),
     }));
   };
 
@@ -184,8 +221,12 @@ const Params = () => {
 
   //handles creation of new parameter
   const handleSave = () => {
-    if (!formValues.description) {
-      setShowAlert(true); // Show alert if description is empty
+
+    // Validate form values
+    console.log("Form Values:", formValues); // Debug log
+    if (!formValues.description || (formValues.trans_type === "1" && !formValues.expense_code)) {
+      console.log("Validation failed"); // Debug log
+      setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
       return;
     }
 
@@ -197,7 +238,8 @@ const Params = () => {
     // Reset form values
     setFormValues({
       description: "",
-      CodeDesc: "",
+      trans_type: "",
+      expense_code: "",
       Status: "1",
     });
   };
@@ -207,7 +249,10 @@ const Params = () => {
     try {
       const response = await axios.post(ENDPOINT + `/code_creation_details`, {
         description: formValues.description,
+        trans_type: formValues.trans_type,
+        expense_code: formValues.expense_code,
         status: formValues.Status,
+        code_id: codeId
       },{
         headers: headers});
       console.log("Response:", response.data);
@@ -378,41 +423,42 @@ const Params = () => {
                         <Input
                           size="sm"
                           placeholder="Enter Description"
-                          value={formValues.CodeDesc}
+                          value={formValues.description}
                           onChange={(e) =>
-                            handleInputChange("CodeDesc", e.target.value)
+                            handleInputChange("description", e.target.value)
                           }
                         />
                       </FormControl>
                       
+                      
                       <FormLabel>Transaction Document Type</FormLabel>
                       <FormControl sx={{ width: "100%" }}>
                         <Select
-                          placeholder="Select Status"
+                          placeholder="Select Transaction type"
                           value={formValues.trans_type}
-                          onChange={(e) =>
-                            handleInputChange("Status", e.target.value)
-                          }
+                          onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
                         >
                           <Option value="1">Yes</Option>
                           <Option value="0">No</Option>
                         </Select>
                       </FormControl>
 
-                      <FormLabel>Expense code</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select Type of Expense"
-                          value={formValues.trans_type}
-                          onChange={(e) =>
-                            handleInputChange("Status", e.target.value)
-                          }
-                        >
-                          <Option value="1">Donation</Option>
-                          <Option value="0">Procument</Option>
-                        </Select>
-                      </FormControl>
-
+                      {formValues.trans_type == "1" && (
+                        <FormLabel>Expense code</FormLabel>
+                      )}
+                      {formValues.trans_type == "1" && (
+                        <FormControl sx={{ width: "100%" }}>
+                          <Select
+                            placeholder="Select Type of Expense"
+                            value={formValues.expense_code}
+                            onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
+                          >
+                            <Option value="">Select Type of Expense</Option>
+                            <Option value="1">Donation</Option>
+                            <Option value="0">Procument</Option>
+                          </Select>
+                        </FormControl>
+                      )}
                       <FormLabel>Status</FormLabel>
                       <FormControl sx={{ width: "100%" }}>
                         <Select
@@ -448,7 +494,7 @@ const Params = () => {
           </Modal>
 
           {/* Update Modal */}
-          <Modal
+          {/* <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
             open={modalType === 'update'} onClose={handleClose}
@@ -481,7 +527,7 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                       Update {/*{selectedRow.parameter}*/} Parameter 
+                       Update {/*{selectedRow.parameter} Parameter 
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -546,7 +592,7 @@ const Params = () => {
                 </Typography>
               )}
             </Sheet>
-          </Modal> 
+          </Modal>  */}
 
           {/* View Modal */}
           <Modal
