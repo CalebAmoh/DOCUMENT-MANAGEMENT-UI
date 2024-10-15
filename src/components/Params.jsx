@@ -9,6 +9,8 @@ import Stack from "@mui/joy/Stack";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import DeleteIcon from "@mui/icons-material/Delete"; // Import Delete icon
+//import edit icon
+import EditIcon from "@mui/icons-material/Edit";
 import Modal from "@mui/joy/Modal";
 import ModalClose from "@mui/joy/ModalClose";
 import Sheet from "@mui/joy/Sheet";
@@ -24,41 +26,56 @@ import {API_SERVER, headers} from "../constant";
 // import DeleteIcon from "@mui/icons-material/Delete";
 
 const Params = () => {
-  const [open, setOpen] = useState(false);
-  const [viewOpen, setViewOpen] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
   const [selectedRow, setSelectedRow] = useState(null);
   const [formValues, setFormValues] = useState({
-    CodeType: "",
-    CodeDesc: "",
-    Status: "Active",
+    description: "",
+    trans_type: "",
+    expense_code: "",
+    Status: "1",
   });
   const [parameters, setParameters] = useState([]);
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
+  const [parameterId, setParameterId] = useState(null);
 
   const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
-  const handlePost = async () => {
+  const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
+  };
+
+
+
+  //handles post update request
+  const handlePostUpdate = async () => {
     try {
-      const response = await axios.post(ENDPOINT + `/add-param`, {
-        code_type: formValues.CodeType,
-        code_desc: formValues.CodeDesc,
+      const response = await axios.put(`${ENDPOINT}/code_creation_details/${parameterId}`, {
+        description: formValues.description,
         status: formValues.Status,
-      });
+        id: parameterId
+      },{
+        headers: headers});
       console.log("Response:", response.data);
 
       setSuccessModal(true);
       setSuccess(response.data);
+      // console.log(response);
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  const fetchParameters = async (codeType) => {
+  //fetches parameters
+  const fetchParameters = async (description) => {
     try {
       const response = await axios.get(
-        ENDPOINT + `/code_creation_details/code_id/${codeType}`
+        ENDPOINT + `/code_creation_details/code_id/${description}`
       ,{
         headers: headers});
       setParameters(response.data.code_details);
@@ -68,28 +85,60 @@ const Params = () => {
     }
   };
 
+  //handles delete request
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(ENDPOINT + `/delete-param?id=${id}`);
+      const response = await axios.put(`${ENDPOINT}/code_creation_details/deactivate/${id}`,{},{
+        headers: headers});
       console.log("Delete response:", response.data);
-      fetchParameters(formValues.CodeType);
+      fetchParameters(formValues.description);
     } catch (error) {
       console.error("Error deleting parameter:", error);
+    }
+  };
+
+  //handles edit request
+  const handleEdit = async (row) => {
+    try {
+
+      // Set the parameter ID to the selected row
+      setParameterId(row);
+
+      // Fetch the details of the selected row
+      const response = await axios.get(`${ENDPOINT}/code_creation_details/${row}`, {
+        headers: headers
+      });
+      
+      // Populate the form with the details of the selected row
+      const data = response.data;
+      console.log("Data:", data);
+      setFormValues({
+        description: data.code_detail.code_id, // Map code_id here
+        CodeDesc: data.code_detail.description, // Use description correctly
+        Status: data.code_detail.status,
+      });
+      
+  
+      // Set the mode to "update" and open the modal
+      // setUpdateModal(true);
+
+    } catch (error) {
+      console.error("Error fetching parameter details:", error);
     }
   };
 
   const rows = [
     { parameter: "Document type", fields: ["Description", "Status"] },
     { parameter: "Branch", fields: ["Description","Status"] },
-    { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
-    {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
+    // { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
+    // {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
   ];
 
   const codeTypeMapping = {
     "Document type": "1",
     "Branch": "2",
-    "Approvers": "Approvers",
-    "Temporary Approvers": "TemporaryApprovers",
+    // "Approvers": "Approvers",
+    // "Temporary Approvers": "TemporaryApprovers",
   };
 
     /**
@@ -102,20 +151,27 @@ const Params = () => {
    * If the type is not "add", it fetches parameters based on the row's parameter and opens the view modal.
    */
   const handleOpen = (row, type) => {
+    
     setSelectedRow(row);
     setFormValues({
-      CodeType: codeTypeMapping[row.parameter],
+      description: codeTypeMapping[row.parameter],
       CodeDesc: "",
-      Status: "Active",
+      Status: "1",
     });
     if (type === "add") {
-      setOpen(true);
+      setModalType(type);
     } else {
       fetchParameters(codeTypeMapping[row.parameter]);
-      setViewOpen(true);
+      setModalType(type);
     }
   };
+  const handleClose = () => setModalType(null);
 
+  /**
+   * 
+   * @param {Object} field - The field to update
+   * @param {string} value - The value to update the field with
+   */
   const handleInputChange = (field, value) => {
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -124,21 +180,69 @@ const Params = () => {
     }));
   };
 
+  const handleInputChangeDebounced = debounce(handleInputChange, 300);
+
+  //handles creation of new parameter
   const handleSave = () => {
-    if (!formValues.CodeDesc) {
-      setShowAlert(true); // Show alert if CodeDesc is empty
+    if (!formValues.description) {
+      setShowAlert(true); // Show alert if description is empty
       return;
     }
 
     setShowAlert(false); // Hide alert if validation passes
-    console.log("Form Values:", formValues);
+    
+    //post request to create parameter
     handlePost();
-    setOpen(false);
+    
+    // Reset form values
     setFormValues({
-      CodeType: "",
+      description: "",
       CodeDesc: "",
-      Status: "Active",
+      Status: "1",
     });
+  };
+
+  //handles post request
+  const handlePost = async () => {
+    try {
+      const response = await axios.post(ENDPOINT + `/code_creation_details`, {
+        description: formValues.description,
+        status: formValues.Status,
+      },{
+        headers: headers});
+      console.log("Response:", response.data);
+
+      handleOpen('result');
+      setSuccess(response.data);
+      // console.log(response);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  //handles update of parameter
+  const handleUpdate = () => {
+    try{
+      if (!formValues.CodeDesc) {
+        setShowAlert(true); // Show alert if CodeDesc is empty
+        return;
+      }
+
+      //post request to update parameter
+      handlePostUpdate();
+
+      setShowAlert(false); // Hide alert if validation passes
+      console.log("Form Values:", formValues);
+
+      // setOpen(false);
+      setFormValues({
+        description: "",
+        CodeDesc: "",
+        Status: "1",
+      });
+    }catch (error) {
+      console.error("Error updating parameter:", error);
+    }
   };
 
   return (
@@ -161,6 +265,8 @@ const Params = () => {
             </Typography>
           </Box>
           <Divider />
+
+          {/* Table to display parameters */}
           <Table
             aria-labelledby="tableTitle"
             stickyHeader
@@ -212,15 +318,15 @@ const Params = () => {
               ))}
             </tbody>
           </Table>
+
+        
+          {/* ALL MODALS ARE PLACED HERE*/}
+
           {/* Add Modal */}
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={open}
-            onClose={() => {
-              setOpen(false);
-              setShowAlert(false);
-            }}
+            open={modalType === 'add'} onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
@@ -250,7 +356,132 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      Add {selectedRow.parameter} Parameter
+                      Add Document Type
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ marginBottom: 2 }} />
+                  {showAlert && ( // Conditionally render Alert component
+                    <Alert
+                      description={`Please enter ${selectedRow?.fields[0]}`}
+                      type="error"
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                      closable={true}
+                      onClose={() => setShowAlert(false)} // Reset alert state on close
+                    />
+                  )}
+                  <Stack spacing={2}>
+                    {/* add fields here for the form a description and status */}
+                    <Stack spacing={1}>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Input
+                          size="sm"
+                          placeholder="Enter Description"
+                          value={formValues.CodeDesc}
+                          onChange={(e) =>
+                            handleInputChange("CodeDesc", e.target.value)
+                          }
+                        />
+                      </FormControl>
+                      
+                      <FormLabel>Transaction Document Type</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Select
+                          placeholder="Select Status"
+                          value={formValues.trans_type}
+                          onChange={(e) =>
+                            handleInputChange("Status", e.target.value)
+                          }
+                        >
+                          <Option value="1">Yes</Option>
+                          <Option value="0">No</Option>
+                        </Select>
+                      </FormControl>
+
+                      <FormLabel>Expense code</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Select
+                          placeholder="Select Type of Expense"
+                          value={formValues.trans_type}
+                          onChange={(e) =>
+                            handleInputChange("Status", e.target.value)
+                          }
+                        >
+                          <Option value="1">Donation</Option>
+                          <Option value="0">Procument</Option>
+                        </Select>
+                      </FormControl>
+
+                      <FormLabel>Status</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Select
+                          placeholder="Select Status"
+                          value={formValues.Status}
+                          onChange={(e) =>
+                            handleInputChange("Status", e.target.value)
+                          }
+                        >
+                          <Option value="1">Active</Option>
+                          <Option value="0">Inactive</Option>
+                        </Select>
+                      </FormControl>
+
+                    </Stack>
+                  </Stack>
+                  <CardActions>
+                    <Button
+                      sx={{
+                        backgroundColor: "#00357A",
+                        color: "#fff",
+                        marginTop: "16px",
+                      }}
+                      onClick={handleSave}
+                    >
+                      Save
+                    </Button>
+                  </CardActions>
+                </Typography>
+              )}
+
+            </Sheet>
+          </Modal>
+
+          {/* Update Modal */}
+          <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'update'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                width: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              {selectedRow && (
+                <Typography id="modal-desc" textColor="text.tertiary">
+                  <Box sx={{ mb: 1 }}>
+                    <Typography level="title-md">
+                       Update {/*{selectedRow.parameter}*/} Parameter 
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -269,11 +500,11 @@ const Params = () => {
                       <Stack spacing={1} key={idx}>
                         <FormLabel>{field}</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                          {field === "Code Type" ? (
+                          {field === "Description" ? (
                             <Input
                               size="sm"
-                              value={formValues.CodeType}
-                              disabled
+                              value={formValues.description}
+                              onChange={(e) => handleInputChange("description", e.target.value)}
                             />
                           ) : field === "Status" ? (
                             <Select
@@ -283,8 +514,8 @@ const Params = () => {
                                 handleInputChange("Status", e.target.value)
                               }
                             >
-                              <Option value="Active">Active</Option>
-                              <Option value="Inactive">Inactive</Option>
+                              <Option value="1">Active</Option>
+                              <Option value="0">Inactive</Option>
                             </Select>
                           ) : (
                             <Input
@@ -307,21 +538,21 @@ const Params = () => {
                         color: "#fff",
                         marginTop: "16px",
                       }}
-                      onClick={handleSave}
+                      onClick={handleUpdate}
                     >
-                      Save
+                      Update
                     </Button>
                   </CardActions>
                 </Typography>
               )}
             </Sheet>
-          </Modal>
+          </Modal> 
+
           {/* View Modal */}
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={viewOpen}
-            onClose={() => setViewOpen(false)}
+            open={modalType === 'view'} onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
@@ -368,6 +599,14 @@ const Params = () => {
                       <List.Item
                         actions={[
                           <Button
+                            sx={{ backgroundColor: "#007bff", width: 35 }}
+                            key="delete"
+                            type="text"
+                            // icon={<DeleteIcon />}
+                            onClick={() => handleOpen(item.id,"update")}
+                          >
+                            <EditIcon />
+                          </Button>,<Button
                             sx={{ backgroundColor: "#920505", width: 35 }}
                             key="delete"
                             type="text"
@@ -375,23 +614,25 @@ const Params = () => {
                             onClick={() => handleDelete(item.id)}
                           >
                             <DeleteIcon />
-                          </Button>,
+                          </Button>
                         ]}
                       >
                         {item.description}
-                        {/* {item.code_desc} - {item.status} */}
+                         {/* - {item.id} */}
+                        {/* {item.code_desc} - {item.status}*/}
                       </List.Item>
                     )}
                   />
                 </Typography>
               )}
             </Sheet>
-          </Modal>
+          </Modal> 
+
+         {/* Success Modal */}
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={successModal}
-            onClose={() => setSuccessModal(false)}
+            open={modalType === 'result'} onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
@@ -418,13 +659,13 @@ const Params = () => {
             >
               <ModalClose variant="plain" sx={{ m: 1 }} />
               <Typography id="modal-desc" textColor="text.tertiary">
-                {success && success.code === "200" ? (
+                {success?.code === "200" && (
                   <Result
                     status="success"
-                    title={success.result}
+                    title={success?.message || "Operation Successful"}
                     subTitle="Parameter added successfully"
                   />
-                ) : null}
+                )}
               </Typography>
             </Sheet>
           </Modal>

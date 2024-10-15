@@ -84,13 +84,13 @@ const Settings = () => {
               >
                 Parameters
               </Tab>
-              {/* <Tab
+              <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={2}
               >
-                License Amendment
-              </Tab> */}
+                Approvers
+              </Tab>
             </TabList>
             <TabPanel value={0}>
               <Profile />
