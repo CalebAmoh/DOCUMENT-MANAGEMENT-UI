@@ -82,22 +82,22 @@ const Params = () => {
 
 
   //fetches parameters
-  // const fetchParameters = async (description) => {
-  //   try {
-  //     const response = await axios.get(
-  //       ENDPOINT + `/code_creation_details/code_id/${description}`
-  //     ,{
-  //       headers: headers});
-  //     setParameters(response.data.code_details);
-  //     console.log("Parameters:", response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching parameters:", error);
-  //   }
-  // };
+  const fetchParameters = async (description) => {
+    try {
+      const response = await axios.get(
+        ENDPOINT + `/code_creation_details/code_id/${description}`
+      ,{
+        headers: headers});
+      setParameters(response.data.code_details);
+      console.log("Parameters:", response.data);
+    } catch (error) {
+      console.error("Error fetching parameters:", error);
+    }
+  };
 
   const fetchCodeTypes = async (code) => {
     try {
-      // console.log("Description:", description);
+      // this endpoint will get the id of the code
       const response = await axios.get(
             ENDPOINT + `/code_creations/code/${code}`
             ,{
@@ -186,18 +186,43 @@ const Params = () => {
   const handleOpen = (row, type) => {
     
     setSelectedRow(row);
+    console.log("Selected Row:", row); // Debug log
     setFormValues({
       description: "",
       trans_type: "",
       expense_code: "",
       Status: "1",
     });
-    if (type === "add") {
-      console.log("Selected Row:", row.parameter); // Debug log
-      fetchCodeTypes(row.parameter);
+
+    
+    if(type === "add") {
+      if(row.parameter === "DOCS"){
+
+        //call the add document type modal
+        setModalType('add');
+
+        //fetch the id of the code
+        fetchCodeTypes(row.parameter);
+
+      }else if(row.parameter === "BRA"){
+
+        setFormValues((prevValues) => ({
+          ...prevValues,
+          trans_type: "0"
+        }));
+
+        //call the add branch modal
+        setModalType('add_branch');
+
+        //fetch the id of the code
+        fetchCodeTypes(row.parameter);
+
+
+      }
+    }else if('view'){
+      fetchParameters(codeTypeMapping[row.parameter]);
       setModalType(type);
     } else {
-      // fetchParameters(codeTypeMapping[row.parameter]);
       setModalType(type);
     }
   };
@@ -222,6 +247,10 @@ const Params = () => {
   //handles creation of new parameter
   const handleSave = () => {
 
+    // if(selectedRow === "BRA"){
+    //   formValues.trans_type=0;
+    // }
+    
     // Validate form values
     console.log("Form Values:", formValues); // Debug log
     if (!formValues.description || (formValues.trans_type === "1" && !formValues.expense_code)) {
@@ -229,8 +258,9 @@ const Params = () => {
       setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
       return;
     }
-
+    
     setShowAlert(false); // Hide alert if validation passes
+    
     
     //post request to create parameter
     handlePost();
@@ -257,9 +287,9 @@ const Params = () => {
         headers: headers});
       console.log("Response:", response.data);
 
-      handleOpen('result');
+      handleOpen('test','result');
       setSuccess(response.data);
-      // console.log(response);
+      console.log(response);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -367,7 +397,7 @@ const Params = () => {
         
           {/* ALL MODALS ARE PLACED HERE*/}
 
-          {/* Add Modal */}
+          {/* Add Modal Document Type*/}
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -459,6 +489,103 @@ const Params = () => {
                           </Select>
                         </FormControl>
                       )}
+                      <FormLabel>Status</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Select
+                          placeholder="Select Status"
+                          value={formValues.Status}
+                          onChange={(e) =>
+                            handleInputChange("Status", e.target.value)
+                          }
+                        >
+                          <Option value="1">Active</Option>
+                          <Option value="0">Inactive</Option>
+                        </Select>
+                      </FormControl>
+
+                    </Stack>
+                  </Stack>
+                  <CardActions>
+                    <Button
+                      sx={{
+                        backgroundColor: "#00357A",
+                        color: "#fff",
+                        marginTop: "16px",
+                      }}
+                      onClick={handleSave}
+                    >
+                      Save
+                    </Button>
+                  </CardActions>
+                </Typography>
+              )}
+
+            </Sheet>
+          </Modal>
+
+          {/* Add Modal Branch */}
+          <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'add_branch'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                width: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              {selectedRow && (
+                <Typography id="modal-desc" textColor="text.tertiary">
+                  <Box sx={{ mb: 1 }}>
+                    <Typography level="title-md">
+                      Add Branch
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ marginBottom: 2 }} />
+                  {showAlert && ( // Conditionally render Alert component
+                    <Alert
+                      description={`Please enter ${selectedRow?.fields[0]}`}
+                      type="error"
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                      closable={true}
+                      onClose={() => setShowAlert(false)} // Reset alert state on close
+                    />
+                  )}
+                  <Stack spacing={2}>
+                    {/* add fields here for the form a description and status */}
+                    <Stack spacing={1}>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl sx={{ width: "100%" }}>
+                        <Input
+                          size="sm"
+                          placeholder="Enter Description"
+                          value={formValues.description}
+                          onChange={(e) =>
+                            handleInputChange("description", e.target.value)
+                          }
+                        />
+                      </FormControl>
+                
                       <FormLabel>Status</FormLabel>
                       <FormControl sx={{ width: "100%" }}>
                         <Select
