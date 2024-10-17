@@ -43,9 +43,9 @@ const Params = () => {
 
   const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
-  //set the transaction type to expense code if the transaction type is not 1
+  //set the  expense code to empty if the transaction type is not 1
   useEffect(() => {
-    if (formValues.trans_type == "1") {
+    if (formValues.trans_type !== "1") {
       handleInputChange("expense_code", null);
     }
   }, [formValues.trans_type]);
@@ -67,6 +67,8 @@ const Params = () => {
       const response = await axios.put(`${ENDPOINT}/code_creation_details/${parameterId}`, {
         description: formValues.description,
         status: formValues.Status,
+        trans_type: formValues.trans_type,
+        expense_code: formValues.expense_code,
         id: parameterId
       },{
         headers: headers});
@@ -108,6 +110,8 @@ const Params = () => {
       console.log("Data:", data);
       setFormValues({
         description: data.code_detail[0].description, // Use description correctly
+        trans_type: data.code_detail[0].trans_type,
+        expense_code: data.code_detail[0].expense_code,
         Status: data.code_detail[0].status
       });
 
@@ -252,8 +256,12 @@ const Params = () => {
     }else if(type === "update"){
       
       fetchParameterDetails(row);
-     console.log("open modal",row.parameter);
-      setModalType(type);
+     //if the selected row is DOCS
+      if(selectedRow.parameter === "DOCS"){
+        setModalType('update_docs');
+      }else if(selectedRow.parameter === "BRA"){
+        setModalType(type);
+      }
     } else {
       
       setModalType(type);
@@ -529,8 +537,8 @@ const Params = () => {
                         <Select
                           placeholder="Select Status"
                           value={formValues.Status}
-                          onChange={(e) =>
-                            handleInputChange("Status", e.target.value)
+                          onChange={(e, newValue) =>
+                            handleInputChange("Status", newValue)
                           }
                         >
                           <Option value="1">Active</Option>
@@ -653,7 +661,7 @@ const Params = () => {
             </Sheet>
           </Modal>
 
-          {/* Update Modal */}
+          {/* Update Branch Modal */}
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -750,7 +758,7 @@ const Params = () => {
           <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={modalType === 'update_branch'} onClose={handleClose}
+            open={modalType === 'update_docs'} onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
@@ -780,7 +788,7 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                       Update {/*{selectedRow.parameter}*/} Branch 
+                       Update {/*{selectedRow.parameter}*/} Document Type 
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -807,6 +815,34 @@ const Params = () => {
                                 handleInputChange("description", e.target.value)
                               }
                             />
+
+                            <FormLabel>Transaction Document Type</FormLabel>
+                            <FormControl sx={{ width: "100%" }}>
+                              <Select
+                                placeholder="Select Transaction type"
+                                value={formValues.trans_type}
+                                onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
+                              >
+                                <Option value="1">Yes</Option>
+                                <Option value="0">No</Option>
+                              </Select>
+                            </FormControl>
+
+
+                            {formValues.trans_type == "1" && (
+                              <FormLabel>Expense code</FormLabel>
+                            )}
+                            {formValues.trans_type == "1" && (
+                              <FormControl sx={{ width: "100%" }}>
+                                <Select
+                                  value={formValues.expense_code}
+                                  onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
+                                >
+                                  <Option value="1">Donation</Option>
+                                  <Option value="0">Procument</Option>
+                                </Select>
+                              </FormControl>
+                            )}
 
                             <FormLabel>Status</FormLabel>
                             <FormControl sx={{ width: "100%" }}>
