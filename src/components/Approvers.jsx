@@ -29,12 +29,16 @@ const Approvers = () => {
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
   const [selectedRow, setSelectedRow] = useState(null);
   const [formValues, setFormValues] = useState({
-    description: "",
-    trans_type: "",
-    expense_code: "",
+    user_id: "",
+    doc_type_id: "",
+    branch_id: "",
     Status: "1",
   });
   const [parameters, setParameters] = useState([]);
+  const [docTypes, setDocTypes] = useState([]); // State to manage doc types
+  const [branches, setBranches] = useState([]); // State to manage branches
+  const [users, setUsers] = useState([]); // State to manage users
+
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
@@ -43,12 +47,22 @@ const Approvers = () => {
 
   const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
-  //set the  expense code to empty if the transaction type is not 1
+
   useEffect(() => {
-    if (formValues.trans_type !== "1") {
-      handleInputChange("expense_code", null);
-    }
-  }, [formValues.trans_type]);
+    const fetchParameters = async () => {
+      try {
+        const response = await axios.get(ENDPOINT + `/get-parameters`, {headers: headers});
+        setDocTypes(response.data.doc_types);
+        setBranches(response.data.branches);
+        setUsers(response.data.users);
+        console.log("Bank names:", response.data);
+      } catch (error) {
+        console.error("Error fetching bank names:", error);
+      }
+    };
+
+    fetchParameters();
+  }, []);
 
 
   //debounce function to handle input change in the form fields 
@@ -66,9 +80,9 @@ const Approvers = () => {
     try {
       const response = await axios.put(`${ENDPOINT}/code_creation_details/${parameterId}`, {
         description: formValues.description,
-        status: formValues.Status,
-        trans_type: formValues.trans_type,
-        expense_code: formValues.expense_code,
+        status: formValues.branch_id,
+        trans_type: formValues.user_id,
+        expense_code: formValues.doc_type_id,
         id: parameterId
       },{
         headers: headers});
@@ -152,35 +166,7 @@ const Approvers = () => {
     }
   };
 
-  //handles edit request
-  const handleEdit = async (row) => {
-    try {
-
-      // Set the parameter ID to the selected row
-      // setParameterId(row);
-
-      // Fetch the details of the selected row
-      const response = await axios.get(`${ENDPOINT}/code_creation_details/${row}`, {
-        headers: headers
-      });
-      
-      // Populate the form with the details of the selected row
-      const data = response.data;
-      console.log("Data:", data);
-      setFormValues({
-        description: data.code_detail.code_id, // Map code_id here
-        CodeDesc: data.code_detail.description, // Use description correctly
-        Status: data.code_detail.status,
-      });
-      
-  
-      // Set the mode to "update" and open the modal
-      // setUpdateModal(true);
-
-    } catch (error) {
-      console.error("Error fetching parameter details:", error);
-    }
-  };
+ 
 
   const rows = [
     { parameter: "APPROVERS" },
@@ -287,14 +273,10 @@ const Approvers = () => {
 
   //handles creation of new parameter
   const handleSave = () => {
-
-    // if(selectedRow === "BRA"){
-    //   formValues.trans_type=0;
-    // }
     
     // Validate form values
     console.log("Form Values:", formValues); // Debug log
-    if (!formValues.description || (formValues.trans_type === "1" && !formValues.expense_code)) {
+    if (!formValues.user_id || !formValues.doc_type_id || !formValues.branch_id || !formValues.Status) {
       console.log("Validation failed"); // Debug log
       setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
       return;
@@ -308,9 +290,9 @@ const Approvers = () => {
     
     // Reset form values
     setFormValues({
-      description: "",
-      trans_type: "",
-      expense_code: "",
+      user_id: "",
+      doc_type_id: "",
+      branch_id: "",
       Status: "1",
     });
   };
@@ -319,11 +301,10 @@ const Approvers = () => {
   const handlePost = async () => {
     try {
       const response = await axios.post(ENDPOINT + `/code_creation_details`, {
-        description: formValues.description,
-        trans_type: formValues.trans_type,
-        expense_code: formValues.expense_code,
-        status: formValues.Status,
-        code_id: codeId
+        user_id: formValues.user_id,
+        doc_type_id: formValues.doc_type_id,
+        branch_id: formValues.branch_id,
+        status: formValues.branch_id
       },{
         headers: headers});
       console.log("Response:", response.data);
@@ -339,7 +320,7 @@ const Approvers = () => {
   //handles update of parameter
   const handleUpdate = () => {
     try{
-      if (!formValues.description || (formValues.trans_type === "1" && !formValues.expense_code)) {
+      if (!formValues.description || (formValues.user_id === "1" && !formValues.doc_type_id)) {
         console.log("Validation failed"); // Debug log
         setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
         return;
@@ -496,24 +477,29 @@ const Approvers = () => {
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select User"
-                            value={formValues.trans_type}
-                            onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
+                            value={formValues.user_id}
+                            onChange={(e, newValue) => handleInputChange("user_id", newValue)}
                             >
-                            <Option value="1">Yes</Option>
-                            <Option value="0">No</Option>
+                            {users.map((user) => (
+                                <Option key={user.id} value={user.id}>
+                                {user.first_name} {user.last_name}
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
 
                         <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
-                            placeholder="Select Type of Expense"
-                            value={formValues.expense_code}
-                            onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
+                            placeholder="Select Type of Document"
+                            value={formValues.doc_type_id}
+                            onChange={(e, newValue) => handleInputChange("doc_type_id", newValue)}
                             >
-                            <Option value="">Select Document type</Option>
-                            <Option value="1">Donation</Option>
-                            <Option value="0">Procument</Option>
+                            {docTypes.map((doctype) => (
+                                <Option key={doctype.id} value={doctype.id}>
+                                {doctype.description} 
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
                         
@@ -522,14 +508,16 @@ const Approvers = () => {
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
-                            value={formValues.Status}
+                            value={formValues.branch_id}
                             onChange={(e, newValue) =>
-                                handleInputChange("Status", newValue)
+                                handleInputChange("branch_id", newValue)
                             }
                             >
-                            <Option value="">Select Branch</Option>
-                            <Option value="1">Active</Option>
-                            <Option value="0">Inactive</Option>
+                            {branches.map((branch) => (
+                                <Option key={branch.id} value={branch.id}>
+                                {branch.description} 
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
                         
@@ -538,7 +526,7 @@ const Approvers = () => {
                             <Select
                             placeholder="Select Status"
                             value={formValues.Status}
-                            onChange={(e, newValue) =>
+                            onChange={(e,newValue) =>
                                 handleInputChange("Status", newValue)
                             }
                             >
@@ -567,436 +555,8 @@ const Approvers = () => {
             </Sheet>
           </Modal>
 
-          {/* Add Modal Branch */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'add_branch'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                width: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              {selectedRow && (
-                <Typography id="modal-desc" textColor="text.tertiary">
-                  <Box sx={{ mb: 1 }}>
-                    <Typography level="title-md">
-                      Add Branch
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ marginBottom: 2 }} />
-                  {/* {showAlert && ( // Conditionally render Alert component
-                    <Alert
-                      description={`Please enter ${selectedRow?.fields[0]}`}
-                      type="error"
-                      showIcon
-                      style={{ marginBottom: 16 }}
-                      closable={true}
-                      onClose={() => setShowAlert(false)} // Reset alert state on close
-                    />
-                  )} */}
-                  <Stack spacing={2}>
-                    {/* add fields here for the form a description and status */}
-                    <Stack spacing={1}>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Input
-                          size="sm"
-                          placeholder="Enter Description"
-                          value={formValues.description}
-                          onChange={(e) =>
-                            handleInputChange("description", e.target.value)
-                          }
-                        />
-                      </FormControl>
-                
-                      <FormLabel>Status</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select Status"
-                          value={formValues.Status}
-                          onChange={(e, newValue) => handleInputChange("Status", newValue)}
-                        >
-                          <Option value="1">Active</Option>
-                          <Option value="0">Inactive</Option>
-                        </Select>
-                      </FormControl>
+         
 
-                    </Stack>
-                  </Stack>
-                  <CardActions>
-                    <Button
-                      sx={{
-                        backgroundColor: "#00357A",
-                        color: "#fff",
-                        marginTop: "16px",
-                      }}
-                      onClick={handleSave}
-                    >
-                      Save
-                    </Button>
-                  </CardActions>
-                </Typography>
-              )}
-
-            </Sheet>
-          </Modal>
-
-          {/* Update Branch Modal */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'update'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                width: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              {selectedRow && (
-                <Typography id="modal-desc" textColor="text.tertiary">
-                  <Box sx={{ mb: 1 }}>
-                    <Typography level="title-md">
-                       Update {/*{selectedRow.parameter}*/} Branch 
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ marginBottom: 2 }} />
-                  {/* {showAlert && ( // Conditionally render Alert component
-                    <Alert
-                      description={`Please enter ${selectedRow?.fields[0]}`}
-                      type="error"
-                      showIcon
-                      style={{ marginBottom: 16 }}
-                      closable={true}
-                      onClose={() => setShowAlert(false)} // Reset alert state on close
-                    />
-                  )} */}
-                  <Stack spacing={2}>
-                      <Stack spacing={1}>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                           
-                            <Input
-                              size="sm"
-                              placeholder={`Enter `}
-                              value={formValues.description}
-                              onChange={(e) =>
-                                handleInputChange("description", e.target.value)
-                              }
-                            />
-
-                            <FormLabel>Status</FormLabel>
-                            <FormControl sx={{ width: "100%" }}>
-                              <Select
-                                value={formValues.Status}
-                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
-                                 >
-                                <Option value="1">Active</Option>
-                                <Option value="0">Inactive</Option>
-                              </Select>
-                            </FormControl>
-
-                        </FormControl>
-                      </Stack>
-                  </Stack>
-                  <CardActions>
-                    <Button
-                      sx={{
-                        backgroundColor: "#00357A",
-                        color: "#fff",
-                        marginTop: "16px",
-                      }}
-                      onClick={handleUpdate}
-                    >
-                      Update
-                    </Button>
-                  </CardActions>
-                </Typography>
-              )}
-            </Sheet>
-          </Modal> 
-
-          {/* Update Document type Modal */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'update_docs'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                width: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              {selectedRow && (
-                <Typography id="modal-desc" textColor="text.tertiary">
-                  <Box sx={{ mb: 1 }}>
-                    <Typography level="title-md">
-                       Update {/*{selectedRow.parameter}*/} Document Type 
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ marginBottom: 2 }} />
-                  {/* {showAlert && ( // Conditionally render Alert component
-                    <Alert
-                      description={`Please enter ${selectedRow?.fields[0]}`}
-                      type="error"
-                      showIcon
-                      style={{ marginBottom: 16 }}
-                      closable={true}
-                      onClose={() => setShowAlert(false)} // Reset alert state on close
-                    />
-                  )} */}
-                  <Stack spacing={2}>
-                      <Stack spacing={1}>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                           
-                            <Input
-                              size="sm"
-                              placeholder={`Enter `}
-                              value={formValues.description}
-                              onChange={(e) =>
-                                handleInputChange("description", e.target.value)
-                              }
-                            />
-
-                            <FormLabel>Transaction Document Type</FormLabel>
-                            <FormControl sx={{ width: "100%" }}>
-                              <Select
-                                placeholder="Select Transaction type"
-                                value={formValues.trans_type}
-                                onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
-                              >
-                                <Option value="1">Yes</Option>
-                                <Option value="0">No</Option>
-                              </Select>
-                            </FormControl>
-
-
-                            {formValues.trans_type === "1" && (
-                              <FormLabel>Expense code</FormLabel>
-                            )}
-                            {formValues.trans_type === "1" && (
-                              <FormControl sx={{ width: "100%" }}>
-                                <Select
-                                  value={formValues.expense_code}
-                                  onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
-                                >
-                                  <Option value="1">Donation</Option>
-                                  <Option value="0">Procument</Option>
-                                </Select>
-                              </FormControl>
-                            )}
-
-                            <FormLabel>Status</FormLabel>
-                            <FormControl sx={{ width: "100%" }}>
-                              <Select
-                                value={formValues.Status}
-                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
-                                 >
-                                <Option value="1">Active</Option>
-                                <Option value="0">Inactive</Option>
-                              </Select>
-                            </FormControl>
-
-                        </FormControl>
-                      </Stack>
-                  </Stack>
-                  <CardActions>
-                    <Button
-                      sx={{
-                        backgroundColor: "#00357A",
-                        color: "#fff",
-                        marginTop: "16px",
-                      }}
-                      onClick={handleUpdate}
-                    >
-                      Update
-                    </Button>
-                  </CardActions>
-                </Typography>
-              )}
-            </Sheet>
-          </Modal> 
-
-          {/* View Modal */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'view'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                width: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              {selectedRow && (
-                <Typography id="modal-desc" textColor="text.tertiary">
-                  <Box sx={{ mb: 1 }}>
-                    <Typography level="title-md">
-                      View Branch Parameters
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ marginBottom: 2 }} />
-                  <List
-                    pagination={{
-                      onChange: (page) => {
-                        console.log(page);
-                      },
-                      pageSize: 3,
-                    }}
-                    bordered
-                    dataSource={parameters}
-                    renderItem={(item) => (
-                      <List.Item
-                        actions={[
-                          <Button
-                            sx={{ backgroundColor: "#007bff", width: 35 }}
-                            key="delete"
-                            type="text"
-                            // icon={<DeleteIcon />}
-                            onClick={() => handleOpen(item.id,"update")}
-                          >
-                            <EditIcon />
-                          </Button>,<Button
-                            sx={{ backgroundColor: "#920505", width: 35 }}
-                            key="delete"
-                            type="text"
-                            // icon={<DeleteIcon />}
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <DeleteIcon />
-                          </Button>
-                        ]}
-                      >
-                        {item.description}
-                         {/* - {item.id} */}
-                        {/* {item.code_desc} - {item.status}*/}
-                      </List.Item>
-                    )}
-                  />
-                </Typography>
-              )}
-            </Sheet>
-          </Modal> 
-
-         {/* Success Modal */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'result'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                maxWidth: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                {success?.code === "200" && (
-                  <Result
-                    status="success"
-                    title={success?.message || "Operation Successful"}
-                    subTitle="Parameter added successfully"
-                  />
-                )}
-              </Typography>
-            </Sheet>
-          </Modal>
         </Card>
       </Stack>
     </div>
