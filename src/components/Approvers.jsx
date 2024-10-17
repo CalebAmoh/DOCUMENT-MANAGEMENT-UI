@@ -25,7 +25,7 @@ import axios from "axios";
 import {API_SERVER, headers} from "../constant";
 // import DeleteIcon from "@mui/icons-material/Delete";
 
-const Params = () => {
+const Approvers = () => {
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
   const [selectedRow, setSelectedRow] = useState(null);
   const [formValues, setFormValues] = useState({
@@ -37,6 +37,7 @@ const Params = () => {
   const [parameters, setParameters] = useState([]);
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
   const [parameterId, setParameterId] = useState(null);
   const [codeId, setCodeId] = useState(null);
 
@@ -151,11 +152,39 @@ const Params = () => {
     }
   };
 
+  //handles edit request
+  const handleEdit = async (row) => {
+    try {
+
+      // Set the parameter ID to the selected row
+      // setParameterId(row);
+
+      // Fetch the details of the selected row
+      const response = await axios.get(`${ENDPOINT}/code_creation_details/${row}`, {
+        headers: headers
+      });
+      
+      // Populate the form with the details of the selected row
+      const data = response.data;
+      console.log("Data:", data);
+      setFormValues({
+        description: data.code_detail.code_id, // Map code_id here
+        CodeDesc: data.code_detail.description, // Use description correctly
+        Status: data.code_detail.status,
+      });
+      
   
+      // Set the mode to "update" and open the modal
+      // setUpdateModal(true);
+
+    } catch (error) {
+      console.error("Error fetching parameter details:", error);
+    }
+  };
 
   const rows = [
-    { parameter: "DOCS" },
-    { parameter: "BRA" },
+    { parameter: "APPROVERS" },
+    { parameter: "TEMPORARY APPROVERS" },
     // { parameter: "Approvers", fields: ["User", "Branch", "Document Type","Status"] },
     // {parameter: "Temporary Approvers",fields: ["User", "Document Type", "Status"]},
   ];
@@ -168,8 +197,8 @@ const Params = () => {
   // ];
   
   const codeTypeMapping = {
-    "DOCS": "1",
-    "BRA": "2",
+    "APPOVERS": "1",
+    "TEMPORARY APPROVERS": "2",
     // "Approvers": "Approvers",
     // "Temporary Approvers": "TemporaryApprovers",
   };
@@ -197,7 +226,7 @@ const Params = () => {
     
     if(type === "add") {
       
-      if(row.parameter === "DOCS"){
+      if(row.parameter === "APPROVERS"){
 
         //call the add document type modal
         setModalType('add');
@@ -205,7 +234,7 @@ const Params = () => {
         //fetch the id of the code
         fetchCodeTypes(row.parameter);
 
-      }else if(row.parameter === "BRA"){
+      }else if(row.parameter === "TEMPORARY APPOVERS"){
 
         setFormValues((prevValues) => ({
           ...prevValues,
@@ -254,7 +283,7 @@ const Params = () => {
     }));
   };
 
-  debounce(handleInputChange, 300);
+  const handleInputChangeDebounced = debounce(handleInputChange, 300);
 
   //handles creation of new parameter
   const handleSave = () => {
@@ -350,7 +379,7 @@ const Params = () => {
           <Box sx={{ mb: 1 }}>
             <Typography level="title-md"></Typography>
             <Typography level="body-sm">
-              Manage parameters
+              Manage Approves
             </Typography>
           </Box>
           <Divider />
@@ -445,7 +474,7 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      Add Document Type
+                      Add Approver
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -462,60 +491,61 @@ const Params = () => {
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Input
-                          size="sm"
-                          placeholder="Enter Description"
-                          value={formValues.description}
-                          onChange={(e) =>
-                            handleInputChange("description", e.target.value)
-                          }
-                        />
-                      </FormControl>
-                      
-                      
-                      <FormLabel>Transaction Document Type</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select Transaction type"
-                          value={formValues.trans_type}
-                          onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
-                        >
-                          <Option value="1">Yes</Option>
-                          <Option value="0">No</Option>
-                        </Select>
-                      </FormControl>
-
-                      {formValues.trans_type === "1" && (
-                        <FormLabel>Expense code</FormLabel>
-                      )}
-                      {formValues.trans_type === "1" && (
+              
+                        <FormLabel>User</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                          <Select
+                            <Select
+                            placeholder="Select User"
+                            value={formValues.trans_type}
+                            onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
+                            >
+                            <Option value="1">Yes</Option>
+                            <Option value="0">No</Option>
+                            </Select>
+                        </FormControl>
+
+                        <FormLabel>Document Type</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
                             placeholder="Select Type of Expense"
                             value={formValues.expense_code}
                             onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
-                          >
-                            <Option value="">Select Type of Expense</Option>
+                            >
+                            <Option value="">Select Document type</Option>
                             <Option value="1">Donation</Option>
                             <Option value="0">Procument</Option>
-                          </Select>
+                            </Select>
                         </FormControl>
-                      )}
-                      <FormLabel>Status</FormLabel>
-                      <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select Status"
-                          value={formValues.Status}
-                          onChange={(e, newValue) =>
-                            handleInputChange("Status", newValue)
-                          }
-                        >
-                          <Option value="1">Active</Option>
-                          <Option value="0">Inactive</Option>
-                        </Select>
-                      </FormControl>
+                        
+                        
+                        <FormLabel>Branch</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select Branch"
+                            value={formValues.Status}
+                            onChange={(e, newValue) =>
+                                handleInputChange("Status", newValue)
+                            }
+                            >
+                            <Option value="">Select Branch</Option>
+                            <Option value="1">Active</Option>
+                            <Option value="0">Inactive</Option>
+                            </Select>
+                        </FormControl>
+                        
+                        <FormLabel>Status</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select Status"
+                            value={formValues.Status}
+                            onChange={(e, newValue) =>
+                                handleInputChange("Status", newValue)
+                            }
+                            >
+                            <Option value="1">Active</Option>
+                            <Option value="0">Inactive</Option>
+                            </Select>
+                        </FormControl>
 
                     </Stack>
                   </Stack>
@@ -973,4 +1003,4 @@ const Params = () => {
   );
 };
 
-export default Params;
+export default Approvers;

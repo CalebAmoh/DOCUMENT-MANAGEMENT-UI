@@ -1,24 +1,13 @@
 import * as React from "react";
 import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button";
-import Divider from "@mui/joy/Divider";
-import FormControl from "@mui/joy/FormControl";
-import FormLabel from "@mui/joy/FormLabel";
 import Tabs from "@mui/joy/Tabs";
 import TabList from "@mui/joy/TabList";
 import Tab, { tabClasses } from "@mui/joy/Tab";
 import TabPanel from "@mui/joy/TabPanel";
-import Input from "@mui/joy/Input";
-import Stack from "@mui/joy/Stack";
-import Select from "@mui/joy/Select";
-import Option from "@mui/joy/Option";
 import Typography from "@mui/joy/Typography";
-import Card from "@mui/joy/Card";
-import CardActions from "@mui/joy/CardActions";
-import CardOverflow from "@mui/joy/CardOverflow";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import Profile from "../components/Profile";
 import Params from "../components/Params";
+import Approvers from "../components/Approvers";
 // import Initial from "../components/Initial";
 // import Renewal from "../components/Renewal";
 
@@ -98,9 +87,9 @@ const Settings = () => {
             <TabPanel value={1}>
               <Params />
             </TabPanel>
-            {/* <TabPanel value={2}>
-              <Amendment />
-            </TabPanel> */}
+            <TabPanel value={2}>
+              <Approvers />
+            </TabPanel>
           </Tabs>
           {/* <Divider /> */}
         </Box>
