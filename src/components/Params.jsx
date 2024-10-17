@@ -72,7 +72,8 @@ const Params = () => {
         headers: headers});
       console.log("Response:", response.data);
 
-      setSuccessModal(true);
+      handleOpen('test','result');
+      // setSuccessModal(true);
       setSuccess(response.data);
       // console.log(response);
     } catch (error) {
@@ -83,6 +84,7 @@ const Params = () => {
 
   //fetches parameters
   const fetchParameters = async (description) => {
+    console.log("Description:", description);
     try {
       const response = await axios.get(
         ENDPOINT + `/code_creation_details/code_id/${description}`
@@ -92,6 +94,29 @@ const Params = () => {
       console.log("Parameters:", response.data);
     } catch (error) {
       console.error("Error fetching parameters:", error);
+    }
+  };
+
+  //fetches parameter details
+  const fetchParameterDetails = async (id) => {
+    try {
+      const response = await axios.get(`${ENDPOINT}/code_creation_details/${id}`, {
+        headers: headers
+      });
+
+      const data = response.data;
+      console.log("Data:", data);
+      setFormValues({
+        description: data.code_detail[0].description, // Use description correctly
+        Status: data.code_detail[0].status
+      });
+
+      //set parameter id
+      setParameterId(data.code_detail[0].id);
+
+      console.log("Form Values:", formValues);
+    } catch (error) {
+      console.error("Error fetching parameter details:", error);
     }
   };
 
@@ -184,9 +209,9 @@ const Params = () => {
    * If the type is not "add", it fetches parameters based on the row's parameter and opens the view modal.
    */
   const handleOpen = (row, type) => {
-    
+    console.log("1st row", row.parameter);
     setSelectedRow(row);
-    console.log("Selected Row:", row); // Debug log
+    
     setFormValues({
       description: "",
       trans_type: "",
@@ -196,6 +221,7 @@ const Params = () => {
 
     
     if(type === "add") {
+      
       if(row.parameter === "DOCS"){
 
         //call the add document type modal
@@ -219,10 +245,17 @@ const Params = () => {
 
 
       }
-    }else if('view'){
+    }else if(type === "view"){
+      console.log("3st row", row);
       fetchParameters(codeTypeMapping[row.parameter]);
       setModalType(type);
+    }else if(type === "update"){
+      
+      fetchParameterDetails(row);
+     console.log("open modal",row.parameter);
+      setModalType(type);
     } else {
+      
       setModalType(type);
     }
   };
@@ -298,8 +331,9 @@ const Params = () => {
   //handles update of parameter
   const handleUpdate = () => {
     try{
-      if (!formValues.CodeDesc) {
-        setShowAlert(true); // Show alert if CodeDesc is empty
+      if (!formValues.description || (formValues.trans_type === "1" && !formValues.expense_code)) {
+        console.log("Validation failed"); // Debug log
+        setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
         return;
       }
 
@@ -312,7 +346,8 @@ const Params = () => {
       // setOpen(false);
       setFormValues({
         description: "",
-        CodeDesc: "",
+        trans_type: "",
+        expense_code: "",
         Status: "1",
       });
     }catch (error) {
@@ -435,16 +470,16 @@ const Params = () => {
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
-                  {showAlert && ( // Conditionally render Alert component
-                    <Alert
-                      description={`Please enter ${selectedRow?.fields[0]}`}
-                      type="error"
-                      showIcon
-                      style={{ marginBottom: 16 }}
-                      closable={true}
-                      onClose={() => setShowAlert(false)} // Reset alert state on close
-                    />
-                  )}
+                  {/* {showAlert && ( // Conditionally render Alert component
+                    // <Alert
+                    //   description={`Please enter ${selectedRow?.fields[0]}`}
+                    //   type="error"
+                    //   showIcon
+                    //   style={{ marginBottom: 16 }}
+                    //   closable={true}
+                    //   onClose={() => setShowAlert(false)} // Reset alert state on close
+                    // />
+                  )} */}
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
@@ -561,7 +596,7 @@ const Params = () => {
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
-                  {showAlert && ( // Conditionally render Alert component
+                  {/* {showAlert && ( // Conditionally render Alert component
                     <Alert
                       description={`Please enter ${selectedRow?.fields[0]}`}
                       type="error"
@@ -570,7 +605,7 @@ const Params = () => {
                       closable={true}
                       onClose={() => setShowAlert(false)} // Reset alert state on close
                     />
-                  )}
+                  )} */}
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
@@ -591,9 +626,7 @@ const Params = () => {
                         <Select
                           placeholder="Select Status"
                           value={formValues.Status}
-                          onChange={(e) =>
-                            handleInputChange("Status", e.target.value)
-                          }
+                          onChange={(e, newValue) => handleInputChange("Status", newValue)}
                         >
                           <Option value="1">Active</Option>
                           <Option value="0">Inactive</Option>
@@ -621,7 +654,7 @@ const Params = () => {
           </Modal>
 
           {/* Update Modal */}
-          {/* <Modal
+          <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
             open={modalType === 'update'} onClose={handleClose}
@@ -654,11 +687,11 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                       Update {/*{selectedRow.parameter} Parameter 
+                       Update {/*{selectedRow.parameter}*/} Branch 
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
-                  {showAlert && ( // Conditionally render Alert component
+                  {/* {showAlert && ( // Conditionally render Alert component
                     <Alert
                       description={`Please enter ${selectedRow?.fields[0]}`}
                       type="error"
@@ -667,42 +700,34 @@ const Params = () => {
                       closable={true}
                       onClose={() => setShowAlert(false)} // Reset alert state on close
                     />
-                  )}
+                  )} */}
                   <Stack spacing={2}>
-                    {selectedRow.fields.map((field, idx) => (
-                      <Stack spacing={1} key={idx}>
-                        <FormLabel>{field}</FormLabel>
+                      <Stack spacing={1}>
+                        <FormLabel>Description</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                          {field === "Description" ? (
+                           
                             <Input
                               size="sm"
+                              placeholder={`Enter `}
                               value={formValues.description}
-                              onChange={(e) => handleInputChange("description", e.target.value)}
-                            />
-                          ) : field === "Status" ? (
-                            <Select
-                              placeholder="Select Status"
-                              value={formValues.Status}
                               onChange={(e) =>
-                                handleInputChange("Status", e.target.value)
-                              }
-                            >
-                              <Option value="1">Active</Option>
-                              <Option value="0">Inactive</Option>
-                            </Select>
-                          ) : (
-                            <Input
-                              size="sm"
-                              placeholder={`Enter ${field}`}
-                              value={formValues[field]}
-                              onChange={(e) =>
-                                handleInputChange(field, e.target.value)
+                                handleInputChange("description", e.target.value)
                               }
                             />
-                          )}
+
+                            <FormLabel>Status</FormLabel>
+                            <FormControl sx={{ width: "100%" }}>
+                              <Select
+                                value={formValues.Status}
+                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
+                                 >
+                                <Option value="1">Active</Option>
+                                <Option value="0">Inactive</Option>
+                              </Select>
+                            </FormControl>
+
                         </FormControl>
                       </Stack>
-                    ))}
                   </Stack>
                   <CardActions>
                     <Button
@@ -719,7 +744,100 @@ const Params = () => {
                 </Typography>
               )}
             </Sheet>
-          </Modal>  */}
+          </Modal> 
+
+          {/* Update Document type Modal */}
+          <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'update_branch'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                width: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              {selectedRow && (
+                <Typography id="modal-desc" textColor="text.tertiary">
+                  <Box sx={{ mb: 1 }}>
+                    <Typography level="title-md">
+                       Update {/*{selectedRow.parameter}*/} Branch 
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ marginBottom: 2 }} />
+                  {/* {showAlert && ( // Conditionally render Alert component
+                    <Alert
+                      description={`Please enter ${selectedRow?.fields[0]}`}
+                      type="error"
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                      closable={true}
+                      onClose={() => setShowAlert(false)} // Reset alert state on close
+                    />
+                  )} */}
+                  <Stack spacing={2}>
+                      <Stack spacing={1}>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                           
+                            <Input
+                              size="sm"
+                              placeholder={`Enter `}
+                              value={formValues.description}
+                              onChange={(e) =>
+                                handleInputChange("description", e.target.value)
+                              }
+                            />
+
+                            <FormLabel>Status</FormLabel>
+                            <FormControl sx={{ width: "100%" }}>
+                              <Select
+                                value={formValues.Status}
+                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
+                                 >
+                                <Option value="1">Active</Option>
+                                <Option value="0">Inactive</Option>
+                              </Select>
+                            </FormControl>
+
+                        </FormControl>
+                      </Stack>
+                  </Stack>
+                  <CardActions>
+                    <Button
+                      sx={{
+                        backgroundColor: "#00357A",
+                        color: "#fff",
+                        marginTop: "16px",
+                      }}
+                      onClick={handleUpdate}
+                    >
+                      Update
+                    </Button>
+                  </CardActions>
+                </Typography>
+              )}
+            </Sheet>
+          </Modal> 
 
           {/* View Modal */}
           <Modal
@@ -755,7 +873,7 @@ const Params = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      View {selectedRow.parameter} Parameters
+                      View Branch Parameters
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
