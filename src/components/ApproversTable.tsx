@@ -12,6 +12,7 @@ import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
+import {Edit,Delete, Recycling} from "@mui/icons-material";
 
 type Order = "asc" | "desc";
 
@@ -221,7 +222,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data }) => {
               <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>View</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -264,14 +265,37 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data }) => {
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
+                      
                       <Button
-                        sx={{ backgroundColor: "#00357A", width: 35 }}
+                        sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
                         // onClick={() => setOpen(true)}
                         size="sm"
                         variant="solid"
                       >
-                        <RemoveRedEyeIcon />
+                        <Edit />
+                        
                       </Button>
+                      {row.status === "Active" ? (
+                         <Button
+                         sx={{ backgroundColor: "#920505", width: 35 }}
+                         // onClick={() => setOpen(true)}
+                         size="sm"
+                         variant="solid"
+                       >
+                         <Delete />
+                         
+                       </Button> 
+                      ):(<Button
+                        sx={{ backgroundColor: "#4CAF50", width: 35 }}
+                        // onClick={() => setOpen(true)}
+                        size="sm"
+                        variant="solid"
+                      >
+                        <Recycling />
+                        
+                      </Button> )
+                      }
+                     
                     </Link>
                   </Box>
                 </td>
