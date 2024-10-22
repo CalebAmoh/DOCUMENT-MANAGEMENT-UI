@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Result } from "antd";
-import OrderTable from "../components/OrderTable";
+import ApproversTable from "../components/ApproversTable";
 import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
@@ -40,6 +40,7 @@ const Approvers = () => {
   const [users, setUsers] = useState([]); // State to manage users
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
+  const [approvers, setApprovers] = useState([]);
   const [formValues, setFormValues] = useState({
     user_id: "",
     doc_type_id: "",
@@ -62,6 +63,20 @@ const Approvers = () => {
     };
 
     fetchParameters();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
+        setApprovers(response.data.approvers);
+        console.log("Approvers:", response.data.approvers);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   //handleOpen function
@@ -294,7 +309,7 @@ const Approvers = () => {
             Add Approver
           </Button>
         </Box>
-        <OrderTable />
+        <ApproversTable  data={approvers}/>
 
         {/* <OrderList /> */}
       </Box>
