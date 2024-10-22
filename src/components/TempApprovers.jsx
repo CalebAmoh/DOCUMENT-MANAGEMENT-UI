@@ -41,7 +41,6 @@ const Approvers = () => {
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
   const [approvers, setApprovers] = useState([]);
-  const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [formValues, setFormValues] = useState({
     user_id: "",
     doc_type_id: "",
@@ -69,17 +68,16 @@ const Approvers = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
-        setApprovers(response.data.approvers);
-        console.log("Approvers:", response.data.approvers);
-        setIsFetching(false);
+        const response = await axios.get(`${API_SERVER}/temp_approvers`, { headers });
+        setApprovers(response.data.temporaryApprovers);
+        console.log("Approvers:", response.data.temporaryApprovers);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
-  }, [isFetching]);
+  }, []);
 
   //handleOpen function
   const handleOpen = (type) => {
@@ -159,14 +157,10 @@ const Approvers = () => {
         status: formValues.Status
       },{
         headers: headers});
-      console.log("Response:", response.data.code);
+      console.log("Response:", response.data);
 
       handleOpen('result');
       setSuccess(response.data);
-
-      if(response.data.code === "200") {
-        setIsFetching(true);
-      }
       console.log(response);
     } catch (error) {
       console.error("Error:", error);
@@ -205,13 +199,7 @@ const Approvers = () => {
     }
   };
 
-  //fetches parameter details
-  const codeTypeMapping = {
-    "APPROVERS": "1",
-    "TEMPORARY APPROVERS": "2",
-    // "Approvers": "Approvers",
-    // "Temporary Approvers": "TemporaryApprovers",
-  };
+ 
 
   //fetches parameter details
   const fetchParameterDetails = async (id) => {
@@ -303,7 +291,7 @@ const Approvers = () => {
           }}
         >
           <Typography level="h2" component="h1">
-            Approvers
+            Temporary Approvers
           </Typography>
           <Button
             // color="#00357A"

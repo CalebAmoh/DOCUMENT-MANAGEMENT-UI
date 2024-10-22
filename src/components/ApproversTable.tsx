@@ -2,19 +2,16 @@ import React from 'react';
 import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import Button from "@mui/joy/Button";
-import Sheet from "@mui/joy/Sheet";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import Typography from "@mui/joy/Typography";
-import Chip from "@mui/joy/Chip";
-import { ColorPaletteProp } from "@mui/joy/styles";
-import Table from "@mui/joy/Table";
+import {Table, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
 import BlockIcon from "@mui/icons-material/Block";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
-import FormControl from "@mui/joy/FormControl";
+import SearchIcon from "@mui/icons-material/Search";
 
 type Order = "asc" | "desc";
 
@@ -71,12 +68,41 @@ interface ApproversTableProps {
 const ApproversTable: React.FC<ApproversTableProps> = ({ data }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
+  const [open, setOpen] = React.useState(false);
+
+  const renderFilters = () => (
+    <React.Fragment>
+      <FormControl size="sm">
+        <FormLabel>Status</FormLabel>
+        <Select
+          size="sm"
+          placeholder="Filter by status"
+          slotProps={{ button: { sx: { whiteSpace: "nowrap" } } }}
+        >
+          <Option value="active">Active</Option>
+          <Option value="inactive">Inactive</Option>
+        </Select>
+      </FormControl>
+      <FormControl size="sm">
+        <FormLabel>Bank Name</FormLabel>
+        <Select size="sm" placeholder="All">
+          <Option value="all">All</Option>
+          <Option value="Bank of America">Bank of America</Option>
+          <Option value="Chase Bank">Chase Bank</Option>
+          <Option value="Wells Fargo">Wells Fargo</Option>
+          <Option value="Citibank">Citibank</Option>
+          <Option value="US Bank">US Bank</Option>
+        </Select>
+      </FormControl>
+    </React.Fragment>
+  );
+
   // Ensure data is an array
   const approversData = Array.isArray(data) ? data : [];
   console.log("app",approversData);
-  if (approversData.length === 0) {
-    return <div>No data available</div>;
-  }
+  // if (approversData.length === 0) {
+  //   return <div>No data available</div>;
+  // }
 
   return (
     <React.Fragment>

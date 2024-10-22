@@ -8,6 +8,7 @@ import Typography from "@mui/joy/Typography";
 import Profile from "../components/Profile";
 import Params from "../components/Params";
 import Approvers from "../components/Approvers";
+import TempApprovers from "../components/TempApprovers";
 // import Initial from "../components/Initial";
 // import Renewal from "../components/Renewal";
 
@@ -80,6 +81,13 @@ const Settings = () => {
               >
                 Approvers
               </Tab>
+              <Tab
+                sx={{ borderRadius: "6px 6px 0 0" }}
+                indicatorInset
+                value={3}
+              >
+                Temporary Approvers
+              </Tab>
             </TabList>
             <TabPanel value={0}>
               <Profile />
@@ -89,6 +97,9 @@ const Settings = () => {
             </TabPanel>
             <TabPanel value={2}>
               <Approvers />
+            </TabPanel>
+            <TabPanel value={3}>
+              <TempApprovers />
             </TabPanel>
           </Tabs>
           {/* <Divider /> */}
