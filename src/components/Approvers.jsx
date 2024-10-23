@@ -11,7 +11,7 @@ import ModalClose from "@mui/joy/ModalClose";
 import Divider from "@mui/joy/Divider";
 import Stack from "@mui/joy/Stack";
 import FormControl from "@mui/joy/FormControl";
-import FormLabel from "@mui/joy/FormLabel";
+import {FormLabel,Input} from "@mui/joy";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import AddIcon from "@mui/icons-material/Add";
@@ -82,7 +82,7 @@ const Approvers = () => {
   }, [isFetching]);
 
   //handleOpen function
-  const handleOpen = (type) => {
+  const handleOpen = (type,row) => {
     
     // setSelectedRow(row);
     console.log("type", type);
@@ -97,12 +97,14 @@ const Approvers = () => {
     
     if(type === "add") {
         setModalType('add');
-
-        //fetch the id of the code
+ //fetch the id of the code
         // fetchCodeTypes(row.parameter);
     }else {
-      console.log("Type:", type);
+      console.log("approver id:", row);
       setModalType(type);
+
+      //fetch approver's details based on id
+      fetchApproverDetails(row);
     }
   };
 
@@ -202,6 +204,31 @@ const Approvers = () => {
       console.log("Parameters:", response.data);
     } catch (error) {
       console.error("Error fetching parameters:", error);
+    }
+  };
+
+  //fecthes approver details
+  const fetchApproverDetails = async (id) => {
+    try {
+      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
+        headers: headers
+      });
+
+      const data = response.data;
+      console.log("Approver's Data:", data);
+      setFormValues({
+        user_id: data.approver[0].user_id,
+        doc_type_id: data.approver[0].doc_type_id,
+        branch_id: data.approver[0].branch_id,
+        Status: data.approver[0].status
+      });
+
+      //set parameter id
+      // setParameterId(data.approver[0].id);
+
+      console.log("Form Values:", formValues);
+    } catch (error) {
+      console.error("Error fetching parameter details:", error);
     }
   };
 
@@ -315,7 +342,7 @@ const Approvers = () => {
             Add Approver
           </Button>
         </Box>
-        <ApproversTable  data={approvers}/>
+        <ApproversTable  data={approvers} handleOpen={handleOpen}/>
 
         {/* <OrderList /> */}
       </Box>
@@ -452,6 +479,141 @@ const Approvers = () => {
 
             </Sheet>
       </Modal>
+      
+      <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'update'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                width: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+             
+                <Typography id="modal-desc" textColor="text.tertiary">
+                  <Box sx={{ mb: 1 }}>
+                    <Typography level="title-md">
+                      Update Details
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ marginBottom: 2 }} />
+                  {/* {showAlert && ( // Conditionally render Alert component
+                    // <Alert
+                    //   description={`Please enter ${selectedRow?.fields[0]}`}
+                    //   type="error"
+                    //   showIcon
+                    //   style={{ marginBottom: 16 }}
+                    //   closable={true}
+                    //   onClose={() => setShowAlert(false)} // Reset alert state on close
+                    // />
+                  )} */}
+                  <Stack spacing={2}>
+                    {/* add fields here for the form a description and status */}
+                    <Stack spacing={1}>
+              
+                        <FormLabel>User</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select User"
+                            value={formValues.user_id}
+                            onChange={(e, newValue) => handleInputChange("user_id", newValue)}
+                            >
+                            {users.map((user) => (
+                                <Option key={user.id} value={user.id}>
+                                {user.first_name} {user.last_name}
+                                </Option>
+                            ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormLabel>Document Type</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select Type of Document"
+                            value={formValues.doc_type_id}
+                            onChange={(e, newValue) => handleInputChange("doc_type_id", newValue)}
+                            >
+                            {docTypes.map((doctype) => (
+                                <Option key={doctype.id} value={doctype.id}>
+                                {doctype.description} 
+                                </Option>
+                            ))}
+                            </Select>
+                        </FormControl>
+                        
+                        
+                        <FormLabel>Branch</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select Branch"
+                            value={formValues.branch_id}
+                            onChange={(e, newValue) =>
+                                handleInputChange("branch_id", newValue)
+                            }
+                            >
+                            {branches.map((branch) => (
+                                <Option key={branch.id} value={branch.id}>
+                                {branch.description} 
+                                </Option>
+                            ))}
+                            </Select>
+                        </FormControl>
+                        
+                        <FormLabel>Status</FormLabel>
+                        <FormControl sx={{ width: "100%" }}>
+                            <Select
+                            placeholder="Select Status"
+                            value={formValues.Status}
+                            onChange={(e,newValue) =>
+                                handleInputChange("Status", newValue)
+                            }
+                            >
+                            <Option value="1">Active</Option>
+                            <Option value="0">Inactive</Option>
+                            </Select>
+                        </FormControl>
+
+                    </Stack>
+                  </Stack>
+                  <CardActions>
+                    <Button
+                      sx={{
+                        backgroundColor: "#00357A",
+                        color: "#fff",
+                        marginTop: "16px",
+                      }}
+                      onClick={handleSave}
+                    >
+                      Save
+                    </Button>
+                  </CardActions>
+                </Typography>
+           
+
+            </Sheet>
+      </Modal>
+
+      
 
       {/* Success Modal */}
       <Modal

@@ -64,9 +64,10 @@ interface ApproversTableProps {
     doc_type_id: string;
     status: string;
   }>;
+  handleOpen: (type: string, row: any) => void;
 }
 
-const ApproversTable: React.FC<ApproversTableProps> = ({ data }) => {
+const ApproversTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -268,7 +269,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data }) => {
                       
                       <Button
                         sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                        // onClick={() => setOpen(true)}
+                        onClick={() => handleOpen("update",row.id)}
                         size="sm"
                         variant="solid"
                       >
