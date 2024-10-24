@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Result } from "antd";
+import { Result,notification } from "antd";
+import { CloseCircleOutlined } from '@ant-design/icons';
 import ApproversTable from "../components/ApproversTable";
 import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
@@ -29,12 +30,9 @@ const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 const Approvers = () => {
 
+  const [api, contextHolder] = notification.useNotification();
   //use state setups
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [codeId, setCodeId] = useState(null);
-  const [parameterId, setParameterId] = useState(null);
-  const [parameters, setParameters] = useState([]);
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [users, setUsers] = useState([]); // State to manage users
@@ -44,7 +42,12 @@ const Approvers = () => {
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [approverId, setApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
-  const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage approver id
+  const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
+  const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
+  const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
+  const [validationError, setValidationError] = useState(""); // State to manage validation error
+  const [response, setResponse] = useState(null); // State to manage response
+  const [error, setError] = useState(null); // State to manage error
   const [formValues, setFormValues] = useState({
     user_id: "",
     doc_type_id: "",
@@ -84,7 +87,6 @@ const Approvers = () => {
     fetchData();
   }, [isFetching]);
 
-
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
     console.log("did it change:", approverId);
@@ -95,7 +97,18 @@ const Approvers = () => {
     setApproverId(null);
   }, [approverId]);
 
-  //handleOpen function
+
+  //function to open notification
+  const openNotification = (message) => {
+    api.open({
+      message: 'Error message',
+      description:message,
+      duration: 10,
+      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />, // Icon to display in the notification
+    });
+  };
+
+  //handleOpen function mostly to open the modal
   const handleOpen = (type,row) => {
     
     // setSelectedRow(row);
@@ -145,9 +158,21 @@ const Approvers = () => {
     
     // Validate form values
     console.log("Form Values:", formValues); // Debug log
-    if (!formValues.user_id || !formValues.doc_type_id || !formValues.branch_id || !formValues.Status) {
-      console.log("Validation failed"); // Debug log
-      setShowAlert(true); // Show alert if description is empty or if trans_type is "1" and expense code is empty
+    const requiredFields = [
+      { field: 'user_id', name: 'User' },
+      { field: 'doc_type_id', name: 'Document Type' },
+      { field: 'branch_id', name: 'Branch' },
+      { field: 'Status', name: 'Status' }
+    ];
+    
+    const missingFields = requiredFields
+      .filter(({ field }) => !formValues[field])
+      .map(({ name }) => name);
+    
+    if (missingFields.length > 0) {
+      // setModalType("result");
+      // setValidationError(`Please fill in the following fields: ${missingFields.join(", ")}`);
+      openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
       return;
     }
     
@@ -164,6 +189,51 @@ const Approvers = () => {
       branch_id: "",
       Status: "1",
     });
+  };
+
+  //handles updating of approver's details
+  const handleUpdate = () => {
+    try{
+      
+      alert(selectedBranchId);
+      // Validate form values
+      // Define an array of required fields with their corresponding display names
+      const requiredFields = [
+        { field: selectedUserId, name: 'User' },
+        { field: selectedDocTypeId, name: 'Document Type' },
+        { field: selectedBranchId, name: 'Branch' },
+        { field: selectedStatus, name: 'Status' }
+      ];
+      
+      // Filter out the fields that are empty and map them to their display names
+      const missingFields = requiredFields
+        .filter(({ field }) => field === "") // Check if the field is empty
+        .map(({ name }) => name); // Extract the display name of the missing field
+      
+      // If there are any missing fields, show a notification with the list of missing fields
+      if (missingFields.length > 0) {
+        openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
+        return; // Exit the function early since the validation failed
+      }
+    
+    
+
+      //post request to update parameter
+      handlePostUpdate();
+
+      setShowAlert(false); // Hide alert if validation passes
+      console.log("Form Values:", formValues);
+
+      // setOpen(false);
+      setFormValues({
+        description: "",
+        trans_type: "",
+        expense_code: "",
+        Status: "1",
+      });
+    }catch (error) {
+      console.error("Error updating parameter:", error);
+    }
   };
 
   //handles post request
@@ -190,63 +260,28 @@ const Approvers = () => {
     }
   };
 
-
-  const fetchCodeTypes = async (code) => {
+  //handles post update request
+  const handlePostUpdate = async () => {
     try {
-      // this endpoint will get the id of the code
-      const response = await axios.get(
-            ENDPOINT + `/code_creations/code/${code}`
-            ,{
-              headers: headers});
-
-      //setCodeId
-      setCodeId(response.data.id);
-
-    } catch (error) {
-      console.error("Error fetching parameters:", error);
-    }
-  };
-
-  //fetches parameters
-  const fetchApprovers = async (description) => {
-    console.log("Description:", description);
-    try {
-      const response = await axios.get(
-        ENDPOINT + `/approvers`
-      ,{
+      const response = await axios.put(`${ENDPOINT}/approvers/${approverId}`, {
+        us: formValues.description,
+        status: formValues.Status,
+        trans_type: formValues.trans_type,
+        expense_code: formValues.expense_code,
+        // id: parameterId
+      },{
         headers: headers});
-      setParameters(response.data.approvers);
-      console.log("Parameters:", response.data);
+      console.log("Response:", response.data);
+
+      handleOpen('test','result');
+      // setSuccessModal(true);
+      setSuccess(response.data);
+      // console.log(response);
     } catch (error) {
-      console.error("Error fetching parameters:", error);
+      console.error("Error:", error);
     }
   };
- 
 
-  //fetches parameter details
-  const fetchParameterDetails = async (id) => {
-    try {
-      const response = await axios.get(`${ENDPOINT}/code_creation_details/${id}`, {
-        headers: headers
-      });
-
-      const data = response.data;
-      console.log("Data:", data);
-      setFormValues({
-        description: data.code_detail[0].description, // Use description correctly
-        trans_type: data.code_detail[0].trans_type,
-        expense_code: data.code_detail[0].expense_code,
-        Status: data.code_detail[0].status
-      });
-
-      //set parameter id
-      setParameterId(data.code_detail[0].id);
-
-      console.log("Form Values:", formValues);
-    } catch (error) {
-      console.error("Error fetching parameter details:", error);
-    }
-  };
 
   //fetches approvers details based on idd
   const fetchApproverDetails = async (id) => {
@@ -255,19 +290,13 @@ const Approvers = () => {
         headers: headers
       });
       console.log("Response approver details:", response.data.approver);
-      // setFormDetails(response.data.message[0]);
+      
       setSelectedUserId(response.data.approver.user_id);
       setSelectedDocTypeId(response.data.approver.doctype_id);
-      // setSelectedFrequency(response.data.message[0]?.license_frequency_id);
-      // setSelectedFreqDesc(response.data.message[0]?.license_frequency);
-      // setEndDateChange(frontendDate(response.data.message[0]?.end_date) || "");
-      // setStartDate(frontendDate(response.data.message[0]?.start_date) || "");
-      // setNotificationStartDate(
-      //   frontendDate(response.data.message[0]?.notification_start) || ""
-      // );
-      // setGracePeriod(response.data.message[0]?.grace_period);
-
-      // console.log("approver id:", row);
+      setSelectedBranchId(response.data.approver.branch_id);
+      setSelectedStatus(response.data.approver.status);
+      
+      //open update modal
       setModalType("update");
     } catch (error) {
       console.error("Error:", error);
@@ -278,7 +307,11 @@ const Approvers = () => {
   
   return (
     <div>
+      {/* this is the notification holder */}
+      {contextHolder}
       {" "}
+
+      {/* main content */}
       <Box
         component="main"
         className="MainContent"
@@ -356,6 +389,7 @@ const Approvers = () => {
         {/* <OrderList /> */}
       </Box>
       
+      {/* Modal for adding approver */}
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -393,16 +427,7 @@ const Approvers = () => {
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
-                  {/* {showAlert && ( // Conditionally render Alert component
-                    // <Alert
-                    //   description={`Please enter ${selectedRow?.fields[0]}`}
-                    //   type="error"
-                    //   showIcon
-                    //   style={{ marginBottom: 16 }}
-                    //   closable={true}
-                    //   onClose={() => setShowAlert(false)} // Reset alert state on close
-                    // />
-                  )} */}
+                  
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
@@ -489,7 +514,7 @@ const Approvers = () => {
             </Sheet>
       </Modal>
       
-      {/* for updating approval details */}
+      {/* Modal for updating approval details */}
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -527,16 +552,7 @@ const Approvers = () => {
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
-                  {/* {showAlert && ( // Conditionally render Alert component
-                    // <Alert
-                    //   description={`Please enter ${selectedRow?.fields[0]}`}
-                    //   type="error"
-                    //   showIcon
-                    //   style={{ marginBottom: 16 }}
-                    //   closable={true}
-                    //   onClose={() => setShowAlert(false)} // Reset alert state on close
-                    // />
-                  )} */}
+                  
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
@@ -576,9 +592,9 @@ const Approvers = () => {
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
-                            value={formValues.branch_id}
-                            onChange={(e, newValue) =>
-                                handleInputChange("branch_id", newValue)
+                            value={selectedBranchId || ""}
+                            onChange={(e) =>
+                                handleInputChange("branch_id", e.target.value)
                             }
                             >
                             {branches.map((branch) => (
@@ -592,8 +608,8 @@ const Approvers = () => {
                         <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
-                                value={formValues.Status}
-                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
+                                value={selectedStatus || ""}
+                                onChange={(e) => handleInputChange("Status", e.target.value)}
                                  >
                             <Option value="1">Active</Option>
                             <Option value="0">Inactive</Option>
@@ -609,9 +625,9 @@ const Approvers = () => {
                         color: "#fff",
                         marginTop: "16px",
                       }}
-                      onClick={handleSave}
+                      onClick={handleUpdate}
                     >
-                      Save
+                      Update
                     </Button>
                   </CardActions>
                 </Typography>
@@ -619,8 +635,6 @@ const Approvers = () => {
 
             </Sheet>
       </Modal>
-
-      
 
       {/* Success Modal */}
       <Modal
@@ -652,17 +666,28 @@ const Approvers = () => {
               }}
             >
               <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                {success?.code === "200" && (
-                  <Result
-                    status="success"
-                    title={success?.message || "Operation Successful"}
-                    subTitle="approver added successfully"
-                  />
-                )}
-              </Typography>
+              <Typography  textColor="text.tertiary">
+                    {validationError ? (
+                      <Result
+                        status="error"
+                        title="Validation Error"
+                        subTitle={validationError}
+                      />
+                    ) : response && response.code === "200" ? (
+                      <Result
+                        status="success"
+                        title={response.result}
+                      />
+                    ) : error ? (
+                      <Result
+                        status="error"
+                        title={error.response.data.result}
+                        subTitle="Please check and modify the following information before resubmitting."
+                      />
+                    ) : null}
+               </Typography>
             </Sheet>
-          </Modal>
+      </Modal>
     </div>
   )
 };
