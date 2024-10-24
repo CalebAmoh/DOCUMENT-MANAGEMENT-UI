@@ -42,6 +42,9 @@ const Approvers = () => {
   const [success, setSuccess] = useState(false);
   const [approvers, setApprovers] = useState([]);
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
+  const [approverId, setApproverId] = useState(null); // State to manage approver id
+  const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
+  const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage approver id
   const [formValues, setFormValues] = useState({
     user_id: "",
     doc_type_id: "",
@@ -81,6 +84,17 @@ const Approvers = () => {
     fetchData();
   }, [isFetching]);
 
+
+  //when the approver id changes fetch the details of the approver
+  useEffect(() => {
+    console.log("did it change:", approverId);
+    if (!approverId) return;
+    fetchApproverDetails(approverId);
+
+    // Reset approver id
+    setApproverId(null);
+  }, [approverId]);
+
   //handleOpen function
   const handleOpen = (type,row) => {
     
@@ -97,14 +111,15 @@ const Approvers = () => {
     
     if(type === "add") {
         setModalType('add');
- //fetch the id of the code
+        //fetch the id of the code
         // fetchCodeTypes(row.parameter);
     }else {
-      console.log("approver id:", row);
-      setModalType(type);
+      //set approver id state
 
-      //fetch approver's details based on id
-      fetchApproverDetails(row);
+      console.log("approver's id:", row);
+      setApproverId(row);
+
+
     }
   };
 
@@ -206,39 +221,7 @@ const Approvers = () => {
       console.error("Error fetching parameters:", error);
     }
   };
-
-  //fecthes approver details
-  const fetchApproverDetails = async (id) => {
-    try {
-      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
-        headers: headers
-      });
-
-      const data = response.data;
-      console.log("Approver's Data:", data);
-      setFormValues({
-        user_id: data.approver[0].user_id,
-        doc_type_id: data.approver[0].doc_type_id,
-        branch_id: data.approver[0].branch_id,
-        Status: data.approver[0].status
-      });
-
-      //set parameter id
-      // setParameterId(data.approver[0].id);
-
-      console.log("Form Values:", formValues);
-    } catch (error) {
-      console.error("Error fetching parameter details:", error);
-    }
-  };
-
-  //fetches parameter details
-  const codeTypeMapping = {
-    "APPROVERS": "1",
-    "TEMPORARY APPROVERS": "2",
-    // "Approvers": "Approvers",
-    // "Temporary Approvers": "TemporaryApprovers",
-  };
+ 
 
   //fetches parameter details
   const fetchParameterDetails = async (id) => {
@@ -262,6 +245,32 @@ const Approvers = () => {
       console.log("Form Values:", formValues);
     } catch (error) {
       console.error("Error fetching parameter details:", error);
+    }
+  };
+
+  //fetches approvers details based on idd
+  const fetchApproverDetails = async (id) => {
+    try {
+      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
+        headers: headers
+      });
+      console.log("Response approver details:", response.data.approver);
+      // setFormDetails(response.data.message[0]);
+      setSelectedUserId(response.data.approver.user_id);
+      setSelectedDocTypeId(response.data.approver.doctype_id);
+      // setSelectedFrequency(response.data.message[0]?.license_frequency_id);
+      // setSelectedFreqDesc(response.data.message[0]?.license_frequency);
+      // setEndDateChange(frontendDate(response.data.message[0]?.end_date) || "");
+      // setStartDate(frontendDate(response.data.message[0]?.start_date) || "");
+      // setNotificationStartDate(
+      //   frontendDate(response.data.message[0]?.notification_start) || ""
+      // );
+      // setGracePeriod(response.data.message[0]?.grace_period);
+
+      // console.log("approver id:", row);
+      setModalType("update");
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
   
@@ -480,6 +489,7 @@ const Approvers = () => {
             </Sheet>
       </Modal>
       
+      {/* for updating approval details */}
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -530,28 +540,28 @@ const Approvers = () => {
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
-              
+                        {console.log("Form Values111:", selectedUserId)}
                         <FormLabel>User</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select User"
-                            value={formValues.user_id}
-                            onChange={(e, newValue) => handleInputChange("user_id", newValue)}
-                            >
-                            {users.map((user) => (
-                                <Option key={user.id} value={user.id}>
-                                {user.first_name} {user.last_name}
-                                </Option>
-                            ))}
-                            </Select>
+                        <Select
+                          placeholder="Select User"
+                          value={selectedUserId || ""}
+                          onChange={(e) => handleInputChange("user_id", e.target.value)}
+                        >
+                          {users.map((user) => (
+                            <Option key={user.id} value={user.id}>
+                              {user.first_name} {user.last_name}
+                            </Option>
+                          ))}
+                        </Select>
                         </FormControl>
 
                         <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Type of Document"
-                            value={formValues.doc_type_id}
-                            onChange={(e, newValue) => handleInputChange("doc_type_id", newValue)}
+                            value={selectedDocTypeId || ""}
+                            onChange={(e) => handleInputChange("doctype_id", e.target.value)}
                             >
                             {docTypes.map((doctype) => (
                                 <Option key={doctype.id} value={doctype.id}>
@@ -581,13 +591,10 @@ const Approvers = () => {
                         
                         <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Status"
-                            value={formValues.Status}
-                            onChange={(e,newValue) =>
-                                handleInputChange("Status", newValue)
-                            }
-                            >
+                        <Select
+                                value={formValues.Status}
+                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
+                                 >
                             <Option value="1">Active</Option>
                             <Option value="0">Inactive</Option>
                             </Select>
