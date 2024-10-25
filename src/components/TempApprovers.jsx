@@ -391,7 +391,7 @@ const TempApprovers = () => {
           }}
         >
           <Typography level="h2" component="h1">
-            Approvers
+            Temporary Approvers
           </Typography>
           <Button
             // color="#00357A"

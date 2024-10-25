@@ -455,7 +455,7 @@ const Profile = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      Add Approver
+                      Add User
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -464,10 +464,10 @@ const Profile = () => {
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
               
-                        <FormLabel>User</FormLabel>
+                        <FormLabel>Employee</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
-                            placeholder="Select User"
+                            placeholder="Select Employee"
                             value={formValues.user_id}
                             onChange={(e, newValue) => handleInputChange("user_id", newValue)}
                             >
