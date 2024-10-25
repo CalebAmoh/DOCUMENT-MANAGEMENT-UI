@@ -41,6 +41,7 @@ const TempApprovers = () => {
   const [approvers, setApprovers] = useState([]);
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [approverId, setApproverId] = useState(null); // State to manage approver id
+  const [tempApproverId, setTempApproverId] = useState(null); // state to manage temp approver id
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
@@ -93,10 +94,14 @@ const TempApprovers = () => {
 
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
-    console.log("did it change:", approverId);
+
     if (!approverId) return;
     fetchApproverDetails(approverId);
 
+    // Set the temp approver ID to the current approver ID
+    setTempApproverId(approverId);
+
+    setApproverId(null);
   }, [approverId]);
 
 
@@ -210,7 +215,7 @@ const TempApprovers = () => {
       const requiredFields = [
         { field: selectedUserId, name: 'User' },
         // { field: selectedDocTypeId, name: 'Document Type' },
-        { field: selectedPermission, name: 'Branch' },
+        { field: selectedPermission, name: 'Permission' },
         { field: selectedStatus, name: 'Status' }
       ];
       
@@ -228,10 +233,9 @@ const TempApprovers = () => {
     
 
       //post request to update parameter
-      handlePostUpdate(approverId);
+      handlePostUpdate(tempApproverId);
 
       setShowAlert(false); // Hide alert if validation passes
-      console.log("Form Values:", formValues);
 
       // setOpen(false);
       setFormValues({
@@ -249,7 +253,7 @@ const TempApprovers = () => {
   const handleDeactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/temp-approvers/deactivate/${deactivateApproverId}`,{}, { headers });
       console.log("Response after deactivating:", response);
       setIsFetching(true);
       handleOpen('result');
@@ -265,7 +269,7 @@ const TempApprovers = () => {
   const handleactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/temp-approvers/activate/${deactivateApproverId}`,{}, { headers });
       console.log("Response after activating:", response);
       setIsFetching(true);
       handleOpen('result');
@@ -304,9 +308,9 @@ const TempApprovers = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
+      const response = await axios.put(`${ENDPOINT}/temp-approvers/${id}`, {
         user_id: selectedUserId,
-        // doctype_id: selectedDocTypeId,
+        doctype_id: 'NULL',
         permission: selectedPermission,
         status: selectedStatus
       },{
@@ -607,7 +611,7 @@ const TempApprovers = () => {
                             placeholder="Select Branch"
                             value={selectedPermission}
                             onChange={(e, newValue) =>
-                                handleInputChange("branch_id", newValue)
+                                handleInputChange("permission", newValue)
                             }
                             >
                             <Option value="V">View</Option>
@@ -679,7 +683,7 @@ const TempApprovers = () => {
               <Typography id="modal-desc" textColor="text.tertiary">
                 
                   <Result
-                    title={"Are you sure you want to deactivate this approver?"}
+                    title={"Deactivate approver?"}
                   />
 
                   <CardActions>
@@ -742,7 +746,7 @@ const TempApprovers = () => {
               <Typography id="modal-desc" textColor="text.tertiary">
                 
                   <Result
-                    title={"Are you sure you want to activate this approver?"}
+                    title={"Activate approver?"}
                   />
 
                   <CardActions>

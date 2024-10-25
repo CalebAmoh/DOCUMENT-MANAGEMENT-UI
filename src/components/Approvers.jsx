@@ -41,6 +41,7 @@ const Approvers = () => {
   const [approvers, setApprovers] = useState([]);
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [approverId, setApproverId] = useState(null); // State to manage approver id
+  const [tempApproverId, setTempApproverId] = useState(null); // state to manage temp approver id
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
@@ -94,9 +95,16 @@ const Approvers = () => {
 
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
-    console.log("did it change:", approverId);
     if (!approverId) return;
+
+    // Fetch the approver details
     fetchApproverDetails(approverId);
+
+    // Set the temp approver ID to the current approver ID
+    setTempApproverId(approverId);
+
+    // Reset the approver ID after fetching the details
+    setApproverId(null);
 
   }, [approverId]);
 
@@ -124,9 +132,14 @@ const Approvers = () => {
     });
 
     
+    
     if(type === "update") {
-      // Set approver id
-      setApproverId(row);
+      // if(row === approverId) {
+      //   setApproverId("");
+      //   setApproverId(row);
+      // }else{
+        setApproverId(row);
+      // }
     }else if(type === "delete" || type === "activate") {
       setDeactivateApproverId(row);
       setModalType(type);
@@ -232,7 +245,7 @@ const Approvers = () => {
     
 
       //post request to update parameter
-      handlePostUpdate(approverId);
+      handlePostUpdate(tempApproverId);
 
       setShowAlert(false); // Hide alert if validation passes
       console.log("Form Values:", formValues);

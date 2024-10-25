@@ -161,7 +161,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => 
         }}
       >
         <FormControl sx={{ flex: 1 }} size="sm">
-          <FormLabel>Search for bank2</FormLabel>
+          <FormLabel>Search for approvers</FormLabel>
           <Input
             size="sm"
             placeholder="Search"

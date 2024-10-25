@@ -54,21 +54,21 @@ function stableSort<T>(
 interface ApproversTableProps {
   data: Array<{
     approver_name: string;
-    // branch_description: string;
+    branch_description: string;
     created_at: string;
     doctype_description: string;
     posted_by: string;
     updated_at: string;
     id: number;
     user_id: string;
-    permission: string;
-    // doc_type_id: string;
+    branch_id: string;
+    doc_type_id: string;
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
 
-const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -161,7 +161,7 @@ const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
         }}
       >
         <FormControl sx={{ flex: 1 }} size="sm">
-          <FormLabel>Search for temporary approvers</FormLabel>
+          <FormLabel>Search for users</FormLabel>
           <Input
             size="sm"
             placeholder="Search"
@@ -221,8 +221,8 @@ const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                 </Link>
               </th>
               <th style={{ width: 140, padding: "12px 6px" }}>Approver</th>
-              {/* <th style={{ width: 140, padding: "12px 6px" }}>Branch</th> */}
-              <th style={{ width: 140, padding: "12px 6px" }}>Permission</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
@@ -237,11 +237,11 @@ const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                 <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.approver_name}</Typography>
                 </td>
-                {/* <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.branch_description}</Typography>
-                </td> */}
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.permission}</Typography>
+                  <Typography level="body-sm">{row.branch_description}</Typography>
+                </td>
+                <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.doctype_description}</Typography>
                 </td>
                 <td>
                   <Chip
@@ -360,4 +360,4 @@ const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
   );
 };
 
-export default ApproversTempTable;
+export default ProfileTable;

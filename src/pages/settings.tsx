@@ -59,47 +59,49 @@ const Settings = () => {
                 },
               }}
             >
-              {/* <Tab
+              <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={0}
                 // onClick={<Initial />}
               >
-                Profile
-              </Tab> */}
+                Users
+              </Tab>
+              
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={1}
-              >
-                Parameters
-              </Tab>
-              <Tab
-                sx={{ borderRadius: "6px 6px 0 0" }}
-                indicatorInset
-                value={2}
               >
                 Approvers
               </Tab>
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
-                value={3}
+                value={2}
               >
                 Temporary Approvers
+              </Tab>
+              <Tab
+                sx={{ borderRadius: "6px 6px 0 0" }}
+                indicatorInset
+                value={3}
+              >
+                Parameters
               </Tab>
             </TabList>
             <TabPanel value={0}>
               <Profile />
             </TabPanel>
+            
             <TabPanel value={1}>
-              <Params />
-            </TabPanel>
-            <TabPanel value={2}>
               <Approvers />
             </TabPanel>
-            <TabPanel value={3}>
+            <TabPanel value={2}>
               <TempApprovers />
+            </TabPanel>
+            <TabPanel value={3}>
+              <Params />
             </TabPanel>
           </Tabs>
           {/* <Divider /> */}
