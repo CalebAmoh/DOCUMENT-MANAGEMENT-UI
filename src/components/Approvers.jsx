@@ -55,6 +55,23 @@ const Approvers = () => {
     Status: "1",
   });
 
+
+  //fetches approvers
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
+        setApprovers(response.data.approvers);
+        console.log("Approvers:", response.data.approvers);
+        setIsFetching(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [isFetching]);
+
   //fetches parameters
   useEffect(() => {
     const fetchParameters = async () => {
@@ -72,20 +89,7 @@ const Approvers = () => {
     fetchParameters();
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
-        setApprovers(response.data.approvers);
-        console.log("Approvers:", response.data.approvers);
-        setIsFetching(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [isFetching]);
+  
 
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
@@ -93,8 +97,6 @@ const Approvers = () => {
     if (!approverId) return;
     fetchApproverDetails(approverId);
 
-    // Reset approver id
-    setApproverId(null);
   }, [approverId]);
 
 
@@ -112,7 +114,6 @@ const Approvers = () => {
   const handleOpen = (type,row) => {
     
     // setSelectedRow(row);
-    console.log("type", type);
 
     setFormValues({
       user_id: "",
@@ -126,10 +127,11 @@ const Approvers = () => {
         setModalType('add');
         //fetch the id of the code
         // fetchCodeTypes(row.parameter);
+    }else if(type === "result"){
+      setModalType('result');
     }else {
-      //set approver id state
-
-      console.log("approver's id:", row);
+      
+      // Set approver id
       setApproverId(row);
 
 
@@ -147,6 +149,20 @@ const Approvers = () => {
       ...prevValues,
       [field]: value,
     }));
+
+    // Update individual state if needed for visual sync
+    const fieldSetters = {
+      'doc_type_id': setSelectedDocTypeId,
+      'branch_id': setSelectedBranchId,
+      'Status': setSelectedStatus,
+      'user_id': setSelectedUserId,
+    };
+    
+    if (fieldSetters[field]) {
+      fieldSetters[field](value);
+    } else {
+      console.warn(`Unknown field: ${field}`);
+    }
   };
 
 
@@ -195,7 +211,7 @@ const Approvers = () => {
   const handleUpdate = () => {
     try{
       
-      alert(selectedBranchId);
+      
       // Validate form values
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
@@ -219,16 +235,16 @@ const Approvers = () => {
     
 
       //post request to update parameter
-      handlePostUpdate();
+      handlePostUpdate(approverId);
 
       setShowAlert(false); // Hide alert if validation passes
       console.log("Form Values:", formValues);
 
       // setOpen(false);
       setFormValues({
-        description: "",
-        trans_type: "",
-        expense_code: "",
+        user_id: "",
+        branch_id: "",
+        doc_type_id: "",
         Status: "1",
       });
     }catch (error) {
@@ -246,7 +262,7 @@ const Approvers = () => {
         status: formValues.Status
       },{
         headers: headers});
-      console.log("Response:", response.data.code);
+      console.log("Response after adding:", response.data.code);
 
       handleOpen('result');
       setSuccess(response.data);
@@ -261,22 +277,25 @@ const Approvers = () => {
   };
 
   //handles post update request
-  const handlePostUpdate = async () => {
+  const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/approvers/${approverId}`, {
-        us: formValues.description,
-        status: formValues.Status,
-        trans_type: formValues.trans_type,
-        expense_code: formValues.expense_code,
-        // id: parameterId
+      const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
+        user_id: selectedUserId,
+        doctype_id: selectedDocTypeId,
+        branch_id: selectedBranchId,
+        status: selectedStatus
       },{
         headers: headers});
-      console.log("Response:", response.data);
 
-      handleOpen('test','result');
+      //if the response is successful, fetch the approvers again
+      if(response.data.code === "200") {
+        setIsFetching(true);
+      }
+
+      handleOpen('result');
       // setSuccessModal(true);
       setSuccess(response.data);
-      // console.log(response);
+      
     } catch (error) {
       console.error("Error:", error);
     }
@@ -331,35 +350,6 @@ const Approvers = () => {
           gap: 1,
         }}
       >
-        {/* <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Breadcrumbs
-            size="sm"
-            aria-label="breadcrumbs"
-            separator={<ChevronRightRoundedIcon className="text-sm" />}
-            sx={{ pl: 0 }}
-          >
-            <Link
-              underline="none"
-              color="neutral"
-              href="#some-link"
-              aria-label="Home"
-            >
-              <HomeRoundedIcon />
-            </Link>
-            <Link
-              underline="hover"
-              color="neutral"
-              href="#some-link"
-              fontSize={12}
-              fontWeight={500}
-            >
-              Dashboard
-            </Link>
-            <Typography color="primary" fontWeight={500} fontSize={12}>
-              Orders
-            </Typography>
-          </Breadcrumbs>
-        </Box> */}
         <Box
           sx={{
             display: "flex",
@@ -556,13 +546,12 @@ const Approvers = () => {
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
-                        {console.log("Form Values111:", selectedUserId)}
                         <FormLabel>User</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
                           placeholder="Select User"
-                          value={selectedUserId || ""}
-                          onChange={(e) => handleInputChange("user_id", e.target.value)}
+                          value={selectedUserId}
+                          onChange={(e,newValue) => handleInputChange("user_id", newValue)}
                         >
                           {users.map((user) => (
                             <Option key={user.id} value={user.id}>
@@ -574,17 +563,19 @@ const Approvers = () => {
 
                         <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Type of Document"
-                            value={selectedDocTypeId || ""}
-                            onChange={(e) => handleInputChange("doctype_id", e.target.value)}
-                            >
-                            {docTypes.map((doctype) => (
-                                <Option key={doctype.id} value={doctype.id}>
-                                {doctype.description} 
-                                </Option>
-                            ))}
-                            </Select>
+                        <Select
+                          placeholder="Select Type of Document"
+                          value={selectedDocTypeId}
+                          onChange={(e, newValue) => {
+                            handleInputChange("doc_type_id", newValue);
+                          }}
+                        >
+                          {docTypes.map((doctype) => (
+                            <Option key={doctype.id} value={doctype.id}>
+                              {doctype.description}
+                            </Option>
+                          ))}
+                        </Select>
                         </FormControl>
                         
                         
@@ -592,9 +583,9 @@ const Approvers = () => {
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
-                            value={selectedBranchId || ""}
-                            onChange={(e) =>
-                                handleInputChange("branch_id", e.target.value)
+                            value={selectedBranchId}
+                            onChange={(e, newValue) =>
+                                handleInputChange("branch_id", newValue)
                             }
                             >
                             {branches.map((branch) => (
@@ -608,12 +599,12 @@ const Approvers = () => {
                         <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
-                                value={selectedStatus || ""}
-                                onChange={(e) => handleInputChange("Status", e.target.value)}
+                                value={selectedStatus}
+                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
                                  >
                             <Option value="1">Active</Option>
                             <Option value="0">Inactive</Option>
-                            </Select>
+                        </Select>
                         </FormControl>
 
                     </Stack>
@@ -666,28 +657,23 @@ const Approvers = () => {
               }}
             >
               <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography  textColor="text.tertiary">
-                    {validationError ? (
-                      <Result
-                        status="error"
-                        title="Validation Error"
-                        subTitle={validationError}
-                      />
-                    ) : response && response.code === "200" ? (
-                      <Result
-                        status="success"
-                        title={response.result}
-                      />
-                    ) : error ? (
-                      <Result
-                        status="error"
-                        title={error.response.data.result}
-                        subTitle="Please check and modify the following information before resubmitting."
-                      />
-                    ) : null}
-               </Typography>
+              <Typography id="modal-desc" textColor="text.tertiary">
+                {success?.code === "200" ? (
+                  <Result
+                    status="success"
+                    title={success?.message || "Operation Successful"}
+                  />
+                ) : (
+                  <Result
+                    status="error"
+                    title={success?.message || "Operation Failed"}
+                  />
+                )}
+
+                
+              </Typography>
             </Sheet>
-      </Modal>
+          </Modal>
     </div>
   )
 };
