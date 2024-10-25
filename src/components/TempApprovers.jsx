@@ -283,7 +283,7 @@ const TempApprovers = () => {
       const response = await axios.post(ENDPOINT + `/temp_approvers`, {
         user_id: formValues.user_id,
         // doctype_id: formValues.doc_type_id,
-        branch_id: formValues.permission,
+        permission: formValues.permission,
         status: formValues.Status
       },{
         headers: headers});
@@ -396,7 +396,7 @@ const TempApprovers = () => {
             startDecorator={<AddIcon />}
             size="md"
           >
-            Add Temporary Approver
+            Add New
           </Button>
         </Box>
         <ApproversTempTable  data={approvers} handleOpen={handleOpen}/>

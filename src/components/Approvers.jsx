@@ -400,7 +400,7 @@ const Approvers = () => {
             startDecorator={<AddIcon />}
             size="md"
           >
-            Add Approver
+            Add New
           </Button>
         </Box>
         <ApproversTable  data={approvers} handleOpen={handleOpen}/>

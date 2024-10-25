@@ -267,7 +267,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => 
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
-                    <Tooltip title="Edit Approver">
+                    <Tooltip title="Edit">
                       <Button
                         sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
                         onClick={() => handleOpen("update",row.id)}
@@ -279,7 +279,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => 
                       </Button>
                       </Tooltip>
                       {row.status === "Active" ? (
-                        <Tooltip title="Deactivate Approver">
+                        <Tooltip title="Deactivate">
                          <Button
                          sx={{ backgroundColor: "#920505", width: 35 }}
                          onClick={() => handleOpen("delete",row.id)}
@@ -291,7 +291,7 @@ const ApproversTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => 
                        </Button> 
                        </Tooltip>
                       ):(
-                        <Tooltip title="Activate Approver">
+                        <Tooltip title="Activate">
                           <Button
                             sx={{ backgroundColor: "#4CAF50", width: 35 }}
                             onClick={() => handleOpen("activate",row.id)}
