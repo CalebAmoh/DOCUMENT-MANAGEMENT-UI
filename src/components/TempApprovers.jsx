@@ -44,7 +44,7 @@ const TempApprovers = () => {
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
-  const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
+  const [selectedPermission, setSelectedPermission] = useState(""); // State to manage branch id
   const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
   const [validationError, setValidationError] = useState(""); // State to manage validation error
   const [response, setResponse] = useState(null); // State to manage response
@@ -61,7 +61,7 @@ const TempApprovers = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/temp_approvers`, { headers });
+        const response = await axios.get(`${API_SERVER}/temp-approvers`, { headers });
         setApprovers(response.data.temporaryApprovers);
         setIsFetching(false);
       } catch (error) {
@@ -117,8 +117,8 @@ const TempApprovers = () => {
 
     setFormValues({
       user_id: "",
-      doc_type_id: "",
-      branch_id: "",
+    //   doc_type_id: "",
+      permission: "",
       Status: "1",
     });
 
@@ -148,8 +148,8 @@ const TempApprovers = () => {
 
     // Update individual state if needed for visual sync
     const fieldSetters = {
-      'doc_type_id': setSelectedDocTypeId,
-      'branch_id': setSelectedBranchId,
+    //   'doc_type_id': setSelectedDocTypeId,
+      'permission': setSelectedPermission,
       'Status': setSelectedStatus,
       'user_id': setSelectedUserId,
     };
@@ -209,8 +209,8 @@ const TempApprovers = () => {
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
         { field: selectedUserId, name: 'User' },
-        { field: selectedDocTypeId, name: 'Document Type' },
-        { field: selectedBranchId, name: 'Branch' },
+        // { field: selectedDocTypeId, name: 'Document Type' },
+        { field: selectedPermission, name: 'Branch' },
         { field: selectedStatus, name: 'Status' }
       ];
       
@@ -280,7 +280,7 @@ const TempApprovers = () => {
   //handles post request
   const handlePost = async () => {
     try {
-      const response = await axios.post(ENDPOINT + `/temp_approvers`, {
+      const response = await axios.post(ENDPOINT + `/temp-approvers`, {
         user_id: formValues.user_id,
         // doctype_id: formValues.doc_type_id,
         permission: formValues.permission,
@@ -306,8 +306,8 @@ const TempApprovers = () => {
     try {
       const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
         user_id: selectedUserId,
-        doctype_id: selectedDocTypeId,
-        branch_id: selectedBranchId,
+        // doctype_id: selectedDocTypeId,
+        permission: selectedPermission,
         status: selectedStatus
       },{
         headers: headers});
@@ -330,15 +330,15 @@ const TempApprovers = () => {
   //fetches approvers details based on idd
   const fetchApproverDetails = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
+      const response = await axios.get(`${ENDPOINT}/temp-approvers/${id}`, {
         headers: headers
       });
-      console.log("Response approver details:", response.data.approver);
+    //   console.log("Response approver details:", response.data.temporaryApprover);
       
-      setSelectedUserId(response.data.approver.user_id);
-      setSelectedDocTypeId(response.data.approver.doctype_id);
-      setSelectedBranchId(response.data.approver.branch_id);
-      setSelectedStatus(response.data.approver.status);
+      setSelectedUserId(response.data.temporaryApprover.user_id);
+    //   setSelectedDocTypeId(response.data.temporaryApprover.doctype_id);
+      setSelectedPermission(response.data.temporaryApprover.permission);
+      setSelectedStatus(response.data.temporaryApprover.status);
       
       //open update modal
       setModalType("update");
@@ -583,7 +583,7 @@ const TempApprovers = () => {
                         </Select>
                         </FormControl>
 
-                        <FormLabel>Document Type</FormLabel>
+                        {/* <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
                           placeholder="Select Type of Document"
@@ -598,14 +598,14 @@ const TempApprovers = () => {
                             </Option>
                           ))}
                         </Select>
-                        </FormControl>
+                        </FormControl> */}
                         
                         
-                        <FormLabel>Branch</FormLabel>
+                        <FormLabel>Permission</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
-                            value={selectedBranchId}
+                            value={selectedPermission}
                             onChange={(e, newValue) =>
                                 handleInputChange("branch_id", newValue)
                             }
