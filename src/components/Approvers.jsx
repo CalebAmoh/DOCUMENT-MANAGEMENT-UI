@@ -41,6 +41,7 @@ const Approvers = () => {
   const [approvers, setApprovers] = useState([]);
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [approverId, setApproverId] = useState(null); // State to manage approver id
+  const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
   const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
@@ -123,18 +124,14 @@ const Approvers = () => {
     });
 
     
-    if(type === "add") {
-        setModalType('add');
-        //fetch the id of the code
-        // fetchCodeTypes(row.parameter);
-    }else if(type === "result"){
-      setModalType('result');
-    }else {
-      
+    if(type === "update") {
       // Set approver id
       setApproverId(row);
-
-
+    }else if(type === "delete" || type === "activate") {
+      setDeactivateApproverId(row);
+      setModalType(type);
+    }else{
+      setModalType(type);
     }
   };
 
@@ -251,6 +248,38 @@ const Approvers = () => {
       console.error("Error updating parameter:", error);
     }
   };
+
+  //handles deactivation of approver
+  const handleDeactivate = async () => {
+    try {
+      //post delete request to deactivate parameter
+      const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
+      console.log("Response after deactivating:", response);
+      setIsFetching(true);
+      handleOpen('result');
+      setSuccess(response.data);
+
+    } catch (error) {
+      console.error("Error deactivating parameter:", error);
+    }
+  };
+ 
+ 
+  //handles deactivation of approver
+  const handleactivate = async () => {
+    try {
+      //post delete request to deactivate parameter
+      const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
+      console.log("Response after activating:", response);
+      setIsFetching(true);
+      handleOpen('result');
+      setSuccess(response.data);
+
+    } catch (error) {
+      console.error("Error activating parameter:", error);
+    }
+  };
+
 
   //handles post request
   const handlePost = async () => {
@@ -627,6 +656,132 @@ const Approvers = () => {
             </Sheet>
       </Modal>
 
+      {/* Deactivate or delete modal */}
+      <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'delete'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                maxWidth: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              <Typography id="modal-desc" textColor="text.tertiary">
+                
+                  <Result
+                    title={"Are you sure you want to deactivate this approver?"}
+                  />
+
+                  <CardActions>
+                  <Button
+                    sx={{
+                      backgroundColor: "#00357A",
+                      color: "#fff",
+                      width: "48%", // Adjust width to fit both buttons in a row
+                    }}
+                    onClick={handleDeactivate}
+                  >
+                    Deactivate
+                  </Button>
+                  {/* <Button
+                    sx={{
+                      backgroundColor: "#f44336", // Red color for cancel button
+                      color: "#fff",
+                      width: "48%", // Adjust width to fit both buttons in a row
+                    }}
+                    // onClick={handleCancel} // Add your cancel handler here
+                  >
+                    Cancel
+                  </Button> */}
+                  </CardActions>
+                
+              </Typography>
+            </Sheet>
+      </Modal>
+      
+      {/* Activate or delete modal */}
+      <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'activate'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                maxWidth: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              <Typography id="modal-desc" textColor="text.tertiary">
+                
+                  <Result
+                    title={"Are you sure you want to activate this approver?"}
+                  />
+
+                  <CardActions>
+                  <Button
+                    sx={{
+                      backgroundColor: "#00357A",
+                      color: "#fff",
+                      width: "48%", // Adjust width to fit both buttons in a row
+                    }}
+                    onClick={handleactivate}
+                  >
+                    Activate
+                  </Button>
+                  {/* <Button
+                    sx={{
+                      backgroundColor: "#f44336", // Red color for cancel button
+                      color: "#fff",
+                      width: "48%", // Adjust width to fit both buttons in a row
+                    }}
+                    // onClick={handleCancel} // Add your cancel handler here
+                  >
+                    Cancel
+                  </Button> */}
+                  </CardActions>
+                
+              </Typography>
+            </Sheet>
+      </Modal>
+
       {/* Success Modal */}
       <Modal
             aria-labelledby="modal-title"
@@ -673,7 +828,7 @@ const Approvers = () => {
                 
               </Typography>
             </Sheet>
-          </Modal>
+      </Modal>
     </div>
   )
 };
