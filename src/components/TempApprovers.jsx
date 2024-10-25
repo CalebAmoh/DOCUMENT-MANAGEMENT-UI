@@ -610,11 +610,8 @@ const TempApprovers = () => {
                                 handleInputChange("branch_id", newValue)
                             }
                             >
-                            {branches.map((branch) => (
-                                <Option key={branch.id} value={branch.id}>
-                                {branch.description} 
-                                </Option>
-                            ))}
+                            <Option value="V">View</Option>
+                            <Option value="A">Approve</Option>
                             </Select>
                         </FormControl>
                         
