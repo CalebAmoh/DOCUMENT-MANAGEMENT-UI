@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Result,notification } from "antd";
 import { CloseCircleOutlined } from '@ant-design/icons';
-import ProfileTable from "../components/ProfileTable";
+import ProfileTable from "./ProfileTable";
 import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
@@ -36,6 +36,7 @@ const Profile = () => {
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [employees, setEmployees] = useState([]); // State to manage doc types
+  const [roles, setRoles] = useState([]); // State to manage doc types
   const [users, setUsers] = useState([]); // State to manage users
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
@@ -63,9 +64,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
-        setApprovers(response.data.approvers);
-        console.log("Approvers:", response.data.approvers);
+        const response = await axios.get(`${API_SERVER}/users`, { headers });
+        setApprovers(response.data.users);
         setIsFetching(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -83,7 +83,6 @@ const Profile = () => {
         setDocTypes(response.data.doc_types);
         setBranches(response.data.branches);
         setUsers(response.data.users);
-        console.log("Bank names:", response.data);
       } catch (error) {
         console.error("Error fetching bank names:", error);
       }
@@ -97,11 +96,16 @@ const Profile = () => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
+
+        //fetch employees
         const response = await axios.get(`http://10.203.14.73/hr/api/employees_rest.php`);
         setEmployees(response.data);
-        // setBranches(response.data.branches);
-        // setUsers(response.data.users);
-        console.log("employees names:", response.data);
+
+        //fetch roles for employees
+        const response_roles = await axios.get(ENDPOINT + `/users/roles`, {headers: headers});
+        setRoles(response_roles.data.roles);
+        
+
       } catch (error) {
         console.error("Error fetching bank names:", error);
       }
@@ -173,7 +177,6 @@ const Profile = () => {
    * @param {string} value - The value to update the field with
    */
   const handleInputChange = (field, value) => {
-    console.log(`Updating ${field} with value:`, value); // Debug log
     setFormValues((prevValues) => ({
       ...prevValues,
       [field]: value,
@@ -201,8 +204,6 @@ const Profile = () => {
   //handles creation of new parameter
   const handleSave = () => {
     
-    // Validate form values
-    console.log("Form Values:", formValues); // Debug log
     const requiredFields = [
       { field: 'employee_id', name: 'Employee' },
       { field: 'role', name: 'Role' },
@@ -267,7 +268,6 @@ const Profile = () => {
       handlePostUpdate(tempApproverId);
 
       setShowAlert(false); // Hide alert if validation passes
-      console.log("Form Values:", formValues);
 
       // setOpen(false);
       setFormValues({
@@ -286,7 +286,6 @@ const Profile = () => {
     try {
       //post delete request to deactivate parameter
       const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
-      console.log("Response after deactivating:", response);
       setIsFetching(true);
       handleOpen('result');
       setSuccess(response.data);
@@ -302,7 +301,7 @@ const Profile = () => {
     try {
       //post delete request to deactivate parameter
       const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
-      console.log("Response after activating:", response);
+      
       setIsFetching(true);
       handleOpen('result');
       setSuccess(response.data);
@@ -329,7 +328,7 @@ const Profile = () => {
 
       const response = await axios.post(ENDPOINT + `/users/register`, {
         employee_id: formValues.employee_id,
-        doctype_id: formValues.role,
+        role: formValues.role,
         status: formValues.Status,
         email: email,
         phone: phone,
@@ -337,10 +336,8 @@ const Profile = () => {
         rank: ranking,
         first_name: first_name,
         last_name: last_name
-      },{
-        headers: headers});
+      },{headers: headers});
 
-      console.log("Response after adding:", response.data.code);
 
       handleOpen('result');
       setSuccess(response.data);
@@ -348,7 +345,6 @@ const Profile = () => {
       if(response.data.code === "200") {
         setIsFetching(true);
       }
-      console.log(response);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -386,7 +382,6 @@ const Profile = () => {
       const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
         headers: headers
       });
-      console.log("Response approver details:", response.data.approver);
       
       setSelectedUserId(response.data.approver.employee_id);
       setSelectedDocTypeId(response.data.approver.doctype_id);
@@ -522,10 +517,11 @@ const Profile = () => {
                             value={formValues.role}
                             onChange={(e, newValue) => handleInputChange("role", newValue)}
                             >
-                            <Option value="1">Originator</Option>
-                            <Option value="0">Admin</Option>
-                            <Option value="0">Approver</Option>
-                            {/* <Option value="0">Temporary Approver</Option> */}
+                           {roles.map((role) => (
+                                <Option key={role.id} value={role.name}>
+                                {role.name} 
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
                         

@@ -53,17 +53,16 @@ function stableSort<T>(
 
 interface ApproversTableProps {
   data: Array<{
-    id: number;
     first_name: string;
     last_name: string;
-    email: string;
-    phone: string;
+    role: string;
+    id: number;
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
 
-const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -97,7 +96,6 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   // Ensure data is an array
   const approversData = Array.isArray(data) ? data : [];
-  console.log("app",approversData);
   // if (approversData.length === 0) {
   //   return <div>No data available</div>;
   // }
@@ -156,7 +154,7 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
         }}
       >
         <FormControl sx={{ flex: 1 }} size="sm">
-          <FormLabel>Search for users</FormLabel>
+          <FormLabel>Search for approvers</FormLabel>
           <Input
             size="sm"
             placeholder="Search"
@@ -215,9 +213,8 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Employee</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Email</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Phone</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Approver</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Role</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
@@ -233,10 +230,7 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   <Typography level="body-sm">{row.first_name} {row.last_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.email}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.phone}</Typography>
+                  <Typography level="body-sm">{row.role}</Typography>
                 </td>
                 <td>
                   <Chip
@@ -355,4 +349,4 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
   );
 };
 
-export default ProfileTable;
+export default UsersTable;
