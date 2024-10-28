@@ -53,16 +53,11 @@ function stableSort<T>(
 
 interface ApproversTableProps {
   data: Array<{
-    approver_name: string;
-    branch_description: string;
-    created_at: string;
-    doctype_description: string;
-    posted_by: string;
-    updated_at: string;
     id: number;
-    user_id: string;
-    branch_id: string;
-    doc_type_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
@@ -220,9 +215,9 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Approver</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Employee</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Email</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Phone</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
@@ -235,13 +230,13 @@ const ProfileTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   <Typography level="body-sm">{row.id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.approver_name}</Typography>
+                  <Typography level="body-sm">{row.first_name} {row.last_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.branch_description}</Typography>
+                  <Typography level="body-sm">{row.email}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doctype_description}</Typography>
+                  <Typography level="body-sm">{row.phone}</Typography>
                 </td>
                 <td>
                   <Chip

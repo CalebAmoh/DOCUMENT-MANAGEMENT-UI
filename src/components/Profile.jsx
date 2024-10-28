@@ -35,6 +35,7 @@ const Profile = () => {
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
+  const [employees, setEmployees] = useState([]); // State to manage doc types
   const [users, setUsers] = useState([]); // State to manage users
   const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
   const [success, setSuccess] = useState(false);
@@ -51,9 +52,9 @@ const Profile = () => {
   const [response, setResponse] = useState(null); // State to manage response
   const [error, setError] = useState(null); // State to manage error
   const [formValues, setFormValues] = useState({
-    user_id: "",
-    doc_type_id: "",
-    branch_id: "",
+    employee_id: "",
+    role: "",
+    // branch_id: "",
     Status: "1",
   });
 
@@ -90,6 +91,24 @@ const Profile = () => {
 
     fetchParameters();
   }, []);
+  
+  
+  //fetches employees
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get(`http://10.203.14.73/hr/api/employees_rest.php`);
+        setEmployees(response.data);
+        // setBranches(response.data.branches);
+        // setUsers(response.data.users);
+        console.log("employees names:", response.data);
+      } catch (error) {
+        console.error("Error fetching bank names:", error);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
 
   
 
@@ -125,7 +144,7 @@ const Profile = () => {
     // setSelectedRow(row);
 
     setFormValues({
-      user_id: "",
+      employee_id: "",
       doc_type_id: "",
       branch_id: "",
       Status: "1",
@@ -162,10 +181,10 @@ const Profile = () => {
 
     // Update individual state if needed for visual sync
     const fieldSetters = {
-      'doc_type_id': setSelectedDocTypeId,
+      'employee_id': setSelectedDocTypeId,
       'branch_id': setSelectedBranchId,
       'Status': setSelectedStatus,
-      'user_id': setSelectedUserId,
+      'employee_id': setSelectedUserId,
     };
     
     if (fieldSetters[field]) {
@@ -185,9 +204,9 @@ const Profile = () => {
     // Validate form values
     console.log("Form Values:", formValues); // Debug log
     const requiredFields = [
-      { field: 'user_id', name: 'User' },
-      { field: 'doc_type_id', name: 'Document Type' },
-      { field: 'branch_id', name: 'Branch' },
+      { field: 'employee_id', name: 'Employee' },
+      { field: 'role', name: 'Role' },
+      // { field: 'branch_id', name: 'Branch' },
       { field: 'Status', name: 'Status' }
     ];
     
@@ -204,15 +223,15 @@ const Profile = () => {
     
     setShowAlert(false); // Hide alert if validation passes
     
-    
+
     //post request to create parameter
     handlePost();
     
     // Reset form values
     setFormValues({
-      user_id: "",
-      doc_type_id: "",
-      branch_id: "",
+      employee_id: "",
+      role: "",
+      // branch_id: "",
       Status: "1",
     });
   };
@@ -252,9 +271,9 @@ const Profile = () => {
 
       // setOpen(false);
       setFormValues({
-        user_id: "",
-        branch_id: "",
-        doc_type_id: "",
+        employee_id: "",
+        // branch_id: "",
+        role: "",
         Status: "1",
       });
     }catch (error) {
@@ -297,13 +316,30 @@ const Profile = () => {
   //handles post request
   const handlePost = async () => {
     try {
-      const response = await axios.post(ENDPOINT + `/approvers`, {
-        user_id: formValues.user_id,
-        doctype_id: formValues.doc_type_id,
-        branch_id: formValues.branch_id,
-        status: formValues.Status
+
+      const response_emp = await axios.get(`http://10.203.14.73/hr/api/get_employee_rest.php?id=${formValues.employee_id}`);
+      
+      //variable to hold the employee details
+      const email = response_emp.data.work_email;
+      const phone = response_emp.data.work_phone;
+      const signature = response_emp.data.signature;
+      const ranking = response_emp.data.ranking;
+      const first_name = response_emp.data.first_name;
+      const last_name = response_emp.data.last_name;
+
+      const response = await axios.post(ENDPOINT + `/users/register`, {
+        employee_id: formValues.employee_id,
+        doctype_id: formValues.role,
+        status: formValues.Status,
+        email: email,
+        phone: phone,
+        signature: signature,
+        rank: ranking,
+        first_name: first_name,
+        last_name: last_name
       },{
         headers: headers});
+
       console.log("Response after adding:", response.data.code);
 
       handleOpen('result');
@@ -322,7 +358,7 @@ const Profile = () => {
   const handlePostUpdate = async (id) => {
     try {
       const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
-        user_id: selectedUserId,
+        employee_id: selectedUserId,
         doctype_id: selectedDocTypeId,
         branch_id: selectedBranchId,
         status: selectedStatus
@@ -352,7 +388,7 @@ const Profile = () => {
       });
       console.log("Response approver details:", response.data.approver);
       
-      setSelectedUserId(response.data.approver.user_id);
+      setSelectedUserId(response.data.approver.employee_id);
       setSelectedDocTypeId(response.data.approver.doctype_id);
       setSelectedBranchId(response.data.approver.branch_id);
       setSelectedStatus(response.data.approver.status);
@@ -468,34 +504,33 @@ const Profile = () => {
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Employee"
-                            value={formValues.user_id}
-                            onChange={(e, newValue) => handleInputChange("user_id", newValue)}
+                            value={formValues.employee_id}
+                            onChange={(e, newValue) => handleInputChange("employee_id", newValue)}
                             >
-                            {users.map((user) => (
-                                <Option key={user.id} value={user.id}>
+                            {employees.map((user) => (
+                                <Option key={user.id} value={user.employee_id}>
                                 {user.first_name} {user.last_name}
                                 </Option>
                             ))}
                             </Select>
                         </FormControl>
 
-                        <FormLabel>Document Type</FormLabel>
+                        <FormLabel>Role</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Type of Document"
-                            value={formValues.doc_type_id}
-                            onChange={(e, newValue) => handleInputChange("doc_type_id", newValue)}
+                            value={formValues.role}
+                            onChange={(e, newValue) => handleInputChange("role", newValue)}
                             >
-                            {docTypes.map((doctype) => (
-                                <Option key={doctype.id} value={doctype.id}>
-                                {doctype.description} 
-                                </Option>
-                            ))}
+                            <Option value="1">Originator</Option>
+                            <Option value="0">Admin</Option>
+                            <Option value="0">Approver</Option>
+                            {/* <Option value="0">Temporary Approver</Option> */}
                             </Select>
                         </FormControl>
                         
                         
-                        <FormLabel>Branch</FormLabel>
+                        {/* <FormLabel>Branch</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
@@ -510,7 +545,7 @@ const Profile = () => {
                                 </Option>
                             ))}
                             </Select>
-                        </FormControl>
+                        </FormControl> */}
                         
                         <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
@@ -593,7 +628,7 @@ const Profile = () => {
                         <Select
                           placeholder="Select User"
                           value={selectedUserId}
-                          onChange={(e,newValue) => handleInputChange("user_id", newValue)}
+                          onChange={(e,newValue) => handleInputChange("employee_id", newValue)}
                         >
                           {users.map((user) => (
                             <Option key={user.id} value={user.id}>
