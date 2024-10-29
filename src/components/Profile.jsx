@@ -119,6 +119,8 @@ const Profile = () => {
   useEffect(() => {
     if (!approverId) return;
 
+    console.log("here comes the this", approverId);
+
     // Fetch the approver details
     fetchUserDetails(approverId);
 
@@ -350,9 +352,9 @@ const Profile = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
+      const response = await axios.put(`${ENDPOINT}/users/${id}`, {
         employee_id: selectedEmployee,
-        doctype_id: selectedRole,
+        role: selectedRole,
         status: selectedStatus
       },{
         headers: headers});
