@@ -62,19 +62,21 @@ const Settings = () => {
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
-                value={0}
-                // onClick={<Initial />}
+                value={1}
               >
                 Users
               </Tab>
-              
+
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
-                value={1}
+                value={0}
+                // onClick={<Initial />}
               >
                 Approvers
               </Tab>
+              
+              
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
@@ -90,11 +92,11 @@ const Settings = () => {
                 Parameters
               </Tab>
             </TabList>
-            <TabPanel value={0}>
+            <TabPanel value={1}>
               <Profile />
             </TabPanel>
             
-            <TabPanel value={1}>
+            <TabPanel value={0}>
               <Approvers />
             </TabPanel>
             <TabPanel value={2}>

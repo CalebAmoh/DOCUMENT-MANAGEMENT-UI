@@ -45,9 +45,8 @@ const Profile = () => {
   const [approverId, setApproverId] = useState(null); // State to manage approver id
   const [tempApproverId, setTempApproverId] = useState(null); // state to manage temp approver id
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
-  const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
-  const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
-  const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
+  const [selectedEmployee, setSelectedUserId] = useState(""); // State to manage approver id
+  const [selectedRole, setSelectedRole] = useState(""); // State to manage document id
   const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
   const [validationError, setValidationError] = useState(""); // State to manage validation error
   const [response, setResponse] = useState(null); // State to manage response
@@ -121,7 +120,7 @@ const Profile = () => {
     if (!approverId) return;
 
     // Fetch the approver details
-    fetchApproverDetails(approverId);
+    fetchUserDetails(approverId);
 
     // Set the temp approver ID to the current approver ID
     setTempApproverId(approverId);
@@ -184,8 +183,7 @@ const Profile = () => {
 
     // Update individual state if needed for visual sync
     const fieldSetters = {
-      'employee_id': setSelectedDocTypeId,
-      'branch_id': setSelectedBranchId,
+      'role': setSelectedRole,
       'Status': setSelectedStatus,
       'employee_id': setSelectedUserId,
     };
@@ -245,9 +243,8 @@ const Profile = () => {
       // Validate form values
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
-        { field: selectedUserId, name: 'User' },
-        { field: selectedDocTypeId, name: 'Document Type' },
-        { field: selectedBranchId, name: 'Branch' },
+        { field: selectedEmployee, name: 'Employee' },
+        { field: selectedRole, name: 'Role' },
         { field: selectedStatus, name: 'Status' }
       ];
       
@@ -354,9 +351,8 @@ const Profile = () => {
   const handlePostUpdate = async (id) => {
     try {
       const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
-        employee_id: selectedUserId,
-        doctype_id: selectedDocTypeId,
-        branch_id: selectedBranchId,
+        employee_id: selectedEmployee,
+        doctype_id: selectedRole,
         status: selectedStatus
       },{
         headers: headers});
@@ -377,16 +373,15 @@ const Profile = () => {
 
 
   //fetches approvers details based on idd
-  const fetchApproverDetails = async (id) => {
+  const fetchUserDetails = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
+      const response = await axios.get(`${ENDPOINT}/users/${id}`, {
         headers: headers
       });
       
-      setSelectedUserId(response.data.approver.employee_id);
-      setSelectedDocTypeId(response.data.approver.doctype_id);
-      setSelectedBranchId(response.data.approver.branch_id);
-      setSelectedStatus(response.data.approver.status);
+      setSelectedUserId(response.data.user.employee_id);
+      setSelectedRole(response.data.user.role_name);
+      setSelectedStatus(response.data.user.status);
       
       //open update modal
       setModalType("update");
@@ -619,55 +614,43 @@ const Profile = () => {
                   <Stack spacing={2}>
                     {/* add fields here for the form a description and status */}
                     <Stack spacing={1}>
-                        <FormLabel>User</FormLabel>
+                        <FormLabel>Employee</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
                           placeholder="Select User"
-                          value={selectedUserId}
+                          value={selectedEmployee}
                           onChange={(e,newValue) => handleInputChange("employee_id", newValue)}
+                          disabled
+                          sx={{ backgroundColor: "#eaecee" }}
                         >
-                          {users.map((user) => (
-                            <Option key={user.id} value={user.id}>
-                              {user.first_name} {user.last_name}
-                            </Option>
-                          ))}
+                          {employees.map((user) => (
+                                <Option key={user.id} value={user.employee_id}>
+                                {user.first_name} {user.last_name}
+                                </Option>
+                            ))
+                          }
                         </Select>
                         </FormControl>
 
-                        <FormLabel>Document Type</FormLabel>
+                        <FormLabel>Role</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
-                          placeholder="Select Type of Document"
-                          value={selectedDocTypeId}
+                          placeholder="Select Role"
+                          value={selectedRole}
                           onChange={(e, newValue) => {
-                            handleInputChange("doc_type_id", newValue);
+                            handleInputChange("role", newValue);
                           }}
                         >
-                          {docTypes.map((doctype) => (
-                            <Option key={doctype.id} value={doctype.id}>
-                              {doctype.description}
-                            </Option>
-                          ))}
+                         {roles.map((role) => (
+                                <Option key={role.id} value={role.name}>
+                                {role.name} 
+                                </Option>
+                            ))}
                         </Select>
                         </FormControl>
                         
                         
-                        <FormLabel>Branch</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Branch"
-                            value={selectedBranchId}
-                            onChange={(e, newValue) =>
-                                handleInputChange("branch_id", newValue)
-                            }
-                            >
-                            {branches.map((branch) => (
-                                <Option key={branch.id} value={branch.id}>
-                                {branch.description} 
-                                </Option>
-                            ))}
-                            </Select>
-                        </FormControl>
+                        
                         
                         <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
