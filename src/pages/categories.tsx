@@ -18,7 +18,7 @@ import CardActions from "@mui/joy/CardActions";
 import CardOverflow from "@mui/joy/CardOverflow";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import Initial from "../components/Initial";
-import Renewal from "../components/Renewal";
+import GeneratedDocs from "../components/GeneratedDocs";
 import Amendment from "../components/Amendment";
 
 export default function Categories() {
@@ -70,7 +70,7 @@ export default function Categories() {
               Initial Request
             </Tab>
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={1}>
-              Document Submission
+              Generated Documents
             </Tab>
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={2}>
               Document Approval
@@ -80,7 +80,7 @@ export default function Categories() {
             <Initial />
           </TabPanel>
           <TabPanel value={1}>
-            <Renewal />
+            <GeneratedDocs />
           </TabPanel>
           <TabPanel value={2}>
             <Amendment />

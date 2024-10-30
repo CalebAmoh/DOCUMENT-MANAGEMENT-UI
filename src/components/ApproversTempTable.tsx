@@ -87,14 +87,11 @@ const ApproversTempTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
         </Select>
       </FormControl>
       <FormControl size="sm">
-        <FormLabel>Bank Name</FormLabel>
+        <FormLabel>Permission</FormLabel>
         <Select size="sm" placeholder="All">
           <Option value="all">All</Option>
-          <Option value="Bank of America">Bank of America</Option>
-          <Option value="Chase Bank">Chase Bank</Option>
-          <Option value="Wells Fargo">Wells Fargo</Option>
-          <Option value="Citibank">Citibank</Option>
-          <Option value="US Bank">US Bank</Option>
+          <Option value="Bank of America">View</Option>
+          <Option value="Chase Bank">Approve</Option>
         </Select>
       </FormControl>
     </React.Fragment>

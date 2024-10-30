@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Result,notification } from "antd";
 import { CloseCircleOutlined } from '@ant-design/icons';
-import ApproversTempTable from "../components/ApproversTempTable";
+import GeneratedDocsTable from "../components/GeneratedDocsTable";
 import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
@@ -28,7 +28,7 @@ const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 // import Layout from "../components/layout";
 
-const TempApprovers = () => {
+const GeneratedDocs = () => {
 
   const [api, contextHolder] = notification.useNotification();
   //use state setups
@@ -45,15 +45,15 @@ const TempApprovers = () => {
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
   const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
-  const [selectedPermission, setSelectedPermission] = useState(""); // State to manage branch id
+  const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
   const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
   const [validationError, setValidationError] = useState(""); // State to manage validation error
   const [response, setResponse] = useState(null); // State to manage response
   const [error, setError] = useState(null); // State to manage error
   const [formValues, setFormValues] = useState({
     user_id: "",
-    // doc_type_id: "",
-    permission: "",
+    doc_type_id: "",
+    branch_id: "",
     Status: "1",
   });
 
@@ -62,8 +62,9 @@ const TempApprovers = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/temp-approvers`, { headers });
-        setApprovers(response.data.temporaryApprovers);
+        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
+        setApprovers(response.data.approvers);
+        console.log("Approvers:", response.data.approvers);
         setIsFetching(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -94,14 +95,17 @@ const TempApprovers = () => {
 
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
-
     if (!approverId) return;
+
+    // Fetch the approver details
     fetchApproverDetails(approverId);
 
     // Set the temp approver ID to the current approver ID
     setTempApproverId(approverId);
 
+    // Reset the approver ID after fetching the details
     setApproverId(null);
+
   }, [approverId]);
 
 
@@ -122,15 +126,20 @@ const TempApprovers = () => {
 
     setFormValues({
       user_id: "",
-    //   doc_type_id: "",
-      permission: "",
+      doc_type_id: "",
+      branch_id: "",
       Status: "1",
     });
 
     
+    
     if(type === "update") {
-      // Set approver id
-      setApproverId(row);
+      // if(row === approverId) {
+      //   setApproverId("");
+      //   setApproverId(row);
+      // }else{
+        setApproverId(row);
+      // }
     }else if(type === "delete" || type === "activate") {
       setDeactivateApproverId(row);
       setModalType(type);
@@ -153,8 +162,8 @@ const TempApprovers = () => {
 
     // Update individual state if needed for visual sync
     const fieldSetters = {
-    //   'doc_type_id': setSelectedDocTypeId,
-      'permission': setSelectedPermission,
+      'doc_type_id': setSelectedDocTypeId,
+      'branch_id': setSelectedBranchId,
       'Status': setSelectedStatus,
       'user_id': setSelectedUserId,
     };
@@ -174,10 +183,11 @@ const TempApprovers = () => {
   const handleSave = () => {
     
     // Validate form values
+    console.log("Form Values:", formValues); // Debug log
     const requiredFields = [
       { field: 'user_id', name: 'User' },
-    //   { field: 'doc_type_id', name: 'Document Type' },
-      { field: 'permission', name: 'Permission' },
+      { field: 'doc_type_id', name: 'Document Type' },
+      { field: 'branch_id', name: 'Branch' },
       { field: 'Status', name: 'Status' }
     ];
     
@@ -186,6 +196,8 @@ const TempApprovers = () => {
       .map(({ name }) => name);
     
     if (missingFields.length > 0) {
+      // setModalType("result");
+      // setValidationError(`Please fill in the following fields: ${missingFields.join(", ")}`);
       openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
       return;
     }
@@ -199,8 +211,8 @@ const TempApprovers = () => {
     // Reset form values
     setFormValues({
       user_id: "",
-    //   doc_type_id: "",
-      permission: "",
+      doc_type_id: "",
+      branch_id: "",
       Status: "1",
     });
   };
@@ -214,8 +226,8 @@ const TempApprovers = () => {
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
         { field: selectedUserId, name: 'User' },
-        // { field: selectedDocTypeId, name: 'Document Type' },
-        { field: selectedPermission, name: 'Permission' },
+        { field: selectedDocTypeId, name: 'Document Type' },
+        { field: selectedBranchId, name: 'Branch' },
         { field: selectedStatus, name: 'Status' }
       ];
       
@@ -236,12 +248,13 @@ const TempApprovers = () => {
       handlePostUpdate(tempApproverId);
 
       setShowAlert(false); // Hide alert if validation passes
+      console.log("Form Values:", formValues);
 
       // setOpen(false);
       setFormValues({
         user_id: "",
-        // branch_id: "",
-        permission: "",
+        branch_id: "",
+        doc_type_id: "",
         Status: "1",
       });
     }catch (error) {
@@ -253,7 +266,7 @@ const TempApprovers = () => {
   const handleDeactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/temp-approvers/deactivate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
       console.log("Response after deactivating:", response);
       setIsFetching(true);
       handleOpen('result');
@@ -269,7 +282,7 @@ const TempApprovers = () => {
   const handleactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/temp-approvers/activate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
       console.log("Response after activating:", response);
       setIsFetching(true);
       handleOpen('result');
@@ -284,10 +297,10 @@ const TempApprovers = () => {
   //handles post request
   const handlePost = async () => {
     try {
-      const response = await axios.post(ENDPOINT + `/temp-approvers`, {
+      const response = await axios.post(ENDPOINT + `/approvers`, {
         user_id: formValues.user_id,
-        // doctype_id: formValues.doc_type_id,
-        permission: formValues.permission,
+        doctype_id: formValues.doc_type_id,
+        branch_id: formValues.branch_id,
         status: formValues.Status
       },{
         headers: headers});
@@ -301,8 +314,6 @@ const TempApprovers = () => {
       }
       console.log(response);
     } catch (error) {
-      handleOpen('result');
-      setSuccess(error.response.data);
       console.error("Error:", error);
     }
   };
@@ -310,10 +321,10 @@ const TempApprovers = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/temp-approvers/${id}`, {
+      const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
         user_id: selectedUserId,
-        doctype_id: 'NULL',
-        permission: selectedPermission,
+        doctype_id: selectedDocTypeId,
+        branch_id: selectedBranchId,
         status: selectedStatus
       },{
         headers: headers});
@@ -336,15 +347,15 @@ const TempApprovers = () => {
   //fetches approvers details based on idd
   const fetchApproverDetails = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/temp-approvers/${id}`, {
+      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
         headers: headers
       });
-    //   console.log("Response approver details:", response.data.temporaryApprover);
+      console.log("Response approver details:", response.data.approver);
       
-      setSelectedUserId(response.data.temporaryApprover.user_id);
-    //   setSelectedDocTypeId(response.data.temporaryApprover.doctype_id);
-      setSelectedPermission(response.data.temporaryApprover.permission);
-      setSelectedStatus(response.data.temporaryApprover.status);
+      setSelectedUserId(response.data.approver.user_id);
+      setSelectedDocTypeId(response.data.approver.doctype_id);
+      setSelectedBranchId(response.data.approver.branch_id);
+      setSelectedStatus(response.data.approver.status);
       
       //open update modal
       setModalType("update");
@@ -393,19 +404,11 @@ const TempApprovers = () => {
           }}
         >
           <Typography level="h2" component="h1">
-            Temporary Approvers
+            Generated Documents
           </Typography>
-          <Button
-            // color="#00357A"
-            sx={{ backgroundColor: "#00357A" }}
-            onClick={() => handleOpen("add")}
-            startDecorator={<AddIcon />}
-            size="md"
-          >
-            Add New
-          </Button>
+          
         </Box>
-        <ApproversTempTable  data={approvers} handleOpen={handleOpen}/>
+        <GeneratedDocsTable  data={approvers} handleOpen={handleOpen}/>
 
         {/* <OrderList /> */}
       </Box>
@@ -444,7 +447,7 @@ const TempApprovers = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      Add Temporary Approver
+                      Add Approver
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -468,7 +471,7 @@ const TempApprovers = () => {
                             </Select>
                         </FormControl>
 
-                        {/* <FormLabel>Document Type</FormLabel>
+                        <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Type of Document"
@@ -481,20 +484,23 @@ const TempApprovers = () => {
                                 </Option>
                             ))}
                             </Select>
-                        </FormControl> */}
+                        </FormControl>
                         
                         
-                        <FormLabel>Permission</FormLabel>
+                        <FormLabel>Branch</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
-                            placeholder="Select Permission"
-                            value={formValues.permission}
+                            placeholder="Select Branch"
+                            value={formValues.branch_id}
                             onChange={(e, newValue) =>
-                                handleInputChange("permission", newValue)
+                                handleInputChange("branch_id", newValue)
                             }
                             >
-                            <Option value="V">View</Option>
-                            <Option value="A">Approve</Option>
+                            {branches.map((branch) => (
+                                <Option key={branch.id} value={branch.id}>
+                                {branch.description} 
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
                         
@@ -589,7 +595,7 @@ const TempApprovers = () => {
                         </Select>
                         </FormControl>
 
-                        {/* <FormLabel>Document Type</FormLabel>
+                        <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                         <Select
                           placeholder="Select Type of Document"
@@ -604,20 +610,23 @@ const TempApprovers = () => {
                             </Option>
                           ))}
                         </Select>
-                        </FormControl> */}
+                        </FormControl>
                         
                         
-                        <FormLabel>Permission</FormLabel>
+                        <FormLabel>Branch</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
                             <Select
                             placeholder="Select Branch"
-                            value={selectedPermission}
+                            value={selectedBranchId}
                             onChange={(e, newValue) =>
-                                handleInputChange("permission", newValue)
+                                handleInputChange("branch_id", newValue)
                             }
                             >
-                            <Option value="V">View</Option>
-                            <Option value="A">Approve</Option>
+                            {branches.map((branch) => (
+                                <Option key={branch.id} value={branch.id}>
+                                {branch.description} 
+                                </Option>
+                            ))}
                             </Select>
                         </FormControl>
                         
@@ -685,7 +694,7 @@ const TempApprovers = () => {
               <Typography id="modal-desc" textColor="text.tertiary">
                 
                   <Result
-                    title={"Deactivate approver?"}
+                    title={"Are you sure you want to deactivate this approver?"}
                   />
 
                   <CardActions>
@@ -748,7 +757,7 @@ const TempApprovers = () => {
               <Typography id="modal-desc" textColor="text.tertiary">
                 
                   <Result
-                    title={"Activate approver?"}
+                    title={"Are you sure you want to activate this approver?"}
                   />
 
                   <CardActions>
@@ -829,4 +838,4 @@ const TempApprovers = () => {
   )
 };
 
-export default TempApprovers;
+export default GeneratedDocs;

@@ -4,6 +4,7 @@ import Link from "@mui/joy/Link";
 import Button from "@mui/joy/Button";
 import Tooltip from "@mui/joy/Tooltip";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
+import CallMadeIcon from '@mui/icons-material/CallMade';
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import {Table, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
@@ -53,16 +54,22 @@ function stableSort<T>(
 
 interface ApproversTableProps {
   data: Array<{
-    first_name: string;
-    last_name: string;
-    role: string;
+    approver_name: string;
+    branch_description: string;
+    created_at: string;
+    doctype_description: string;
+    posted_by: string;
+    updated_at: string;
     id: number;
+    user_id: string;
+    branch_id: string;
+    doc_type_id: string;
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
 
-const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -81,12 +88,12 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
         </Select>
       </FormControl>
       <FormControl size="sm">
-        <FormLabel>Role</FormLabel>
+        <FormLabel>Branch</FormLabel>
         <Select size="sm" placeholder="All">
           <Option value="all">All</Option>
-          <Option value="Bank of America">Approver</Option>
-          <Option value="Chase Bank">Admin</Option>
-          <Option value="Wells Fargo">Originator</Option>
+          <Option value="Bank of America">Tema</Option>
+          <Option value="Chase Bank">Accra</Option>
+          <Option value="Wells Fargo">Kasoa</Option>
         </Select>
       </FormControl>
     </React.Fragment>
@@ -94,6 +101,7 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   // Ensure data is an array
   const approversData = Array.isArray(data) ? data : [];
+  console.log("app",approversData);
   // if (approversData.length === 0) {
   //   return <div>No data available</div>;
   // }
@@ -211,8 +219,9 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Approver</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Role</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
@@ -225,10 +234,13 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   <Typography level="body-sm">{row.id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.first_name} {row.last_name}</Typography>
+                  <Typography level="body-sm">{row.approver_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.role}</Typography>
+                  <Typography level="body-sm">{row.branch_description}</Typography>
+                </td>
+                <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.doctype_description}</Typography>
                 </td>
                 <td>
                   <Chip
@@ -254,43 +266,30 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
-                    <Tooltip title="Edit">
+                    <Tooltip title="View">
                       <Button
                         sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
                         onClick={() => handleOpen("update",row.id)}
                         size="sm"
                         variant="solid"
                       >
-                        <Edit />
+                        <RemoveRedEyeIcon />
                         
                       </Button>
                       </Tooltip>
-                      {row.status === "Active" ? (
-                        <Tooltip title="Deactivate">
-                         <Button
-                         sx={{ backgroundColor: "#920505", width: 35 }}
-                         onClick={() => handleOpen("delete",row.id)}
-                         size="sm"
-                         variant="solid"
-                       >
-                         <Delete />
-                         
-                       </Button> 
-                       </Tooltip>
-                      ):(
-                        <Tooltip title="Activate">
+                      
+                        <Tooltip title="Submit">
                           <Button
                             sx={{ backgroundColor: "#4CAF50", width: 35 }}
                             onClick={() => handleOpen("activate",row.id)}
                             size="sm"
                             variant="solid"
                           >
-                            <Recycling />
+                            <CallMadeIcon />
                             
                           </Button>
                       </Tooltip>
-                       )
-                      }
+                      
                      
                     </Link>
                   </Box>
@@ -347,4 +346,4 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
   );
 };
 
-export default UsersTable;
+export default GeneratedDocsTable;

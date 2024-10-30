@@ -5,6 +5,7 @@ import Button from "@mui/joy/Button";
 import Divider from "@mui/joy/Divider";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
+import { CloseCircleOutlined } from '@ant-design/icons';
 import Stack from "@mui/joy/Stack";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
@@ -18,42 +19,39 @@ import ModalClose from "@mui/joy/ModalClose";
 import Sheet from "@mui/joy/Sheet";
 import Input from "@mui/joy/Input";
 import Textarea from '@mui/joy/Textarea';
-import Swal from "sweetalert2";
 import { Alert, notification, Result } from "antd";
-import dayjs from "dayjs";
-import {API_SERVER, headers} from "../constant";
+import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
-// import { Textarea } from "flowbite-react";
-// import Modal from "react-bootstrap/Modal";
+
 
 const Initial = () => {
   const [open, setOpen] = useState(false);
   const [codeTypes, setCodeTypes] = useState([]);
   const [branches, setBranches] = useState([]);
-  // const [frequency, setFrequency] = useState([]);
-  // const [notificationFreq, setNotificationFreq] = useState([]);
   const [selectedDocType, setSelectedDocType] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
   const [details, setDetails] = useState("");
-  const [selectedFrequency, setSelectedFrequency] = useState("");
-  const [selectedNotificationFreq, setSelectedNotificationFreq] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [notificationStart, setNotificationStart] = useState("");
-  const [requestAmount, setRequestAmount] = useState("");
   const [response, setResponse] = useState(null);
+  const [isTransType, setIsTransType] = useState("");
   const [error, setError] = useState(null);
   const [validationError, setValidationError] = useState("");
-
+  const [modalType, setModalType] = useState(null); // 'result' 
+  const [success, setSuccess] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [api, contextHolder] = notification.useNotification();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    handleFile(file);
+    if (file) {
+      handleFile(file);
+
+      // Reset the input value to allow re-selecting the same file
+      event.target.value = "";
+    }
   };
 
   const handleFileDrop = (event) => {
@@ -73,21 +71,19 @@ const Initial = () => {
 
   const closeModal = () => {
     setSelectedFile(null);
+    setModalType(null);
     setModalOpened(false);
   };
 
-  const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
   useEffect(() => {
     const fetchParameters = async () => {
       try {
-        const response = await axios.get(API_SERVER + `/get-parameters`,{
-          headers: headers});
+        const response = await axios.get(API_SERVER + `/get-parameters`, {
+          headers: headers
+        });
         setCodeTypes(response.data.doc_types);
         setBranches(response.data.branches);
-        // setFrequency(response.data.licenseFrequencyParams);
-        // setNotificationFreq(response.data.notificationFrequencyParams);
-        console.log("code types:", response.data.doc_types);
       } catch (error) {
         console.error("Error fetching bank names:", error);
       }
@@ -96,35 +92,34 @@ const Initial = () => {
     fetchParameters();
   }, []);
 
-
+  //get the details of a selected document type
   useEffect(() => {
-    if (startDate && endDate && notificationStart) {
-      if (
-        dayjs(notificationStart).isBefore(startDate) ||
-        dayjs(notificationStart).isAfter(endDate)
-      ) {
-        setValidationError(
-          "Notification start date must be between start date and end date."
-        );
-      } else {
-        setValidationError("");
-        setSelectedNotificationFreq(
-          calculateNotificationFrequency(startDate, endDate, notificationStart)
-        );
+    const fetchDocDetails = async () => {
+      try {
+          if(selectedDocType != null){
+            const response = await axios.get(API_SERVER + `/code_creation_details/${selectedDocType}`, {
+              headers: headers
+            });
+            
+            const transType = response.data.code_detail[0].trans_type;
+
+            //checks to see if the document type is a transactional document 
+            if(transType === "1"){
+              // alert(transType)
+              setIsTransType(transType);
+            }else{
+              setIsTransType("0");
+            }
+        }
+      } catch (error) {
+        console.error("Error document type details:", error);
       }
     }
-  }, [startDate, endDate, notificationStart]);
 
-  const handleConsole = () => {
-    console.log("Selected Bank:", selectedDocType);
-    console.log("Selected License Type:", selectedBranch);
-    // console.log("Selected Frequency:", selectedFrequency);
-    console.log("Selected Notification Frequency:", selectedNotificationFreq);
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endDate);
-    console.log("Notification Start:", notificationStart);
-    console.log("Details:", details);
-  };
+    fetchDocDetails();
+  }, [selectedDocType]);
+
+  
 
   const handleClear = () => {
     setSelectedDocType("");
@@ -135,35 +130,53 @@ const Initial = () => {
     setValidationError("");
   };
 
+  //function to open notification
+  const openNotification = (message) => {
+    api.open({
+      message: 'Error message',
+      description:message,
+      duration: 10,
+      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />, // Icon to display in the notification
+    });
+  };
+
+  //function to reset form
+  const resetForm = () => {
+    setSelectedDocType("");
+    setSelectedBranch("");
+    setSelectedRequestedAmount("");
+    setSelectedCustomerNumber("");
+    setDetails("");
+  };
+
+  //post generated doc
   const handleSave = async () => {
 
     //validate form
 
-    //this checks if the user has selected document type
+    const validationErrors = [];
+
     if (!selectedDocType) {
-      setValidationError("Please select a document type.");
-      setOpen(true); // Open the modal to show the validation error
-      return;
+      validationErrors.push("document type.");
     }
 
-    //this checks if the user has selected branch
     if (!selectedBranch) {
-      setValidationError("Please select a branch.");
-      setOpen(true); // Open the modal to show the validation error
+      validationErrors.push("branch.");
+    }
+
+    if (!details) {
+      validationErrors.push("provide details to the document.");
+    }
+
+    if (validationErrors.length > 0) {
+      // setValidationError(validationErrors.join(" "));
+      openNotification(`Please fill in the following field(s): ${validationErrors.join(" ")}`);
       return;
     }
 
-    //this checks if the user has provided details for the document
-    if (!details) {
-      setValidationError("Please provide details to the document.");
-      setOpen(true); // Open the modal to show the validation error
-      return;
-    }
 
     // Reset validation error if the date is valid
     setValidationError("");
-
-    
 
     const formData = {
       doctype_id: selectedDocType,
@@ -177,41 +190,30 @@ const Initial = () => {
 
     // Uncomment the below code for actual API call
     try {
-      // const response = await axios.post(
-      //   API_SERVER + `/generate-doc`,
-      //   {headers: headers},
-      //   formData
-      // );
-      // console.log("Response:", response.data);
-      // const FormData = require('form-data');
-      // let data = new FormData();
-      // data.append('doctype_id', '101');
-      // data.append('branch', '000');
-      // data.append('requested_amount', '1000');
-      // data.append('customer_no', '092499');
-      // data.append('details', 'document generation sample');
+      
 
-      let config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: API_SERVER+`/generate-doc`,
-        headers: headers,
-        data:formData
-      };
+          let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: API_SERVER + `/generate-doc`,
+            headers: headers,
+            data: formData
+          };
 
-      const response = axios.request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+          axios.request(config)
+            .then((response) => {
+              console.log(JSON.stringify(response.data));
+              setModalType('result');
+              setSuccess(response.data);
 
-      console.log(response);
-      setResponse(response.data);
-      setError(null);
-      setOpen(true); // Open the modal to show the response
-
+              // Reset the form after successful posting
+              resetForm();
+          })
+          .catch((error) => {
+            setModalType('result');
+            setSuccess(error.response.data);
+            console.log(error);
+          });
 
     } catch (error) {
       console.error("Error generating document:", error);
@@ -221,43 +223,15 @@ const Initial = () => {
     }
   };
 
-  useEffect(() => {
-    if (startDate && selectedFrequency) {
-      console.log(
-        "Calculating end date with startDate:",
-        startDate,
-        "and selectedFrequency:",
-        selectedFrequency
-      );
-      // setEndDate(calculateEndDate(startDate, selectedFrequency));
-    }
-  }, [startDate, selectedFrequency]);
-
  
 
-  const calculateNotificationFrequency = (
-    startDate,
-    endDate,
-    notificationStart
-  ) => {
-    const start = dayjs(startDate);
-    const end = dayjs(endDate);
-    const notification = dayjs(notificationStart);
-
-    const totalDays = end.diff(start, "day");
-    const notificationDays = end.diff(notification, "day");
-
-    if (notificationDays <= 14) {
-      return "Daily";
-    } else if (notificationDays <= 60) {
-      return "Weekly";
-    } else {
-      return "Monthly";
-    }
-  };
-
   return (
+
+    
     <div>
+      {/* this is the notification holder */}
+      {contextHolder}
+      {" "}
       <Stack
         spacing={4}
         sx={{
@@ -279,12 +253,13 @@ const Initial = () => {
           <Stack spacing={4}>
             <Stack direction="row" spacing={4}>
               <FormControl sx={{ width: "100%" }}>
-              <FormLabel required>Document</FormLabel>
+                <FormLabel required>Document</FormLabel>
                 <Select
                   autoFocus={true}
                   size="sm"
                   startDecorator={<AccountBalanceIcon />}
                   defaultValue="0"
+                  value={selectedDocType}
                   placeholder="Select Document Type"
                   onChange={(e, newValue) => setSelectedDocType(newValue)}
                 >
@@ -300,6 +275,7 @@ const Initial = () => {
                 <Select
                   size="sm"
                   defaultValue="0"
+                  value={selectedBranch}
                   placeholder="Select Type"
                   onChange={(e, newValue) => setSelectedBranch(newValue)}
                 >
@@ -312,45 +288,50 @@ const Initial = () => {
               </FormControl>
             </Stack>
 
+            {isTransType !== "0" && (
             <Stack direction="row" spacing={4}>
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel>Requested Amount</FormLabel>
                 <Input
-                    size="sm"
-                    type="number"
-                    placeholder="Enter requested Amount"
-                    onChange={(e) => setSelectedRequestedAmount(e.target.value)}
-                  />
+                  size="sm"
+                  type="number"
+                  value={selectedRequestedAmount}
+                  placeholder="Enter requested Amount"
+                  onChange={(e) => setSelectedRequestedAmount(e.target.value)}
+                />
               </FormControl>
+
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel>Customer number</FormLabel>
                 <Input
-                    size="sm"
-                    placeholder="Enter customer number"
-                    onChange={(e) => setSelectedCustomerNumber(e.target.value)}
-                  />
+                  size="sm"
+                  value={selectedCustomerNumber}
+                  placeholder="Enter customer number"
+                  onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                />
               </FormControl>
-            </Stack>
+            
+            </Stack>)}
             <Stack direction="row" spacing={4}>
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel required>Details</FormLabel>
                 <Textarea
-                    color="neutral"
-                    minRows={2}
-                    // size="sm"
-                    height="100px"
-                    placeholder="Enter customer number"
-                    onChange={(e) => setDetails(e.target.value)}
-                  />
+                  color="neutral"
+                  minRows={2}
+                  value={details}
+                  // size="sm"
+                  height="100px"
+                  placeholder="Enter customer number"
+                  onChange={(e) => setDetails(e.target.value)}
+                />
               </FormControl>
             </Stack>
-
 
             {validationError && (
               <Alert type="error" message={validationError} showIcon />
             )}
 
-              <div className="w-full">
+            <div className="w-full">
               <Stack direction="row" spacing={4} sx={{ width: '100%' }} >
                 <DocumentScan
                   selectedFile={selectedFile}
@@ -381,7 +362,6 @@ const Initial = () => {
                 variant="solid"
                 sx={{ backgroundColor: "#00357A" }}
                 onClick={() => {
-                  setOpen(true);
                   handleSave();
                 }}
               >
@@ -540,6 +520,55 @@ const Initial = () => {
               </Typography>
             </Sheet>
           </Modal>
+
+          {/* Success Modal */}
+          <Modal
+                aria-labelledby="modal-title"
+                aria-describedby="modal-desc"
+                open={modalType === 'result'} onClose={closeModal}
+                slotProps={{
+                  backdrop: {
+                    sx: {
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      backdropFilter: "none",
+                    },
+                  },
+                }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: "15%",
+                }}
+              >
+                <Sheet
+                  variant="outlined"
+                  sx={{
+                    maxWidth: 500,
+                    borderRadius: "md",
+                    p: 3,
+                    boxShadow: "lg",
+                  }}
+                >
+                  <ModalClose variant="plain" sx={{ m: 1 }} />
+                  <Typography id="modal-desc" textColor="text.tertiary">
+                    {success?.code === "200" ? (
+                      <Result
+                        status="success"
+                        title={success?.message || "Operation Successful"}
+                      />
+                    ) : (
+                      <Result
+                        status="error"
+                        title={success?.message || "Operation Failed"}
+                      />
+                    )}
+
+                    
+                  </Typography>
+                </Sheet>
+          </Modal>
+
         </Card>
       </Stack>
     </div>

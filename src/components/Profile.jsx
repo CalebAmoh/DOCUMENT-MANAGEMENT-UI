@@ -32,7 +32,7 @@ const Profile = () => {
 
   const [api, contextHolder] = notification.useNotification();
   //use state setups
-  const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
+  const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update' | 'result'
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [employees, setEmployees] = useState([]); // State to manage doc types
@@ -284,7 +284,7 @@ const Profile = () => {
   const handleDeactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/users/deactivate/${deactivateApproverId}`,{}, { headers });
       setIsFetching(true);
       handleOpen('result');
       setSuccess(response.data);
@@ -299,7 +299,7 @@ const Profile = () => {
   const handleactivate = async () => {
     try {
       //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
+      const response = await axios.put(`${ENDPOINT}/users/activate/${deactivateApproverId}`,{}, { headers });
       
       setIsFetching(true);
       handleOpen('result');
@@ -345,6 +345,8 @@ const Profile = () => {
         setIsFetching(true);
       }
     } catch (error) {
+      handleOpen('result');
+      setSuccess(error.response.data);
       console.error("Error:", error);
     }
   };
@@ -369,6 +371,8 @@ const Profile = () => {
       setSuccess(response.data);
       
     } catch (error) {
+      handleOpen('result');
+      setSuccess(response.data);
       console.error("Error:", error);
     }
   };
