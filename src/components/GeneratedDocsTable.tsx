@@ -54,16 +54,11 @@ function stableSort<T>(
 
 interface ApproversTableProps {
   data: Array<{
-    approver_name: string;
-    branch_description: string;
-    created_at: string;
-    doctype_description: string;
-    posted_by: string;
-    updated_at: string;
     id: number;
-    user_id: string;
-    branch_id: string;
-    doc_type_id: string;
+    branch_name: string;
+    doctype_name: string;
+    doc_id: string;
+    doctype_id: string;
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
@@ -234,30 +229,33 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                   <Typography level="body-sm">{row.id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.approver_name}</Typography>
+                  <Typography level="body-sm">{row.doc_id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.branch_description}</Typography>
+                  <Typography level="body-sm">{row.branch_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doctype_description}</Typography>
+                  <Typography level="body-sm">{row.doctype_name}</Typography>
                 </td>
+                {/* <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.status}</Typography>
+                </td> */}
                 <td>
                   <Chip
                     variant="soft"
                     size="sm"
                     startDecorator={
                       {
-                        Active: <CheckRoundedIcon />,
+                        draft: <CheckRoundedIcon />,
                         Inactive: <BlockIcon />,
                       }[row.status]
                     }
-                    color={
-                      {
-                        Active: "success",
-                        Inactive: "danger",
-                      }[row.status] as ColorPaletteProp
-                    }
+                    // color={
+                    //   {
+                    //     Active: "success",
+                    //     Inactive: "danger",
+                    //   }[row.status] as ColorPaletteProp
+                    // }
                   >
                     {row.status}
                   </Chip>
@@ -268,12 +266,23 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                     <Link level="body-xs" component="button">
                     <Tooltip title="View">
                       <Button
-                        sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
+                        sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
                         onClick={() => handleOpen("update",row.id)}
                         size="sm"
                         variant="solid"
                       >
                         <RemoveRedEyeIcon />
+                        
+                      </Button>
+                      </Tooltip>
+                    <Tooltip title="Edit">
+                      <Button
+                        sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
+                        onClick={() => handleOpen("update",row.id)}
+                        size="sm"
+                        variant="solid"
+                      >
+                        <Edit />
                         
                       </Button>
                       </Tooltip>

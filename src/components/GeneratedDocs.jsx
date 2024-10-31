@@ -62,9 +62,9 @@ const GeneratedDocs = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/approvers`, { headers });
-        setApprovers(response.data.approvers);
-        console.log("Approvers:", response.data.approvers);
+        const response = await axios.get(`${API_SERVER}/get-docs`, { headers });
+        setApprovers(response.data.documents);
+        console.log("Approvers:", response.data.documents);
         setIsFetching(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -134,12 +134,8 @@ const GeneratedDocs = () => {
     
     
     if(type === "update") {
-      // if(row === approverId) {
-      //   setApproverId("");
-      //   setApproverId(row);
-      // }else{
+        // alert("Update");
         setApproverId(row);
-      // }
     }else if(type === "delete" || type === "activate") {
       setDeactivateApproverId(row);
       setModalType(type);
@@ -347,6 +343,7 @@ const GeneratedDocs = () => {
   //fetches approvers details based on idd
   const fetchApproverDetails = async (id) => {
     try {
+      alert("Fetching approver details");
       const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
         headers: headers
       });
