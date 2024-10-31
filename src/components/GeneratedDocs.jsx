@@ -7,23 +7,24 @@ import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import Breadcrumbs from "@mui/joy/Breadcrumbs";
 import Link from "@mui/joy/Link";
+import CardOverflow from "@mui/joy/CardOverflow";
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
 import Divider from "@mui/joy/Divider";
 import Stack from "@mui/joy/Stack";
 import FormControl from "@mui/joy/FormControl";
-import {FormLabel,Input} from "@mui/joy";
+import {FormLabel,Input,Textarea} from "@mui/joy";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import AddIcon from "@mui/icons-material/Add";
 import Typography from "@mui/joy/Typography";
 import CardActions from "@mui/joy/CardActions";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
 import {API_SERVER, headers} from "../constant";
+import DocumentScan from "./DocumentScan";
+
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 // import Layout from "../components/layout";
@@ -36,9 +37,14 @@ const GeneratedDocs = () => {
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [users, setUsers] = useState([]); // State to manage users
-  const [showAlert, setShowAlert] = useState(false); // State to manage alert visibility
+  const [selectedDocType, setSelectedDocType] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [success, setSuccess] = useState(false);
   const [approvers, setApprovers] = useState([]);
+  const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
+  const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
+  const [details, setDetails] = useState("");
+  const [validationError, setValidationError] = useState("");
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [approverId, setApproverId] = useState(null); // State to manage approver id
   const [tempApproverId, setTempApproverId] = useState(null); // state to manage temp approver id
@@ -47,9 +53,9 @@ const GeneratedDocs = () => {
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
   const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
   const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
-  const [validationError, setValidationError] = useState(""); // State to manage validation error
-  const [response, setResponse] = useState(null); // State to manage response
-  const [error, setError] = useState(null); // State to manage error
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formValues, setFormValues] = useState({
     user_id: "",
     doc_type_id: "",
@@ -91,7 +97,14 @@ const GeneratedDocs = () => {
     fetchParameters();
   }, []);
 
-  
+  const handleClear = () => {
+    setSelectedDocType("");
+    setSelectedBranch("");
+    setSelectedRequestedAmount("");
+    setSelectedCustomerNumber("");
+    details("");
+    setValidationError("");
+  };
 
   //when the approver id changes fetch the details of the approver
   useEffect(() => {
@@ -142,6 +155,37 @@ const GeneratedDocs = () => {
     }else{
       setModalType(type);
     }
+  };
+
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    handleFile(file);
+  };
+
+  const handleFile = (file) => {
+    setSelectedFile(file);
+    setLoading(true); // Set loading to true immediately after file selection
+    setTimeout(() => {
+      setModalOpened(true);
+      setLoading(false); // Set loading to false when modal is opened
+    }, 2000); // Simulate delay for demonstration purpose (2 seconds)
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      handleFile(file);
+
+      // Reset the input value to allow re-selecting the same file
+      event.target.value = "";
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedFile(null);
+    setModalType(null);
+    setModalOpened(false);
   };
 
   /**
@@ -198,7 +242,7 @@ const GeneratedDocs = () => {
       return;
     }
     
-    setShowAlert(false); // Hide alert if validation passes
+    // setShowAlert(false); // Hide alert if validation passes
     
     
     //post request to create parameter
@@ -243,7 +287,7 @@ const GeneratedDocs = () => {
       //post request to update parameter
       handlePostUpdate(tempApproverId);
 
-      setShowAlert(false); // Hide alert if validation passes
+      // setShowAlert(false); // Hide alert if validation passes
       console.log("Form Values:", formValues);
 
       // setOpen(false);
@@ -343,16 +387,16 @@ const GeneratedDocs = () => {
   //fetches approvers details based on idd
   const fetchApproverDetails = async (id) => {
     try {
-      alert("Fetching approver details");
-      const response = await axios.get(`${ENDPOINT}/approvers/${id}`, {
+      
+      const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
         headers: headers
       });
-      console.log("Response approver details:", response.data.approver);
+      console.log("Response doc details:", response.data.document);
       
-      setSelectedUserId(response.data.approver.user_id);
-      setSelectedDocTypeId(response.data.approver.doctype_id);
-      setSelectedBranchId(response.data.approver.branch_id);
-      setSelectedStatus(response.data.approver.status);
+      // setSelectedUserId(response.data.approver.user_id);
+      // setSelectedDocTypeId(response.data.approver.doctype_id);
+      // setSelectedBranchId(response.data.approver.branch_id);
+      // setSelectedStatus(response.data.approver.status);
       
       //open update modal
       setModalType("update");
@@ -558,7 +602,7 @@ const GeneratedDocs = () => {
             <Sheet
               variant="outlined"
               sx={{
-                width: 500,
+                width: 800,
                 borderRadius: "md",
                 p: 3,
                 boxShadow: "lg",
@@ -574,84 +618,119 @@ const GeneratedDocs = () => {
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
                   
-                  <Stack spacing={2}>
-                    {/* add fields here for the form a description and status */}
-                    <Stack spacing={1}>
-                        <FormLabel>User</FormLabel>
+                  <Stack spacing={4}>
+                    <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select User"
-                          value={selectedUserId}
-                          onChange={(e,newValue) => handleInputChange("user_id", newValue)}
-                        >
-                          {users.map((user) => (
-                            <Option key={user.id} value={user.id}>
-                              {user.first_name} {user.last_name}
-                            </Option>
-                          ))}
-                        </Select>
-                        </FormControl>
-
-                        <FormLabel>Document Type</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                        <Select
-                          placeholder="Select Type of Document"
-                          value={selectedDocTypeId}
-                          onChange={(e, newValue) => {
-                            handleInputChange("doc_type_id", newValue);
-                          }}
-                        >
-                          {docTypes.map((doctype) => (
-                            <Option key={doctype.id} value={doctype.id}>
-                              {doctype.description}
-                            </Option>
-                          ))}
-                        </Select>
-                        </FormControl>
-                        
-                        
-                        <FormLabel>Branch</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Branch"
-                            value={selectedBranchId}
-                            onChange={(e, newValue) =>
-                                handleInputChange("branch_id", newValue)
-                            }
-                            >
-                            {branches.map((branch) => (
-                                <Option key={branch.id} value={branch.id}>
-                                {branch.description} 
-                                </Option>
+                          <FormLabel required>Document</FormLabel>
+                          <Select
+                            autoFocus={true}
+                            size="sm"
+                            startDecorator={<AccountBalanceIcon />}
+                            defaultValue="0"
+                            value={selectedDocType}
+                            placeholder="Select Document Type"
+                            onChange={(e, newValue) => setSelectedDocType(newValue)}
+                          >
+                            {docTypes.map((docType) => (
+                              <Option key={docType.id} value={docType.id}>
+                                {docType.description}
+                              </Option>
                             ))}
-                            </Select>
+                          </Select>
                         </FormControl>
-                        
-                        <FormLabel>Status</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                        <Select
-                                value={selectedStatus}
-                                onChange={(e, newValue) => handleInputChange("Status", newValue)}
-                                 >
-                            <Option value="1">Active</Option>
-                            <Option value="0">Inactive</Option>
-                        </Select>
+                          <FormLabel required>Branch</FormLabel>
+                          <Select
+                            size="sm"
+                            defaultValue="0"
+                            value={selectedBranch}
+                            placeholder="Select Type"
+                            onChange={(e, newValue) => setSelectedBranch(newValue)}
+                          >
+                            {branches.map((branch) => (
+                              <Option key={branch.id} value={branch.id}>
+                                {branch.description}
+                              </Option>
+                            ))}
+                          </Select>
+                        </FormControl>
+                    </Stack>
+                    {/* {isTransType !== "0" && ( */}
+                      <Stack direction="row" spacing={4}>
+                        <FormControl sx={{ width: "100%" }}>
+                          <FormLabel>Requested Amount</FormLabel>
+                          <Input
+                            size="sm"
+                            type="number"
+                            value={selectedRequestedAmount}
+                            placeholder="Enter requested Amount"
+                            onChange={(e) => setSelectedRequestedAmount(e.target.value)}
+                          />
                         </FormControl>
 
-                    </Stack>
+                        <FormControl sx={{ width: "100%" }}>
+                          <FormLabel>Customer number</FormLabel>
+                          <Input
+                            size="sm"
+                            value={selectedCustomerNumber}
+                            placeholder="Enter customer number"
+                            onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                          />
+                        </FormControl>
+                      
+                      </Stack>
+                      {/* )}         */}
+                      <Stack direction="row" spacing={4}>
+                        <FormControl sx={{ width: "100%" }}>
+                          <FormLabel required>Details</FormLabel>
+                          <Textarea
+                            color="neutral"
+                            minRows={2}
+                            value={details}
+                            // size="sm"
+                            height="100px"
+                            placeholder="Enter customer number"
+                            onChange={(e) => setDetails(e.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                      <div className="w-full">
+                        <Stack direction="row" spacing={4} sx={{ width: '100%' }} >
+                          <DocumentScan
+                            selectedFile={selectedFile}
+                            modalOpened={modalOpened}
+                            loading={loading}
+                            handleFileDrop={handleFileDrop}
+                            handleFile={handleFile}
+                            closeModal={closeModal}
+                            handleFileChange={handleFileChange}
+                            sx={{ flexGrow: 1 }}
+                          />
+                        </Stack>
+                      </div>
                   </Stack>
-                  <CardActions>
-                    <Button
-                      sx={{
-                        backgroundColor: "#00357A",
-                        color: "#fff",
-                        marginTop: "16px",
-                      }}
-                      onClick={handleUpdate}
-                    >
-                      Update
-                    </Button>
-                  </CardActions>
+                  <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
+                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
+                      <Button
+                        size="sm"
+                        variant="outlined"
+                        color="neutral"
+                        onClick={() => handleClear()}
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="solid"
+                        sx={{ backgroundColor: "#00357A" }}
+                        onClick={() => {
+                          handleUpdate();
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </CardActions>
+                  </CardOverflow>
                 </Typography>
            
 
