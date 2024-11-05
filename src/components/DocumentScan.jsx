@@ -8,31 +8,33 @@ function DocumentScan({
   selectedFile,
   modalOpened,
   loading,
+  handleGenerateDocId,
   handleFileDrop,
   closeModal,
+  setModalType,
   handleFileChange
 }) {
 
   const [pdfBase64, setPdfBase64] = useState("");
 
 
+  //convert document to base 64 and ulpload to generate doc id
   const convertToBase64 = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64data = reader.result;
-      console.log("let's check",base64data);
-      setPdfBase64(base64data);
+      if (base64data === "") {
+        console.log("DO NOT CLOSE");
+      } else {
+        handleGenerateDocId(base64data);
+        closeModal();
+        setPdfBase64(base64data);
+      }
     };
     reader.readAsDataURL(selectedFile);
-
-    if (pdfBase64 === "") {
-      console.log("DO NOT CLOSE");
-    } else {
-      console.log("Save:", pdfBase64);
-      closeModal();
-    }
   };
 
+  
   // const handleSave = () => {
   //   // Call the function to convert the PDF file to base64
   //   convertToBase64();
@@ -49,7 +51,7 @@ function DocumentScan({
       >
         <Label
           htmlFor="dropzone-file"
-          className="w-full flex h-64 w-64 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+          className="w-full flex h-64 w-64 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 bg-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-300"
           style={{ width: "100%",height:"80%"}}
         >
           <div className="w-full flex flex-col items-center justify-center pb-6 pt-5">

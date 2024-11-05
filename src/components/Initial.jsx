@@ -22,6 +22,7 @@ import Textarea from '@mui/joy/Textarea';
 import { Alert, notification, Result } from "antd";
 import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 const Initial = () => {
@@ -33,6 +34,7 @@ const Initial = () => {
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
   const [details, setDetails] = useState("");
+  const [docId, setGeneratedDocId] = useState("");
   const [response, setResponse] = useState(null);
   const [isTransType, setIsTransType] = useState("");
   const [error, setError] = useState(null);
@@ -42,7 +44,34 @@ const Initial = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(false);
   const [api, contextHolder] = notification.useNotification();
+
+
+  
+  //handle document uploads and generating od doc id
+  const handleGenerateDocId = async  (doc) => {
+    setModalType('progress');
+    setProgress(true); // Set loading to true before making the API call
+    try {
+      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+        file: doc,
+      });
+      setGeneratedDocId(response.data.token);
+      
+    } catch (error) {
+      setModalType('result');
+      setSuccess(error.response.data);
+      console.error("Error uploading document:", error);
+    } finally {
+      console.log(modalType);
+      // closeModal();
+      setModalType('');
+      setProgress(false); //Set loading to false after the API call is complete
+    }
+  }
+
+  
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -71,7 +100,7 @@ const Initial = () => {
 
   const closeModal = () => {
     setSelectedFile(null);
-    setModalType(null);
+    // setModalType(null);
     setModalOpened(false);
   };
 
@@ -140,12 +169,17 @@ const Initial = () => {
     });
   };
 
+  // to handle closing of the modal
+  const handleClose = () => setModalType(null);
+  
+
   //function to reset form
   const resetForm = () => {
     setSelectedDocType("");
     setSelectedBranch("");
     setSelectedRequestedAmount("");
     setSelectedCustomerNumber("");
+    setGeneratedDocId("");
     setDetails("");
   };
 
@@ -164,8 +198,20 @@ const Initial = () => {
       validationErrors.push("branch.");
     }
 
+    if (!selectedRequestedAmount && isTransType !== "0") {
+      validationErrors.push("requested amount.");
+    }
+
+    if (!selectedCustomerNumber && isTransType !== "0") {
+      validationErrors.push("customer number.");
+    }
+
     if (!details) {
       validationErrors.push("provide details to the document.");
+    }
+    
+    if (!docId) {
+      validationErrors.push("upload a document.");
     }
 
     if (validationErrors.length > 0) {
@@ -184,6 +230,7 @@ const Initial = () => {
       requested_amount: selectedRequestedAmount,
       customer_number: selectedCustomerNumber,
       details: details,
+      doc_id: docId
     };
 
     // console.log("Form Data:", formData);
@@ -229,6 +276,7 @@ const Initial = () => {
 
     
     <div>
+      
       {/* this is the notification holder */}
       {contextHolder}
       {" "}
@@ -321,7 +369,7 @@ const Initial = () => {
                   value={details}
                   // size="sm"
                   height="100px"
-                  placeholder="Enter customer number"
+                  placeholder="Enter Document Details"
                   onChange={(e) => setDetails(e.target.value)}
                 />
               </FormControl>
@@ -337,6 +385,8 @@ const Initial = () => {
                   selectedFile={selectedFile}
                   modalOpened={modalOpened}
                   loading={loading}
+                  setModalType={setModalType}
+                  handleGenerateDocId={handleGenerateDocId}
                   handleFileDrop={handleFileDrop}
                   handleFile={handleFile}
                   closeModal={closeModal}
@@ -345,6 +395,20 @@ const Initial = () => {
                 />
               </Stack>
             </div>
+
+            <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+            <FormControl sx={{ width: "45%" }}>
+                <FormLabel required>Document Id (Upload doc to generate id)</FormLabel>
+                <Input
+                  size="sm"
+                  value={docId}
+                  placeholder="document id"
+                  disabled
+                  sx={{ backgroundColor: "#eaecee",fontWeight: "bold" }}
+                  onChange={(e) => setGeneratedDocId(e.target.value)}
+                />
+              </FormControl>
+            </Stack>
           </Stack>
 
           <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
@@ -369,163 +433,13 @@ const Initial = () => {
               </Button>
             </CardActions>
           </CardOverflow>
-          {/* <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={open}
-            onClose={() => setOpen(false)}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                }, // Example backdrop styling
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                maxWidth: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                {response && response.code === "200" && (
-                  <Result
-                    status="success"
-                    title={response.result}
-                    subTitle="Your license has been successfully generated."
-                    extra={[
-                      <Button
-                        type="primary"
-                        key="console"
-                        onClick={() => {
-                          const subject = encodeURIComponent(
-                            "License Information"
-                          );
-                          const body = encodeURIComponent(
-                            `Dear Sir/Madam,\n\nWe are pleased to inform you that your license has been successfully generated. Below are the details:\n\n${JSON.stringify(
-                              response.data,
-                              null,
-                              2
-                            )}\n\nBest regards,\nYour Company`
-                          );
-                          window.location.href = `mailto:?subject=${subject}&body=${body}`;
-                        }}
-                      >
-                        Send Mail
-                      </Button>,
-                      <Button key="buy" onClick={() => setOpen(false)}>
-                        Generate Another License
-                      </Button>,
-                    ]}
-                  />
-                )}
-
-                {error && (
-                  <Result
-                    status="error"
-                    title={error.response.data.result}
-                    subTitle="Please check and modify the following information before resubmitting."
-                  />
-                )}
-              </Typography>
-            </Sheet>
-          </Modal> */}
-          <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={open}
-            onClose={() => setOpen(false)}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                }, // Example backdrop styling
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                maxWidth: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                {validationError ? (
-                  <Result
-                    status="error"
-                    title="Validation Error"
-                    subTitle={validationError}
-                  />
-                ) : response && response.code === "200" ? (
-                  <Result
-                    status="success"
-                    title={response.result}
-                    subTitle="Your license has been successfully generated."
-                    extra={[
-                      <Button
-                        type="primary"
-                        key="console"
-                        onClick={() => {
-                          // const from = "1234@example.com";
-                          const subject = encodeURIComponent(
-                            "License Information"
-                          );
-                          // const body = encodeURIComponent(
-                          //   `Dear Sir/Madam,\n\nYour license has been successfully generated. Below are the details:\n\n${response.data}\n\nBest regards,\nUNION SYSTEMS GLOBAL`
-                          // );
-                          const body = encodeURIComponent(
-                            `Dear Sir/Madam,\n\nYour license has been successfully generated. Find the details in the attached document below\n\nBest regards,\nUNION SYSTEMS GLOBAL`
-                          );
-                          // window.location.href = `mailto:?from=${from}&subject=${subject}&body=${body}`;
-                          window.location.href = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-                        }}
-                      >
-                        Send Mail
-                      </Button>,
-                      <Button key="buy" onClick={() => setOpen(false)}>
-                        Generate Another License
-                      </Button>,
-                    ]}
-                  />
-                ) : error ? (
-                  <Result
-                    status="error"
-                    title={error.response.data.result}
-                    subTitle="Please check and modify the following information before resubmitting."
-                  />
-                ) : null}
-              </Typography>
-            </Sheet>
-          </Modal>
+          
 
           {/* Success Modal */}
           <Modal
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
-                open={modalType === 'result'} onClose={closeModal}
+                open={modalType === 'result'} onClose={handleClose}
                 slotProps={{
                   backdrop: {
                     sx: {
@@ -565,6 +479,45 @@ const Initial = () => {
                     )}
 
                     
+                  </Typography>
+                </Sheet>
+          </Modal>
+         
+          {/* Progress indicator */}
+          <Modal
+                aria-labelledby="modal-title"
+                aria-describedby="modal-desc"
+                open={modalType === 'progress'} 
+                slotProps={{
+                  backdrop: {
+                    sx: {
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      backdropFilter: "none",
+                    },
+                  },
+                }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: "15%",
+                }}
+              >
+                <Sheet
+                  variant="outlined"
+                  sx={{
+                    maxWidth: 500,
+                    borderRadius: "md",
+                    p: 3,
+                    boxShadow: "lg",
+                  }}
+                >
+                  <ModalClose variant="plain" sx={{ m: 1 }} />
+                  <Typography id="modal-desc" textColor="text.tertiary">
+                  <Result subTitle="Generating Document id"/>
+                  <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                    {progress && <CircularProgress />}
+                  </div>
                   </Typography>
                 </Sheet>
           </Modal>

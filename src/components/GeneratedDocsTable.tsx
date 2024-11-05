@@ -267,7 +267,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                     <Tooltip title="View">
                       <Button
                         sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
-                        onClick={() => handleOpen("update",row.id)}
+                        onClick={() => handleOpen("view",row.id)}
                         size="sm"
                         variant="solid"
                       >
@@ -290,7 +290,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                         <Tooltip title="Submit">
                           <Button
                             sx={{ backgroundColor: "#4CAF50", width: 35 }}
-                            onClick={() => handleOpen("activate",row.id)}
+                            onClick={() => handleOpen("submit",row.id)}
                             size="sm"
                             variant="solid"
                           >

@@ -2,11 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Result,notification } from "antd";
 import { CloseCircleOutlined } from '@ant-design/icons';
 import GeneratedDocsTable from "../components/GeneratedDocsTable";
-import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
-import Breadcrumbs from "@mui/joy/Breadcrumbs";
-import Link from "@mui/joy/Link";
 import CardOverflow from "@mui/joy/CardOverflow";
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
@@ -16,13 +13,13 @@ import FormControl from "@mui/joy/FormControl";
 import {FormLabel,Input,Textarea} from "@mui/joy";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
-import AddIcon from "@mui/icons-material/Add";
 import Typography from "@mui/joy/Typography";
 import CardActions from "@mui/joy/CardActions";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
 import {API_SERVER, headers} from "../constant";
+import CircularProgress from "@mui/material/CircularProgress";
 import DocumentScan from "./DocumentScan";
 
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
@@ -34,33 +31,37 @@ const GeneratedDocs = () => {
   const [api, contextHolder] = notification.useNotification();
   //use state setups
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
+  const [modalProgress, setModalProgress] = useState(null); // 'add' | 'view' | 'update'
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
-  const [users, setUsers] = useState([]); // State to manage users
-  const [selectedDocType, setSelectedDocType] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");
   const [success, setSuccess] = useState(false);
   const [approvers, setApprovers] = useState([]);
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
   const [details, setDetails] = useState("");
+  const [generatedDocId, setGeneratedDocId] = useState("");
   const [validationError, setValidationError] = useState("");
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
-  const [approverId, setApproverId] = useState(null); // State to manage approver id
-  const [tempApproverId, setTempApproverId] = useState(null); // state to manage temp approver id
+  const [docId, setDocId] = useState(null); // State to manage approver id
+  const [tempDocId, setTempDocId] = useState(null); // state to manage temp approver id
   const [deactivateApproverId, setDeactivateApproverId] = useState(null); // State to manage approver id
-  const [selectedUserId, setSelectedUserId] = useState(""); // State to manage approver id
+  const [selectedDocId, setSelectedDocId] = useState(""); // State to manage approver id
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(""); // State to manage document id
+  const [isTransType, setIsTransType] = useState(""); // State to manage document id
   const [selectedBranchId, setSelectedBranchId] = useState(""); // State to manage branch id
   const [selectedStatus, setSelectedStatus] = useState(""); // State to manage branch id
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [modalOpened, setModalOpened] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // State to manage selected file
+  const [modalOpened, setModalOpened] = useState(false); // State to manage modal opened
+  const [loading, setLoading] = useState(false); // State to manage loading
+  const [showIframe, setShowIframe] = useState(false); // State to manage iframe modal opened
+  const [progress, setProgress] = useState(false);
   const [formValues, setFormValues] = useState({
     user_id: "",
-    doc_type_id: "",
+    doctype_id: "",
     branch_id: "",
     Status: "1",
+    doc_id: "",
+    details: ""
   });
 
 
@@ -87,7 +88,6 @@ const GeneratedDocs = () => {
         const response = await axios.get(ENDPOINT + `/get-parameters`, {headers: headers});
         setDocTypes(response.data.doc_types);
         setBranches(response.data.branches);
-        setUsers(response.data.users);
         console.log("Bank names:", response.data);
       } catch (error) {
         console.error("Error fetching bank names:", error);
@@ -97,30 +97,51 @@ const GeneratedDocs = () => {
     fetchParameters();
   }, []);
 
-  const handleClear = () => {
-    setSelectedDocType("");
-    setSelectedBranch("");
-    setSelectedRequestedAmount("");
-    setSelectedCustomerNumber("");
-    details("");
-    setValidationError("");
-  };
+  
 
-  //when the approver id changes fetch the details of the approver
+  //when the doc id changes fetch the details of the doc
   useEffect(() => {
-    if (!approverId) return;
+    if (!docId) return;
 
-    // Fetch the approver details
-    fetchApproverDetails(approverId);
+    // Fetch the doc details
+    if(modalType !== "submit"){
+      fetchDocDetails(docId,modalType);
+    }
 
-    // Set the temp approver ID to the current approver ID
-    setTempApproverId(approverId);
+    // Set the temp doc ID to the current doc ID
+    setTempDocId(docId);
 
-    // Reset the approver ID after fetching the details
-    setApproverId(null);
+    // Reset the doc ID after fetching the details
+    setDocId(null);
 
-  }, [approverId]);
+  }, [docId]);
 
+  //get the trans type of the document type
+  useEffect(() => {
+    const getTransType = async () => {
+      try {
+          if(selectedDocTypeId != null){
+            const response = await axios.get(API_SERVER + `/code_creation_details/${selectedDocTypeId}`, {
+              headers: headers
+            });
+            
+            const transType = response.data.code_detail[0].trans_type;
+
+            //checks to see if the document type is a transactional document 
+            if(transType === "1"){
+              // alert(transType)
+              setIsTransType(transType);
+            }else{
+              setIsTransType("0");
+            }
+        }
+      } catch (error) {
+        console.error("Error document type details:", error);
+      }
+    }
+
+    getTransType();
+  }, [selectedDocTypeId]);
 
   //function to open notification
   const openNotification = (message) => {
@@ -132,6 +153,7 @@ const GeneratedDocs = () => {
     });
   };
 
+
   //handleOpen function mostly to open the modal
   const handleOpen = (type,row) => {
     
@@ -139,30 +161,40 @@ const GeneratedDocs = () => {
 
     setFormValues({
       user_id: "",
-      doc_type_id: "",
+      doctype_id: "",
       branch_id: "",
       Status: "1",
+      doc_id: ""
     });
 
     
     
     if(type === "update") {
         // alert("Update");
-        setApproverId(row);
-    }else if(type === "delete" || type === "activate") {
-      setDeactivateApproverId(row);
+        setDocId(row);
+    }else if(type === "submit") {
+      setDocId(row);
       setModalType(type);
     }else{
+      setDocId(row);
       setModalType(type);
     }
   };
 
+  //function to handle button click
+  const handleButtonClick = () => {
+    setShowIframe(true);
+  };
+
+  //function to handle file drop event
   const handleFileDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
     handleFile(file);
   };
 
+
+  //this function handles the file upload
   const handleFile = (file) => {
     setSelectedFile(file);
     setLoading(true); // Set loading to true immediately after file selection
@@ -172,6 +204,8 @@ const GeneratedDocs = () => {
     }, 2000); // Simulate delay for demonstration purpose (2 seconds)
   };
 
+
+  //this function handles the file change event
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -182,9 +216,32 @@ const GeneratedDocs = () => {
     }
   };
 
+  //handle document uploads and generating od doc id
+  const handleGenerateDocId = async  (doc) => {
+    setModalProgress('progress');
+    setProgress(true); // Set loading to true before making the API call
+    try {
+      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+        file: doc,
+      });
+      setSelectedDocId(response.data.token);
+      
+    } catch (error) {
+      setModalType('result');
+      setSuccess(error.response.data);
+      console.error("Error uploading document:", error);
+    } finally {
+      // console.log(modalType);
+      // closeModal();
+      // setModalType('');
+      setModalProgress('');
+      setProgress(false); //Set loading to false after the API call is complete
+    }
+  }
+
   const closeModal = () => {
     setSelectedFile(null);
-    setModalType(null);
+    // setModalType(null);
     setModalOpened(false);
   };
 
@@ -202,10 +259,13 @@ const GeneratedDocs = () => {
 
     // Update individual state if needed for visual sync
     const fieldSetters = {
-      'doc_type_id': setSelectedDocTypeId,
+      'doctype_id': setSelectedDocTypeId,
       'branch_id': setSelectedBranchId,
       'Status': setSelectedStatus,
-      'user_id': setSelectedUserId,
+      'details': setDetails,
+      'requested_amount': setSelectedRequestedAmount,
+      'customer_no': setSelectedCustomerNumber
+      // 'user_id': setSelectedUserId,
     };
     
     if (fieldSetters[field]) {
@@ -218,44 +278,10 @@ const GeneratedDocs = () => {
 
   // to handle closing of the modal
   const handleClose = () => setModalType(null);
+  const handleCloseIframe = () => setShowIframe(false); //closes iframe modals only 
 
-  //handles creation of new parameter
-  const handleSave = () => {
-    
-    // Validate form values
-    console.log("Form Values:", formValues); // Debug log
-    const requiredFields = [
-      { field: 'user_id', name: 'User' },
-      { field: 'doc_type_id', name: 'Document Type' },
-      { field: 'branch_id', name: 'Branch' },
-      { field: 'Status', name: 'Status' }
-    ];
-    
-    const missingFields = requiredFields
-      .filter(({ field }) => !formValues[field])
-      .map(({ name }) => name);
-    
-    if (missingFields.length > 0) {
-      // setModalType("result");
-      // setValidationError(`Please fill in the following fields: ${missingFields.join(", ")}`);
-      openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
-      return;
-    }
-    
-    // setShowAlert(false); // Hide alert if validation passes
-    
-    
-    //post request to create parameter
-    handlePost();
-    
-    // Reset form values
-    setFormValues({
-      user_id: "",
-      doc_type_id: "",
-      branch_id: "",
-      Status: "1",
-    });
-  };
+
+  
 
   //handles updating of approver's details
   const handleUpdate = () => {
@@ -265,10 +291,14 @@ const GeneratedDocs = () => {
       // Validate form values
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
-        { field: selectedUserId, name: 'User' },
         { field: selectedDocTypeId, name: 'Document Type' },
         { field: selectedBranchId, name: 'Branch' },
-        { field: selectedStatus, name: 'Status' }
+        // { field: selectedStatus, name: 'Status' },
+        { field: details, name: 'Details' },
+        { field: selectedDocId, name: 'Document Id' },
+        //if the document type is a transactional document, then the requested amount and customer number are required
+        isTransType === "1" ? { field: selectedRequestedAmount, name: 'Requested Amount' } : { field: "data", name: "" },
+        isTransType === "1" ? { field: selectedCustomerNumber, name: 'Customer Number' } : { field: "data", name: "" }
       ];
       
       // Filter out the fields that are empty and map them to their display names
@@ -285,7 +315,7 @@ const GeneratedDocs = () => {
     
 
       //post request to update parameter
-      handlePostUpdate(tempApproverId);
+      handlePostUpdate(tempDocId);
 
       // setShowAlert(false); // Hide alert if validation passes
       console.log("Form Values:", formValues);
@@ -294,78 +324,49 @@ const GeneratedDocs = () => {
       setFormValues({
         user_id: "",
         branch_id: "",
-        doc_type_id: "",
+        doctype_id: "",
         Status: "1",
+        details: "",
+        doc_id: ""
       });
     }catch (error) {
       console.error("Error updating parameter:", error);
     }
   };
 
-  //handles deactivation of approver
-  const handleDeactivate = async () => {
-    try {
-      //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/deactivate/${deactivateApproverId}`,{}, { headers });
-      console.log("Response after deactivating:", response);
-      setIsFetching(true);
-      handleOpen('result');
-      setSuccess(response.data);
-
-    } catch (error) {
-      console.error("Error deactivating parameter:", error);
-    }
-  };
- 
- 
-  //handles deactivation of approver
-  const handleactivate = async () => {
-    try {
-      //post delete request to deactivate parameter
-      const response = await axios.put(`${ENDPOINT}/approvers/activate/${deactivateApproverId}`,{}, { headers });
-      console.log("Response after activating:", response);
-      setIsFetching(true);
-      handleOpen('result');
-      setSuccess(response.data);
-
-    } catch (error) {
-      console.error("Error activating parameter:", error);
-    }
-  };
-
-
-  //handles post request
-  const handlePost = async () => {
-    try {
-      const response = await axios.post(ENDPOINT + `/approvers`, {
-        user_id: formValues.user_id,
-        doctype_id: formValues.doc_type_id,
-        branch_id: formValues.branch_id,
-        status: formValues.Status
-      },{
-        headers: headers});
-      console.log("Response after adding:", response.data.code);
-
-      handleOpen('result');
-      setSuccess(response.data);
-
-      if(response.data.code === "200") {
+  
+  //handles submit of document
+  const handleSubmit = () => {
+    try{
+      //post request to update parameter
+      axios.put(`${ENDPOINT}/submit-doc/${tempDocId}`, {}, {
+        headers: headers
+      }).then((response) => {
+        console.log("Response:", response.data);
         setIsFetching(true);
-      }
-      console.log(response);
-    } catch (error) {
-      console.error("Error:", error);
+        handleOpen('result');
+        setSuccess(response.data);
+      }).catch((error) => {
+        console.error("Error:", error);
+        setModalType('result');
+        setSuccess(error.response.data);
+      });
+    }catch (error) {
+      console.error("Error updating parameter:", error);
     }
   };
+
 
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/approvers/${id}`, {
-        user_id: selectedUserId,
+      const response = await axios.put(`${ENDPOINT}/update-doc/${id}`, {
         doctype_id: selectedDocTypeId,
-        branch_id: selectedBranchId,
-        status: selectedStatus
+        branch: selectedBranchId,
+        requested_amount: isTransType === "1" ? selectedRequestedAmount: null,
+        customer_no: isTransType === "1" ? selectedCustomerNumber: null,
+        details: details,
+        doc_id: selectedDocId
       },{
         headers: headers});
 
@@ -379,27 +380,38 @@ const GeneratedDocs = () => {
       setSuccess(response.data);
       
     } catch (error) {
+      setModalType('result');
+      setSuccess(error.response.data);
       console.error("Error:", error);
     }
   };
 
 
-  //fetches approvers details based on idd
-  const fetchApproverDetails = async (id) => {
+  //fetches doc details based on idd
+  const fetchDocDetails = async (id,type) => {
     try {
+
+      
       
       const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
         headers: headers
       });
-      console.log("Response doc details:", response.data.document);
+      console.log("Response doc details:", response.data.document.requested_amount);
       
-      // setSelectedUserId(response.data.approver.user_id);
-      // setSelectedDocTypeId(response.data.approver.doctype_id);
-      // setSelectedBranchId(response.data.approver.branch_id);
+      setSelectedDocId(response.data.document.doc_id);
+      setSelectedDocTypeId(response.data.document.doctype_id);
+      setSelectedBranchId(response.data.document.branch);
+      setSelectedRequestedAmount(response.data.document.requested_amount);
+      setSelectedCustomerNumber(response.data.document.customer_no);
+      setDetails(response.data.document.details);
       // setSelectedStatus(response.data.approver.status);
-      
-      //open update modal
-      setModalType("update");
+      if(type === "view") {
+          //open update modal
+          setModalType("view");
+      }else{
+        //open update modal
+        setModalType("update");
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -454,11 +466,12 @@ const GeneratedDocs = () => {
         {/* <OrderList /> */}
       </Box>
       
-      {/* Modal for adding approver */}
+      
+      {/* Modal for viewing doc details */}
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={modalType === 'add'} onClose={handleClose}
+            open={modalType === 'view'} onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
@@ -477,7 +490,7 @@ const GeneratedDocs = () => {
             <Sheet
               variant="outlined"
               sx={{
-                width: 500,
+                width: 800,
                 borderRadius: "md",
                 p: 3,
                 boxShadow: "lg",
@@ -488,98 +501,125 @@ const GeneratedDocs = () => {
                 <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
                     <Typography level="title-md">
-                      Add Approver
+                      View Details
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
                   
-                  <Stack spacing={2}>
-                    {/* add fields here for the form a description and status */}
-                    <Stack spacing={1}>
-              
-                        <FormLabel>User</FormLabel>
+                  <Stack spacing={4}>
+                    <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select User"
-                            value={formValues.user_id}
-                            onChange={(e, newValue) => handleInputChange("user_id", newValue)}
-                            >
-                            {users.map((user) => (
-                                <Option key={user.id} value={user.id}>
-                                {user.first_name} {user.last_name}
-                                </Option>
+                          <FormLabel >Document</FormLabel>
+                          <Select
+                            autoFocus={true}
+                            size="sm"
+                            startDecorator={<AccountBalanceIcon />}
+                            value={selectedDocTypeId}
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            placeholder="Select Document Type"
+                            onChange={(e, newValue) => handleInputChange("doctype_id",newValue)}
+                          >
+                            {docTypes.map((docType) => (
+                              <Option key={docType.id} value={docType.id}>
+                                {docType.description}
+                              </Option>
                             ))}
-                            </Select>
+                          </Select>
                         </FormControl>
-
-                        <FormLabel>Document Type</FormLabel>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Type of Document"
-                            value={formValues.doc_type_id}
-                            onChange={(e, newValue) => handleInputChange("doc_type_id", newValue)}
-                            >
-                            {docTypes.map((doctype) => (
-                                <Option key={doctype.id} value={doctype.id}>
-                                {doctype.description} 
-                                </Option>
-                            ))}
-                            </Select>
-                        </FormControl>
-                        
-                        
-                        <FormLabel>Branch</FormLabel>
-                        <FormControl sx={{ width: "100%" }}>
-                            <Select
+                          <FormLabel >Branch</FormLabel>
+                          <Select
+                            size="sm"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            value={selectedBranchId}
                             placeholder="Select Branch"
-                            value={formValues.branch_id}
-                            onChange={(e, newValue) =>
-                                handleInputChange("branch_id", newValue)
-                            }
-                            >
+                            onChange={(e, newValue) => handleInputChange("branch_id",newValue)}
+                          >
                             {branches.map((branch) => (
-                                <Option key={branch.id} value={branch.id}>
-                                {branch.description} 
-                                </Option>
+                              <Option key={branch.id} value={branch.id}>
+                                {branch.description}
+                              </Option>
                             ))}
-                            </Select>
+                          </Select>
                         </FormControl>
-                        
-                        <FormLabel>Status</FormLabel>
+                    </Stack>
+                    {selectedRequestedAmount !== null && (
+                      <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
-                            <Select
-                            placeholder="Select Status"
-                            value={formValues.Status}
-                            onChange={(e,newValue) =>
-                                handleInputChange("Status", newValue)
-                            }
-                            >
-                            <Option value="1">Active</Option>
-                            <Option value="0">Inactive</Option>
-                            </Select>
+                          <FormLabel>Requested Amount</FormLabel>
+                          <Input
+                            size="sm"
+                            type="text"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            value={selectedRequestedAmount}
+                            placeholder="Enter requested Amount"
+                            onChange={(newValue) => handleInputChange("requested_amount",newValue)} 
+                          />
                         </FormControl>
 
-                    </Stack>
+                        <FormControl sx={{ width: "100%" }}>
+                          <FormLabel>Customer number</FormLabel>
+                          <Input
+                            size="sm"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            value={selectedCustomerNumber}
+                            placeholder="Enter customer number"
+                            onChange={(newValue) => handleInputChange("customer_no",newValue)}
+                          />
+                        </FormControl>
+                      
+                      </Stack>
+                       )}        
+                      <Stack direction="row" spacing={4}>
+                        <FormControl sx={{ width: "100%" }}>
+                          <FormLabel >Details</FormLabel>
+                          <Textarea
+                            color="neutral"
+                            minRows={2}
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            value={details}
+                            // size="sm"
+                            height="100px"
+                            placeholder="Enter Document Details"
+                            onChange={(e) => handleInputChange("details",e.target.value)}
+                          />
+                        </FormControl>
+                      </Stack>
+                      <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                      <FormControl sx={{ width: "44%" }}>
+                          <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
+                          <Input
+                            size="sm"
+                            value={selectedDocId}
+                            placeholder="document id"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            onChange={(e) => handleInputChange("doc_id",e.target.value)}
+                          />
+                        </FormControl>
+                        <Button
+                          size="sm"
+                          variant="solid"
+                          sx={{ height: '40px',marginTop: '20px!important',backgroundColor: "#229954" }}
+                          color="neutral" onClick={handleButtonClick}>
+                          View Document
+                        </Button>
+                      </Stack>
+                      
                   </Stack>
-                  <CardActions>
-                    <Button
-                      sx={{
-                        backgroundColor: "#00357A",
-                        color: "#fff",
-                        marginTop: "16px",
-                      }}
-                      onClick={handleSave}
-                    >
-                      Save
-                    </Button>
-                  </CardActions>
+                
                 </Typography>
            
 
             </Sheet>
       </Modal>
       
-      {/* Modal for updating approval details */}
+      {/* Modal for updating doc details */}
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
@@ -626,10 +666,9 @@ const GeneratedDocs = () => {
                             autoFocus={true}
                             size="sm"
                             startDecorator={<AccountBalanceIcon />}
-                            defaultValue="0"
-                            value={selectedDocType}
+                            value={selectedDocTypeId}
                             placeholder="Select Document Type"
-                            onChange={(e, newValue) => setSelectedDocType(newValue)}
+                            onChange={(e, newValue) => handleInputChange("doctype_id",newValue)}
                           >
                             {docTypes.map((docType) => (
                               <Option key={docType.id} value={docType.id}>
@@ -642,10 +681,9 @@ const GeneratedDocs = () => {
                           <FormLabel required>Branch</FormLabel>
                           <Select
                             size="sm"
-                            defaultValue="0"
-                            value={selectedBranch}
-                            placeholder="Select Type"
-                            onChange={(e, newValue) => setSelectedBranch(newValue)}
+                            value={selectedBranchId}
+                            placeholder="Select Branch"
+                            onChange={(e, newValue) => handleInputChange("branch_id",newValue)}
                           >
                             {branches.map((branch) => (
                               <Option key={branch.id} value={branch.id}>
@@ -655,16 +693,16 @@ const GeneratedDocs = () => {
                           </Select>
                         </FormControl>
                     </Stack>
-                    {/* {isTransType !== "0" && ( */}
+                    {isTransType === "1" && (
                       <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
                           <FormLabel>Requested Amount</FormLabel>
                           <Input
                             size="sm"
-                            type="number"
+                            type="text"
                             value={selectedRequestedAmount}
                             placeholder="Enter requested Amount"
-                            onChange={(e) => setSelectedRequestedAmount(e.target.value)}
+                            onChange={(e) => handleInputChange("requested_amount",e.target.value)} 
                           />
                         </FormControl>
 
@@ -674,12 +712,13 @@ const GeneratedDocs = () => {
                             size="sm"
                             value={selectedCustomerNumber}
                             placeholder="Enter customer number"
-                            onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                            onChange={(e) => handleInputChange("customer_no",e.target.value)}
                           />
                         </FormControl>
                       
                       </Stack>
-                      {/* )}         */}
+                       )}        
+
                       <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
                           <FormLabel required>Details</FormLabel>
@@ -687,10 +726,9 @@ const GeneratedDocs = () => {
                             color="neutral"
                             minRows={2}
                             value={details}
-                            // size="sm"
                             height="100px"
-                            placeholder="Enter customer number"
-                            onChange={(e) => setDetails(e.target.value)}
+                            placeholder="Enter Document Details"
+                            onChange={(e) => handleInputChange("details",e.target.value)}
                           />
                         </FormControl>
                       </Stack>
@@ -701,6 +739,7 @@ const GeneratedDocs = () => {
                             modalOpened={modalOpened}
                             loading={loading}
                             handleFileDrop={handleFileDrop}
+                            handleGenerateDocId={handleGenerateDocId}
                             handleFile={handleFile}
                             closeModal={closeModal}
                             handleFileChange={handleFileChange}
@@ -708,26 +747,40 @@ const GeneratedDocs = () => {
                           />
                         </Stack>
                       </div>
+                      <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                      <FormControl sx={{ width: "44%" }}>
+                          <FormLabel required>Document Id (Upload doc to generate new id)</FormLabel>
+                          <Input
+                            size="sm"
+                            value={selectedDocId}
+                            placeholder="document id"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                          />
+                        </FormControl>
+                        <Button
+                          size="sm"
+                          variant="solid"
+                          sx={{ height: '40px',marginTop: '20px!important',backgroundColor: "#229954" }}
+                          color="neutral" onClick={handleButtonClick}>
+                          View Document
+                        </Button>
+                      </Stack>
+                      
                   </Stack>
-                  <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
+                  <CardOverflow sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
                     <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-                      <Button
-                        size="sm"
-                        variant="outlined"
-                        color="neutral"
-                        onClick={() => handleClear()}
-                      >
-                        Clear
-                      </Button>
+                      
                       <Button
                         size="sm"
                         variant="solid"
-                        sx={{ backgroundColor: "#00357A" }}
+                        sx={{ backgroundColor: "#00357A",marginLeft: "8px" }}
                         onClick={() => {
                           handleUpdate();
                         }}
                       >
-                        Save
+                        Update
                       </Button>
                     </CardActions>
                   </CardOverflow>
@@ -737,131 +790,8 @@ const GeneratedDocs = () => {
             </Sheet>
       </Modal>
 
-      {/* Deactivate or delete modal */}
-      <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'delete'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                maxWidth: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                
-                  <Result
-                    title={"Are you sure you want to deactivate this approver?"}
-                  />
-
-                  <CardActions>
-                  <Button
-                    sx={{
-                      backgroundColor: "#00357A",
-                      color: "#fff",
-                      width: "48%", // Adjust width to fit both buttons in a row
-                    }}
-                    onClick={handleDeactivate}
-                  >
-                    Deactivate
-                  </Button>
-                  {/* <Button
-                    sx={{
-                      backgroundColor: "#f44336", // Red color for cancel button
-                      color: "#fff",
-                      width: "48%", // Adjust width to fit both buttons in a row
-                    }}
-                    // onClick={handleCancel} // Add your cancel handler here
-                  >
-                    Cancel
-                  </Button> */}
-                  </CardActions>
-                
-              </Typography>
-            </Sheet>
-      </Modal>
-      
-      {/* Activate or delete modal */}
-      <Modal
-            aria-labelledby="modal-title"
-            aria-describedby="modal-desc"
-            open={modalType === 'activate'} onClose={handleClose}
-            slotProps={{
-              backdrop: {
-                sx: {
-                  backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
-                },
-              },
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: "15%",
-            }}
-          >
-            <Sheet
-              variant="outlined"
-              sx={{
-                maxWidth: 500,
-                borderRadius: "md",
-                p: 3,
-                boxShadow: "lg",
-              }}
-            >
-              <ModalClose variant="plain" sx={{ m: 1 }} />
-              <Typography id="modal-desc" textColor="text.tertiary">
-                
-                  <Result
-                    title={"Are you sure you want to activate this approver?"}
-                  />
-
-                  <CardActions>
-                  <Button
-                    sx={{
-                      backgroundColor: "#00357A",
-                      color: "#fff",
-                      width: "48%", // Adjust width to fit both buttons in a row
-                    }}
-                    onClick={handleactivate}
-                  >
-                    Activate
-                  </Button>
-                  {/* <Button
-                    sx={{
-                      backgroundColor: "#f44336", // Red color for cancel button
-                      color: "#fff",
-                      width: "48%", // Adjust width to fit both buttons in a row
-                    }}
-                    // onClick={handleCancel} // Add your cancel handler here
-                  >
-                    Cancel
-                  </Button> */}
-                  </CardActions>
-                
-              </Typography>
-            </Sheet>
-      </Modal>
+     
+    
 
       {/* Success Modal */}
       <Modal
@@ -910,6 +840,159 @@ const GeneratedDocs = () => {
               </Typography>
             </Sheet>
       </Modal>
+      
+      
+      {/* Submit Modal */}
+      <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={modalType === 'submit'} onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                maxWidth: 500,
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              <Typography id="modal-desc" textColor="text.tertiary">
+              <Result subTitle={<span style={{ fontSize: 'larger', fontWeight: 'bold', color: 'black' }}>Do you want to submit the document ?</span>} />
+                <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                  <Button
+                    size="sm"
+                    variant="solid"
+                    sx={{ backgroundColor: "#00357A" }}
+                    onClick={() => {
+                      handleSubmit();
+                    }}
+                  >
+                    Submit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="solid"
+                    sx={{
+                      backgroundColor: "#4d5656",
+                      marginLeft: "8px",
+                      '&:hover': {
+                        backgroundColor: "#6b7b7b", // lighter color of #4d5656
+                      },
+                    }}
+                    onClick={() => {
+                      handleClose();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+
+
+                
+              </Typography>
+            </Sheet>
+      </Modal>
+      
+      {/* Display document */}
+      <Modal
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            open={showIframe} onClose={handleCloseIframe}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: "15%",
+            }}
+          >
+            <Sheet
+              variant="outlined"
+              sx={{
+                maxWidth: '90%',
+                width: "100%",
+                borderRadius: "md",
+                p: 3,
+                boxShadow: "lg",
+              }}
+            >
+              <ModalClose variant="plain" sx={{ m: 1 }} />
+              <Typography id="modal-desc" textColor="text.tertiary">
+                  
+                    <iframe
+                      src={`http://10.203.14.169/dms/filesearch-${selectedDocId}`}
+                      width="100%"
+                      height="500px"
+                      title="Document Viewer"
+                      style={{ marginTop: '20px' }}
+                    />
+
+                
+              </Typography>
+            </Sheet>
+      </Modal>
+
+       {/* Progress indicator */}
+       <Modal
+                aria-labelledby="modal-title"
+                aria-describedby="modal-desc"
+                open={modalProgress === 'progress'} 
+                slotProps={{
+                  backdrop: {
+                    sx: {
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      backdropFilter: "none",
+                    },
+                  },
+                }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginLeft: "15%",
+                }}
+              >
+                <Sheet
+                  variant="outlined"
+                  sx={{
+                    maxWidth: 500,
+                    borderRadius: "md",
+                    p: 3,
+                    boxShadow: "lg",
+                  }}
+                >
+                  <ModalClose variant="plain" sx={{ m: 1 }} />
+                  <Typography id="modal-desc" textColor="text.tertiary">
+                  <Result subTitle="Generating Document id"/>
+                  <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                    {progress && <CircularProgress />}
+                  </div>
+                  </Typography>
+                </Sheet>
+       </Modal>
     </div>
   )
 };
