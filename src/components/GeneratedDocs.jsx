@@ -456,9 +456,9 @@ const GeneratedDocs = () => {
             justifyContent: "space-between",
           }}
         >
-          <Typography level="h2" component="h1">
+          {/* <Typography level="h2" component="h1">
             Generated Documents
-          </Typography>
+          </Typography> */}
           
         </Box>
         <GeneratedDocsTable  data={approvers} handleOpen={handleOpen}/>

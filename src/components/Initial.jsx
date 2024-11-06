@@ -58,6 +58,34 @@ const Initial = () => {
         file: doc,
       });
       setGeneratedDocId(response.data.token);
+
+      // try {
+      //   const response = await axios.post(`https://igdwebsite.azurewebsites.net/api/GetCitizenInfo`, {
+      //     "NIN": "RFE7GTPM",
+      //     "OTP": "M8ZP",
+      //     "Token": "9NJY4N955WQWPFNJDX8BA8ZY55QCE5E8PZ899AVB984XHFRH78XQNJ8BXU5986Z9RRGYHPKDB6BCDBQXPGFGGZUE37KPEVDCH4F2929SXTNRG67VDGV2ZT326C6KC69R394J6YYWGXTXND779ZK7ANMZBQ666XQ3T7YGBWZQT9TC9DP3E8MNUCQPWDHQ33ZTH2ERPZ6MA5NB4JZ8AC27MBGRRKV7PJW2HA4G98PQC9NZYPUMNKQZA4FFTX9DD88Z"
+      //   }, {
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'Cookie': 'ARRAffinity=b1633e0e24eb358f6ad73d240f6693706fe7b6a1916a7cd60c898ba804a95116; ARRAffinitySameSite=b1633e0e24eb358f6ad73d240f6693706fe7b6a1916a7cd60c898ba804a95116'
+      //     }
+      //   });
+      //   console.log(response.data);
+      // } catch (error) {
+      //   if (error.response) {
+      //     // The request was made and the server responded with a status code
+      //     // that falls out of the range of 2xx
+      //     console.error('Error response:', error.response.data);
+      //     console.error('Error status:', error.response.status);
+      //     console.error('Error headers:', error.response.headers);
+      //   } else if (error.request) {
+      //     // The request was made but no response was received
+      //     console.error('Error request:', error.request);
+      //   } else {
+      //     // Something happened in setting up the request that triggered an Error
+      //     console.error('Error message:', error.message);
+      //   }
+      // }
       
     } catch (error) {
       setModalType('result');

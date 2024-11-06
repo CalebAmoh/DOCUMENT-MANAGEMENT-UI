@@ -19,7 +19,7 @@ import CardOverflow from "@mui/joy/CardOverflow";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import Initial from "../components/Initial";
 import GeneratedDocs from "../components/GeneratedDocs";
-import Amendment from "../components/Amendment";
+import Verification from "../components/Verification";
 
 export default function Categories() {
   return (
@@ -35,7 +35,7 @@ export default function Categories() {
         <Typography
           level="h2"
           component="h1"
-          sx={{ color: "#00357A", ml: 6, mt: 3, mb: 2 }}
+          sx={{ color: "#4a235a", ml: 6, mt: 3, mb: 2 }}
         >
           Document Management
         </Typography>
@@ -60,7 +60,7 @@ export default function Categories() {
                   color: "text.primary",
                   "&::after": {
                     height: "2px",
-                    bgcolor: "primary.500",
+                    bgcolor: "#4a235a",
                   },
                 },
               },
@@ -73,7 +73,7 @@ export default function Categories() {
               Generated Documents
             </Tab>
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={2}>
-              Document Approval
+              Document Verification
             </Tab>
           </TabList>
           <TabPanel value={0}>
@@ -83,7 +83,7 @@ export default function Categories() {
             <GeneratedDocs />
           </TabPanel>
           <TabPanel value={2}>
-            <Amendment />
+            <Verification />
           </TabPanel>
         </Tabs>
       </Box>

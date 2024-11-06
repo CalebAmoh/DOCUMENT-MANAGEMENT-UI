@@ -65,7 +65,7 @@ interface ApproversTableProps {
   handleOpen: (type: string, row: any) => void;
 }
 
-const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -364,4 +364,4 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
   );
 };
 
-export default GeneratedDocsTable;
+export default VerificationTable;

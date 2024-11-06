@@ -74,7 +74,7 @@ function Toggler({
 }
 
 const getNavLinkStyles = ({ isActive }: { isActive: boolean }) => ({
-  backgroundColor: isActive ? "#00357A" : "inherit",
+  backgroundColor: isActive ? "#a569bd" : "inherit",
   color: isActive ? "var(--joy-palette-primary-softColor)" : "inherit",
 });
 export default function Sidebar() {
@@ -99,7 +99,7 @@ export default function Sidebar() {
         gap: 2,
         borderRight: "1px solid",
         borderColor: "divider",
-        backgroundColor: "#1A1919",
+        backgroundColor: "#5b2c6f",
         color: "#1A1919",
       }}
     >
@@ -184,7 +184,22 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
-          {/* <ListItem>
+          
+          <ListItem>
+            <ListItemButton
+              component={NavLink}
+              to="/document-portal"
+              style={getNavLinkStyles}
+            >
+              <KeyIcon sx={{ color: "#FFFFFF" }} />
+              <ListItemContent>
+                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                  Document Portal
+                </Typography>
+              </ListItemContent>
+            </ListItemButton>
+          </ListItem>
+          <ListItem>
             <ListItemButton
               component={NavLink}
               to="/products"
@@ -193,21 +208,7 @@ export default function Sidebar() {
               <EditNoteIcon sx={{ color: "#FFFFFF" }} />
               <ListItemContent>
                 <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  License Request
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem> */}
-          <ListItem>
-            <ListItemButton
-              component={NavLink}
-              to="/categories"
-              style={getNavLinkStyles}
-            >
-              <KeyIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Document Portal
+                  Approval Requests
                 </Typography>
               </ListItemContent>
             </ListItemButton>
