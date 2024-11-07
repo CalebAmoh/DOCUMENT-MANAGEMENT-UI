@@ -16,7 +16,7 @@ import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
-
+import MessageIcon from '@mui/icons-material/Message';
 type Order = "asc" | "desc";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -63,9 +63,10 @@ interface ApproversTableProps {
     status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
+  handleMessage: (id: number) => void;
 }
 
-const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, handleMessage }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -223,15 +224,23 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
             </tr>
           </thead>
           <tbody>
-            {approversData.length === 0 ? (
-          <tr>
-            <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                </div>
-            </td>
-          </tr>
-        ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
+          {data === undefined || data === null ? (
+                // Data is being fetched, show loader
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                      <CircularProgress />
+                    </div>
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                // Data has been fetched but no records found
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                    <Typography level="body-md">No records found</Typography>
+                  </td>
+                </tr>
+              ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
               <tr key={row.id}>
                 <td style={{ textAlign: "center", width: 120 }}></td>
                 <td className="font-semibold text-sm ">
@@ -256,15 +265,15 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                     startDecorator={
                       {
                         draft: <CheckRoundedIcon />,
-                        Inactive: <BlockIcon />,
+                        declined: <BlockIcon />,
                       }[row.status]
                     }
-                    // color={
-                    //   {
-                    //     Active: "success",
-                    //     Inactive: "danger",
-                    //   }[row.status] as ColorPaletteProp
-                    // }
+                    color={
+                      {
+                        draft: "success",
+                        declined: "danger",
+                      }[row.status] as ColorPaletteProp
+                    }
                   >
                     {row.status}
                   </Chip>
@@ -295,7 +304,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                         
                       </Button>
                       </Tooltip>
-                      
+                      {row.status === "draft" ? (
                         <Tooltip title="Submit">
                           <Button
                             sx={{ backgroundColor: "#4CAF50", width: 35 }}
@@ -307,6 +316,18 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen })
                             
                           </Button>
                       </Tooltip>
+                      ):(
+                        <Tooltip title="Declined Reason">
+                          <Button
+                            sx={{ backgroundColor: "#839192", width: 35 }}
+                            onClick={() => handleMessage(row.id)}
+                            size="sm"
+                            variant="solid"
+                          >
+                            <MessageIcon/>
+                        </Button>
+                        </Tooltip>
+                      )}
                       
                      
                     </Link>

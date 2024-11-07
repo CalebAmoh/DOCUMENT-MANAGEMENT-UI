@@ -21,6 +21,7 @@ import Modal from "@mui/joy/Modal";
 import {API_SERVER, headers} from "../constant";
 import CircularProgress from "@mui/material/CircularProgress";
 import DocumentScan from "./DocumentScan";
+import InfoIcon from '@mui/icons-material/Info';
 
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
@@ -143,13 +144,25 @@ const GeneratedDocs = () => {
     getTransType();
   }, [selectedDocTypeId]);
 
+  
   //function to open notification
-  const openNotification = (message) => {
+  const openDeclineNotification = (message) => {
     api.open({
-      message: 'Error message',
+      message: 'Declined reason',
       description:message,
       duration: 10,
-      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />, // Icon to display in the notification
+      icon: <InfoIcon style={{ color: '#3498db' }} />, // Icon to display in the notification
+    });
+  };
+
+  const openNotification = (pauseOnHover) => (message) => {
+    api.open({
+      message: 'Error Message',
+      description:message,
+      showProgress: true,
+      duration: 20,
+      pauseOnHover,
+      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />
     });
   };
 
@@ -302,14 +315,21 @@ const GeneratedDocs = () => {
       ];
       
       // Filter out the fields that are empty and map them to their display names
-      const missingFields = requiredFields
+      const validationErrors = requiredFields
         .filter(({ field }) => field === "") // Check if the field is empty
         .map(({ name }) => name); // Extract the display name of the missing field
       
       // If there are any missing fields, show a notification with the list of missing fields
-      if (missingFields.length > 0) {
-        openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
-        return; // Exit the function early since the validation failed
+      if (validationErrors.length > 0) {
+        const notify = openNotification(true);
+        let errors = validationErrors;
+        if (errors.length > 1) {
+            errors = errors.slice(0, -1).join(", ") + " and " + errors.slice(-1);
+        } else {
+            errors = errors.join(", ");
+        }
+        notify("Please provide: " + errors);
+        return;
       }
     
     
@@ -386,6 +406,17 @@ const GeneratedDocs = () => {
     }
   };
 
+  const handleMessage = async (id) => {
+    try {
+      const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
+        headers: headers
+      });
+      const notify = openNotification(true);
+      notify(response.data.document.decline_reason);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   //fetches doc details based on idd
   const fetchDocDetails = async (id,type) => {
@@ -461,7 +492,7 @@ const GeneratedDocs = () => {
           </Typography> */}
           
         </Box>
-        <GeneratedDocsTable  data={approvers} handleOpen={handleOpen}/>
+        <GeneratedDocsTable  data={approvers} handleOpen={handleOpen} handleMessage={handleMessage}/>
 
         {/* <OrderList /> */}
       </Box>
@@ -605,9 +636,10 @@ const GeneratedDocs = () => {
                         <Button
                           size="sm"
                           variant="solid"
-                          sx={{ height: '40px',marginTop: '20px!important',backgroundColor: "#229954" }}
-                          color="neutral" onClick={handleButtonClick}>
-                          View Document
+                          sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                          color="neutral"
+                          onClick={handleButtonClick}>
+                          View Doc
                         </Button>
                       </Stack>
                       
@@ -762,14 +794,15 @@ const GeneratedDocs = () => {
                         <Button
                           size="sm"
                           variant="solid"
-                          sx={{ height: '40px',marginTop: '20px!important',backgroundColor: "#229954" }}
-                          color="neutral" onClick={handleButtonClick}>
-                          View Document
+                          sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                          color="neutral"
+                          onClick={handleButtonClick}>
+                          View Doc
                         </Button>
                       </Stack>
                       
                   </Stack>
-                  <CardOverflow sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                  <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                     <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
                       
                       <Button

@@ -224,15 +224,23 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
             </tr>
           </thead>
           <tbody>
-            {approversData.length === 0 ? (
-          <tr>
-            <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                </div>
-            </td>
-          </tr>
-        ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
+          {data === undefined || data === null ? (
+                // Data is being fetched, show loader
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                      <CircularProgress />
+                    </div>
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                // Data has been fetched but no records found
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                    <Typography level="body-md">No records found</Typography>
+                  </td>
+                </tr>
+              ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
               <tr key={row.id}>
                 <td style={{ textAlign: "center", width: 120 }}></td>
                 <td className="font-semibold text-sm ">

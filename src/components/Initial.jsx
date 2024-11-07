@@ -188,12 +188,14 @@ const Initial = () => {
   };
 
   //function to open notification
-  const openNotification = (message) => {
+  const openNotification = (pauseOnHover) => (message) => {
     api.open({
-      message: 'Error message',
+      message: 'Error Message',
       description:message,
-      duration: 10,
-      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />, // Icon to display in the notification
+      showProgress: true,
+      duration: 20,
+      pauseOnHover,
+      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />
     });
   };
 
@@ -219,32 +221,38 @@ const Initial = () => {
     const validationErrors = [];
 
     if (!selectedDocType) {
-      validationErrors.push("document type.");
+      validationErrors.push("document type");
     }
 
     if (!selectedBranch) {
-      validationErrors.push("branch.");
+      validationErrors.push("branch");
     }
 
     if (!selectedRequestedAmount && isTransType !== "0") {
-      validationErrors.push("requested amount.");
+      validationErrors.push("requested amount");
     }
 
     if (!selectedCustomerNumber && isTransType !== "0") {
-      validationErrors.push("customer number.");
+      validationErrors.push("customer number");
     }
 
     if (!details) {
-      validationErrors.push("provide details to the document.");
+      validationErrors.push("details to the document");
     }
     
     if (!docId) {
-      validationErrors.push("upload a document.");
+      validationErrors.push("upload a document");
     }
 
     if (validationErrors.length > 0) {
-      // setValidationError(validationErrors.join(" "));
-      openNotification(`Please fill in the following field(s): ${validationErrors.join(" ")}`);
+      const notify = openNotification(true);
+      let errors = validationErrors;
+      if (errors.length > 1) {
+          errors = errors.slice(0, -1).join(", ") + " and " + errors.slice(-1);
+      } else {
+          errors = errors.join(", ");
+      }
+      notify("Please provide: " + errors);
       return;
     }
 
