@@ -5,6 +5,7 @@ import Button from "@mui/joy/Button";
 import Tooltip from "@mui/joy/Tooltip";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CallMadeIcon from '@mui/icons-material/CallMade';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import {Table, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
@@ -256,6 +257,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                     startDecorator={
                       {
                         draft: <CheckRoundedIcon />,
+                        submitted: <CheckRoundedIcon />,
                         Inactive: <BlockIcon />,
                       }[row.status]
                     }
@@ -273,7 +275,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
-                    <Tooltip title="View">
+                    {/* <Tooltip title="View">
                       <Button
                         sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
                         onClick={() => handleOpen("view",row.id)}
@@ -283,20 +285,20 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                         <RemoveRedEyeIcon />
                         
                       </Button>
-                      </Tooltip>
-                    <Tooltip title="Edit">
-                      <Button
-                        sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                        onClick={() => handleOpen("update",row.id)}
-                        size="sm"
-                        variant="solid"
-                      >
-                        <Edit />
-                        
-                      </Button>
+                    </Tooltip> */}
+                      <Tooltip title="Verify">
+                        <Button
+                          sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
+                          onClick={() => handleOpen("view",row.id)}
+                          size="sm"
+                          variant="solid"
+                        >
+                          <VerifiedIcon />
+                          
+                        </Button>
                       </Tooltip>
                       
-                        <Tooltip title="Submit">
+                        {/* <Tooltip title="Submit">
                           <Button
                             sx={{ backgroundColor: "#4CAF50", width: 35 }}
                             onClick={() => handleOpen("submit",row.id)}
@@ -306,7 +308,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                             <CallMadeIcon />
                             
                           </Button>
-                      </Tooltip>
+                      </Tooltip> */}
                       
                      
                     </Link>
