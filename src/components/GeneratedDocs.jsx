@@ -5,9 +5,11 @@ import GeneratedDocsTable from "../components/GeneratedDocsTable";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import CardOverflow from "@mui/joy/CardOverflow";
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
 import Divider from "@mui/joy/Divider";
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import Stack from "@mui/joy/Stack";
 import FormControl from "@mui/joy/FormControl";
 import {FormLabel,Input,Textarea} from "@mui/joy";
@@ -56,6 +58,7 @@ const GeneratedDocs = () => {
   const [loading, setLoading] = useState(false); // State to manage loading
   const [showIframe, setShowIframe] = useState(false); // State to manage iframe modal opened
   const [progress, setProgress] = useState(false);
+  
   const [formValues, setFormValues] = useState({
     user_id: "",
     doctype_id: "",
@@ -91,6 +94,7 @@ const GeneratedDocs = () => {
         setBranches(response.data.branches);
         console.log("Bank names:", response.data);
       } catch (error) {
+        notifyError(error.response.data.message);
         console.error("Error fetching bank names:", error);
       }
     };
@@ -146,25 +150,42 @@ const GeneratedDocs = () => {
 
   
   //function to open notification
-  const openDeclineNotification = (message) => {
+  const openDeclineNotification = (pauseOnHover) => (message) => {
     api.open({
-      message: 'Declined reason',
+      message: 'DECLINED REASON',
       description:message,
       duration: 10,
       icon: <InfoIcon style={{ color: '#3498db' }} />, // Icon to display in the notification
     });
   };
 
+  //handles error notifications
+  const openErrorNotification = (pauseOnHover) => (message) => {
+      api.open({
+        message: 'ERROR MESSAGE',
+        description:message,
+        showProgress: true,
+        duration: 20,
+        pauseOnHover,
+        icon: <CancelOutlinedIcon style={{ color: '#c0392b' }} />
+      });
+  };
+
+  //handles success notifications
   const openNotification = (pauseOnHover) => (message) => {
     api.open({
-      message: 'Error Message',
+      message: 'SUCCESS MESSAGE',
       description:message,
       showProgress: true,
       duration: 20,
       pauseOnHover,
-      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />
+      icon: <CheckCircleOutlineOutlinedIcon style={{ color: '#45b39d' }} />
     });
   };
+
+  const notifySuccess = openNotification(true);
+  const notifyError = openErrorNotification(true);
+  const notifyDecline = openDeclineNotification(true);
 
 
   //handleOpen function mostly to open the modal
@@ -238,10 +259,10 @@ const GeneratedDocs = () => {
         file: doc,
       });
       setSelectedDocId(response.data.token);
-      
+      notifySuccess("Document uploaded successfully");
+      handleClose(true);
     } catch (error) {
-      setModalType('result');
-      setSuccess(error.response.data);
+      notifyError("Error uploading document");
       console.error("Error uploading document:", error);
     } finally {
       // console.log(modalType);
@@ -300,7 +321,6 @@ const GeneratedDocs = () => {
   const handleUpdate = () => {
     try{
       
-      
       // Validate form values
       // Define an array of required fields with their corresponding display names
       const requiredFields = [
@@ -316,19 +336,18 @@ const GeneratedDocs = () => {
       
       // Filter out the fields that are empty and map them to their display names
       const validationErrors = requiredFields
-        .filter(({ field }) => field === "") // Check if the field is empty
+        .filter(({ field }) => field === "" || field === null) // Check if the field is empty
         .map(({ name }) => name); // Extract the display name of the missing field
-      
+        
       // If there are any missing fields, show a notification with the list of missing fields
       if (validationErrors.length > 0) {
-        const notify = openNotification(true);
         let errors = validationErrors;
         if (errors.length > 1) {
             errors = errors.slice(0, -1).join(", ") + " and " + errors.slice(-1);
         } else {
             errors = errors.join(", ");
         }
-        notify("Please provide: " + errors);
+        notifyError("Please provide: " + errors);
         return;
       }
     
@@ -364,12 +383,11 @@ const GeneratedDocs = () => {
       }).then((response) => {
         console.log("Response:", response.data);
         setIsFetching(true);
-        handleOpen('result');
-        setSuccess(response.data);
+        notifySuccess(response.data.message);
+        handleClose(true);
       }).catch((error) => {
         console.error("Error:", error);
-        setModalType('result');
-        setSuccess(error.response.data);
+        notifyError(error.response.data.message);
       });
     }catch (error) {
       console.error("Error updating parameter:", error);
@@ -395,13 +413,11 @@ const GeneratedDocs = () => {
         setIsFetching(true);
       }
 
-      handleOpen('result');
-      // setSuccessModal(true);
-      setSuccess(response.data);
+      notifySuccess(response.data.message);
+      handleClose(true);
       
     } catch (error) {
-      setModalType('result');
-      setSuccess(error.response.data);
+      notifyError(error.response.data.message);
       console.error("Error:", error);
     }
   };
@@ -411,9 +427,9 @@ const GeneratedDocs = () => {
       const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
         headers: headers
       });
-      const notify = openNotification(true);
-      notify(response.data.document.decline_reason);
+      notifyDecline(response.data.document.decline_reason);
     } catch (error) {
+      notifyError(error.response.data.message);
       console.error("Error:", error);
     }
   };
@@ -444,6 +460,7 @@ const GeneratedDocs = () => {
         setModalType("update");
       }
     } catch (error) {
+      notifyError(error.response.data.message);
       console.error("Error:", error);
     }
   };

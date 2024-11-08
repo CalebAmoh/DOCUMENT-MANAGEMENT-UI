@@ -202,7 +202,7 @@ export default function Sidebar() {
           <ListItem>
             <ListItemButton
               component={NavLink}
-              to="/products"
+              to="/approvals"
               style={getNavLinkStyles}
             >
               <EditNoteIcon sx={{ color: "#FFFFFF" }} />

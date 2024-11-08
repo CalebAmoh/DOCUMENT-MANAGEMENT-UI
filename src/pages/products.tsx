@@ -1,168 +1,80 @@
-// import React from "react";
 import * as React from "react";
-import ProductTable from "../components/ProductTable";
-import OrderList from "../components/OrderList";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
-import Breadcrumbs from "@mui/joy/Breadcrumbs";
-import Link from "@mui/joy/Link";
-import Typography from "@mui/joy/Typography";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import AddIcon from "@mui/icons-material/Add";
+import Divider from "@mui/joy/Divider";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
+import Tabs from "@mui/joy/Tabs";
+import TabList from "@mui/joy/TabList";
+import Tab, { tabClasses } from "@mui/joy/Tab";
+import TabPanel from "@mui/joy/TabPanel";
 import Input from "@mui/joy/Input";
-import Modal from "@mui/joy/Modal";
-import ModalDialog from "@mui/joy/ModalDialog";
-import DialogTitle from "@mui/joy/DialogTitle";
-import DialogContent from "@mui/joy/DialogContent";
+import Stack from "@mui/joy/Stack";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
-import Stack from "@mui/joy/Stack";
+import Typography from "@mui/joy/Typography";
+import Card from "@mui/joy/Card";
+import CardActions from "@mui/joy/CardActions";
+import CardOverflow from "@mui/joy/CardOverflow";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import Initial from "../components/Initial";
+import GeneratedDocs from "../components/GeneratedDocs";
+import Verification from "../components/Verification";
 
-const Products: React.FC = () => {
-  const [open, setOpen] = React.useState(false);
+export default function Categories() {
   return (
-    <div>
-      {" "}
+    <Box sx={{ backgroundColor: "#F8F9FF", flex: 1, width: "100%" }}>
       <Box
-        component="main"
-        className="MainContent"
         sx={{
-          px: { xs: 2, md: 6 },
-          pt: {
-            xs: "calc(12px + var(--Header-height))",
-            sm: "calc(12px + var(--Header-height))",
-            md: 3,
-          },
-          pb: { xs: 2, sm: 2, md: 3 },
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          height: "100dvh",
-          gap: 1,
+          position: "sticky",
+          top: { sm: -100, md: -110 },
+          bgcolor: "background.body",
+          // zIndex: 9995,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Breadcrumbs
-            size="sm"
-            aria-label="breadcrumbs"
-            separator={<ChevronRightRoundedIcon className="text-sm" />}
-            sx={{ pl: 0 }}
-          >
-            <Link
-              underline="none"
-              color="neutral"
-              href="#some-link"
-              aria-label="Home"
-            >
-              <HomeRoundedIcon />
-            </Link>
-            <Link
-              underline="hover"
-              color="neutral"
-              href="#some-link"
-              fontSize={12}
-              fontWeight={500}
-            >
-              Dashboard
-            </Link>
-            <Typography color="primary" fontWeight={500} fontSize={12}>
-              Products
-            </Typography>
-          </Breadcrumbs>
-        </Box>
-        <Box
+        <Typography
+          level="h2"
+          component="h1"
+          sx={{ color: "#4a235a", ml: 6, mt: 3, mb: 2 }}
+        >
+          Approvals
+        </Typography>
+        <Tabs
+          defaultValue={0}
           sx={{
-            display: "flex",
-            mb: 1,
-            gap: 1,
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "start", sm: "center" },
-            flexWrap: "wrap",
-            justifyContent: "space-between",
+            bgcolor: "transparent",
           }}
         >
-          <Typography level="h2" component="h1">
-            License Request
-          </Typography>
-          <Button
-            color="success"
-            startDecorator={<AddIcon />}
+          <TabList
+            tabFlex={1}
             size="sm"
-            onClick={() => setOpen(true)}
+            sx={{
+              pl: { xs: 0, md: 4 },
+              justifyContent: "left",
+              [`&& .${tabClasses.root}`]: {
+                fontWeight: "600",
+                flex: "initial",
+                color: "text.tertiary",
+                [`&.${tabClasses.selected}`]: {
+                  bgcolor: "transparent",
+                  color: "text.primary",
+                  "&::after": {
+                    height: "2px",
+                    bgcolor: "#4a235a",
+                  },
+                },
+              },
+            }}
           >
-            Add Product
-          </Button>
-          <Modal open={open} onClose={() => setOpen(false)}>
-            <ModalDialog>
-              <DialogTitle>Add Product</DialogTitle>
-              <DialogContent>
-                Fill in the information of the product.
-              </DialogContent>
-
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  setOpen(false);
-                }}
-              >
-                <Stack spacing={2}>
-                  <FormControl>
-                    <FormLabel>Name</FormLabel>
-                    <Input autoFocus required />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Description</FormLabel>
-                    <Input required />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Category</FormLabel>
-                    {/* <Input required /> */}
-                    <Stack spacing={2} alignItems="flex-start">
-                      <Select
-                        placeholder="Select a category"
-                        name="foo"
-                        required
-                        sx={{ minWidth: 300 }}
-                      >
-                        <Option value="dog">Electronics</Option>
-                        <Option value="cat">Furniture</Option>
-                        <Option value="fish">Machinery</Option>
-                        <Option value="bird">Tickets</Option>
-                      </Select>
-                    </Stack>
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Number in stock</FormLabel>
-                    <Input required />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Product Code</FormLabel>
-                    <Input required />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Images</FormLabel>
-                    <Input required />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Price</FormLabel>
-                    <Input required />
-                  </FormControl>
-
-                  <Button type="submit">Add</Button>
-                </Stack>
-              </form>
-            </ModalDialog>
-          </Modal>
-        </Box>
-        <ProductTable />
-        {/* <OrderList /> */}
+            <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={0}>
+              Approvals
+            </Tab>
+          </TabList>
+          <TabPanel value={0}>
+            <Verification />
+          </TabPanel>
+        </Tabs>
       </Box>
-    </div>
+    </Box>
   );
-};
-
-export default Products;
+}

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GeneratedDocsTable from "../components/GeneratedDocsTable"; // Child component for table
 import { Stack, Modal, ModalClose, Sheet, Divider, Typography, Box, CardActions, Button, FormControl,FormLabel
     ,Select,Option,Input,Textarea,CardOverflow,Card,CardContent,AspectRatio} from "@mui/joy";
- import { Result,notification } from "antd";
- import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
- import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import { Result,notification } from "antd";
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import VerificationTable from './VerificationTable';
 import { API_SERVER, headers } from "../constant";
@@ -112,7 +112,7 @@ const Verification = () => {
     //handle success notification
     const openNotification = (pauseOnHover) => (message) => {
         api.open({
-          message: 'Success Message',
+          message: 'SUCCESS MESSAGE',
           description:message,
           showProgress: true,
           duration: 20,
@@ -124,7 +124,7 @@ const Verification = () => {
     //handle error notification
     const openErrorNotification = (pauseOnHover) => (message) => {
         api.open({
-          message: 'Error Message',
+          message: 'ERROR MESSAGE',
           description:message,
           showProgress: true,
           duration: 20,
