@@ -59,6 +59,9 @@ interface ApproversTableProps {
     id: number;
     code: string;
     description: string;
+    trans_type: string;
+    expense_code: string;
+    status: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
@@ -210,11 +213,11 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Code</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>code</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
-              {/* <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Details</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>*/}
+              <th style={{ width: 140, padding: "12px 6px" }}>Transaction Type</th>
+              {/*<th style={{ width: 140, padding: "12px 6px" }}>Details</th>*/}
+              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th> 
             </tr>
           </thead>
@@ -247,6 +250,9 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.description}</Typography>
                 </td>
+                <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.trans_type === "1" ? "Transactional Document" : "Non-Transactional Document"}</Typography>
+                </td>
                 {/* <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.doctype_name}</Typography>
                 </td>
@@ -256,27 +262,27 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 {/* <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.status}</Typography>
                 </td> */}
-                {/* <td>
+                 <td>
                   <Chip
                     variant="soft"
                     size="sm"
                     startDecorator={
                       {
                         draft: <CheckRoundedIcon />,
-                        submitted: <CheckRoundedIcon />,
-                        Inactive: <BlockIcon />,
+                        1: <CheckRoundedIcon />,
+                        0: <BlockIcon />,
                       }[row.status]
                     }
-                    // color={
-                    //   {
-                    //     Active: "success",
-                    //     Inactive: "danger",
-                    //   }[row.status] as ColorPaletteProp
-                    // }
+                    color={
+                      {
+                        1: "success",
+                        0: "danger",
+                      }[row.status] as ColorPaletteProp
+                    }
                   >
-                    {row.status}
+                    {row.status === "1" ? "Active" : "Inactive"}
                   </Chip>
-                </td> */}
+                </td> 
                 
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -295,7 +301,7 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                       <Tooltip title="Edit">
                         <Button
                           sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                          onClick={() => handleOpen("edit",row.id)}
+                          onClick={() => handleOpen("edit",row)}
                           size="sm"
                           variant="solid"
                         >
@@ -325,49 +331,7 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
           </tbody>
         </Table>
     </Sheet>
-    <Box
-    className="Pagination-laptopUp"
-    sx={{
-      pt: 2,
-      gap: 1,
-      [`& .${iconButtonClasses.root}`]: { borderRadius: "50%" },
-      display: {
-        xs: "none",
-        md: "flex",
-      },
-    }}
-  >
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      startDecorator={<KeyboardArrowLeftIcon />}
-    >
-      Previous
-    </Button>
-
-    <Box sx={{ flex: 1 }} />
-    {["1", "2", "3", "…", "8", "9", "10"].map((page) => (
-      <IconButton
-        key={page}
-        size="sm"
-        variant={Number(page) ? "outlined" : "plain"}
-        color="neutral"
-      >
-        {page}
-      </IconButton>
-    ))}
-    <Box sx={{ flex: 1 }} />
-
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      endDecorator={<KeyboardArrowRightIcon />}
-    >
-      Next
-    </Button>
-    </Box>
+   
   </React.Fragment>
   );
 };

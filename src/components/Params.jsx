@@ -21,40 +21,17 @@ const Params = () => {
     });
 
      // this handles the state of the component
-     const [state, setState] = useState({
+    const [state, setState] = useState({
         docs: [], // Array to store the generated documents
         description: "", // Description of the document type
         trans_type: "", // Transaction type of the document
         expense_code: "", // Expense code of the document
         status: "", // Status of the document
-        // modals: null, // Modal type
-        // selectedDocId: null, // Selected document id
-        // docNumber: null, // Selected document number
-        // docTypeId: null, // Selected document type id
-        // branchId: null, // Selected branch id
-        // requestedAmount: null, // Selected requested amount
-        // customerNumber: null, // Selected customer number
-        // details: null, // Selected details
-        // docTypes: [], // Array to store the document types
-        // branches: [], // Array to store the branches
-        // decline_reason: null, // Decline reason
-        // success: null, // Success message
-        // loading : false
     });
    
 
     // Initialize notification
     const [api, contextHolder] = notification.useNotification();
-
-    //function to open notification
-    const openDeclineNotification = (pauseOnHover) => (message) => {
-        api.open({
-        message: 'DECLINED REASON',
-        description:message,
-        duration: 10,
-        icon: <InfoIcon style={{ color: '#3498db' }} />, // Icon to display in the notification
-        });
-    };
 
     //handles error notifications
     const openErrorNotification = (pauseOnHover) => (message) => {
@@ -80,21 +57,27 @@ const Params = () => {
         });
     };
 
+    //opens success notification
     const notifySuccess = openNotification(true);
+    //opens error notification
     const notifyError = openErrorNotification(true);
-    const notifyDecline = openDeclineNotification(true);
 
-     // to toggle modals
-    const handleOpen = useCallback((modalType, id) => {
+    // to toggle modals
+    const handleOpen = useCallback((modalType, rowData) => {
         setModals((prevModals) => ({
         ...prevModals,
         [modalType]: true,
         }));
-        if (id) {
-        setState((prevState) => ({
-            ...prevState,
-            selectedDocId: id,
-        }));
+        // If we're opening edit modal and have row data, set the form state
+        if (modalType === 'edit' && rowData) {
+            setState((prevState) => ({
+                ...prevState,
+                description: rowData.description,
+                trans_type: rowData.trans_type,
+                expense_code: rowData.expense_code,
+                status: rowData.status,
+                selectedDocId: rowData.id // Store the ID for update API call
+            }));
         }
     }, []);  
 
@@ -160,6 +143,55 @@ const Params = () => {
     //this function is used to save the document type
     const handleSave = useCallback(async () => {
         try {
+            // Define an array of required fields with their corresponding display names
+            const requiredFields = [
+                { field: state.description?.trim(), name: 'Description' },
+                { field: state.trans_type?.toString(), name: 'Transaction Document Type' }, // Convert to string
+                { field: state.status?.toString(), name: 'Status' }, // Convert to string
+                state.trans_type === "1" ? { field: state.expense_code, name: 'Expense code' } : { field: "data", name: "" }
+            ];
+
+            // Filter out the fields that are empty and map them to their display names
+            const validationErrors = requiredFields
+                .filter(({ field }) => !field || field === "" || field === null)
+                .map(({ name }) => name);
+
+            // If there are any missing fields, show a notification with the list of missing fields
+            if (validationErrors.length > 0) {
+                let errors = validationErrors;
+                if (errors.length > 1) {
+                    errors = errors.slice(0, -1).join(", ") + " and " + errors.slice(-1);
+                } else {
+                    errors = errors.join(", ");
+                }
+                notifyError("Please provide: " + errors);
+                return;
+            }
+
+            // If validation passes, prepare data for API call
+            const data = {
+                description: state.description.trim(),
+                trans_type: state.trans_type,
+                expense_code: state.trans_type === "1" ? state.expense_code : null,
+                status: state.status
+            };
+
+            // Make API call
+            const response = await axios.post(`${API_SERVER}/code_creation_details`, data, { headers });
+           
+            if (response.data.code === '200') {
+                notifySuccess(response.data.message);
+                handleClose("add"); // Close modal
+                fetchDocs(); // Refresh the list
+            }
+        } catch (error) {
+            notifyError(error.response.data.message);
+        }
+    }, [state.description, state.trans_type, state.status, state.expense_code]);
+
+    //this function is used to update the document type
+    const handleUpdate = useCallback(async () => {
+        try {
             //get the data from the state and validate it, making sure all required fields are filled
             // Define an array of required fields with their corresponding display names
             const requiredFields = [
@@ -194,17 +226,16 @@ const Params = () => {
                 expense_code: state.trans_type === "1" ? state.expense_code : null,
                 status: state.status
             };
-
-            // Make API call
-            const response = await axios.post(`${API_SERVER}/code_creation_details`, data, { headers });
             
-            if (response.data.success) {
-                notifySuccess("Document type added successfully");
-                handleClose("add"); // Close modal
+            // Make API call
+            const response = await axios.put(`${API_SERVER}/code_creation_details/${state.selectedDocId}`, data, { headers });
+           
+            if (response.data.code === '200') {
+                notifySuccess(response.data.message);
+                handleClose("edit"); // Close modal
                 fetchDocs(); // Refresh the list
             }
         } catch (error) {
-            console.error("Error:", error);
             notifyError(error.response.data.message);
         }
     }, [state.description, state.trans_type, state.status, state.expense_code]);
@@ -388,7 +419,7 @@ const Params = () => {
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
                             open={modals.edit} 
-                            // onClose={() => handleClose("edit")}
+                            onClose={() => handleClose("edit")}
                             slotProps={{
                             backdrop: {
                                 sx: {
@@ -422,7 +453,7 @@ const Params = () => {
                                     </Box>
                                     <Divider sx={{ marginBottom: 2 }} />
                                     
-                                    {/* <Stack spacing={2}>
+                                   <Stack spacing={2}>
                                         <Stack spacing={1}>
                                         <FormLabel>Description</FormLabel>
                                         <FormControl sx={{ width: "100%" }}>
@@ -430,34 +461,31 @@ const Params = () => {
                                             size="sm"
                                             placeholder="Enter Description"
                                             value={state.description}
-                                            onChange={(e,newValue) =>
-                                                handleInputChange("description", newValue)
-                                            }
-                                            />
+                                            onChange={(e) => handleInputChange("description", e.target.value)}/>
                                         </FormControl>
                                         
                                         
-                                        <FormLabel>Transaction Document Type</FormLabel>
+                                         <FormLabel>Transaction Document Type</FormLabel>
                                         <FormControl sx={{ width: "100%" }}>
                                             <Select
                                             placeholder="Select Transaction type"
-                                            value={state.transType}
-                                            onChange={(e, newValue) => handleInputChange("transType", newValue)}
+                                            value={state.trans_type}
+                                            onChange={(e,newValue) => handleInputChange("trans_type", newValue)}
                                             >
                                             <Option value="1">Yes</Option>
                                             <Option value="0">No</Option>
                                             </Select>
                                         </FormControl>
 
-                                        {state.transType === "1" && (
+                                        {state.trans_type === "1" && (
                                             <FormLabel>Expense code</FormLabel>
                                         )}
-                                        {state.transType === "1" && (
+                                        {state.trans_type === "1" && (
                                             <FormControl sx={{ width: "100%" }}>
                                             <Select
                                                 placeholder="Select Type of Expense"
-                                                value={state.expenseCode}
-                                                onChange={(e, newValue) => handleInputChange("expenseCode", newValue)}
+                                                value={state.expense_code}
+                                                onChange={(e,newValue) => handleInputChange("expense_code", newValue)}
                                             >
                                                 <Option value="1">Donation</Option>
                                                 <Option value="0">Procument</Option>
@@ -469,8 +497,8 @@ const Params = () => {
                                             <Select
                                             placeholder="Select Status"
                                             value={state.status}
-                                            onChange={(e, newValue) =>
-                                                handleInputChange("Status", newValue)
+                                            onChange={(e,newValue) =>
+                                                handleInputChange("status", newValue)
                                             }
                                             >
                                             <Option value="1">Active</Option>
@@ -479,7 +507,7 @@ const Params = () => {
                                         </FormControl>
 
                                         </Stack>
-                                    </Stack> */}
+                                    </Stack> 
                                     <CardActions>
                                         <Button
                                         sx={{
@@ -487,7 +515,7 @@ const Params = () => {
                                             color: "#fff",
                                             marginTop: "16px",
                                         }}
-                                        onClick={null}
+                                        onClick={handleUpdate}
                                         >
                                         Update
                                         </Button>

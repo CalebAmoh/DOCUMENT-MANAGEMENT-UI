@@ -77,13 +77,13 @@ const Settings = () => {
               </Tab>
               
               
-              <Tab
+              {/* <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={2}
               >
                 Temporary Approvers
-              </Tab>
+              </Tab> */}
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
@@ -99,9 +99,9 @@ const Settings = () => {
             <TabPanel value={0}>
               <Approvers />
             </TabPanel>
-            <TabPanel value={2}>
+            {/* <TabPanel value={2}>
               <TempApprovers />
-            </TabPanel>
+            </TabPanel> */}
             <TabPanel value={3}>
               <Params />
             </TabPanel>
