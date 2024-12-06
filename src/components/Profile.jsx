@@ -9,6 +9,7 @@ import Breadcrumbs from "@mui/joy/Breadcrumbs";
 import Link from "@mui/joy/Link";
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import Divider from "@mui/joy/Divider";
 import Stack from "@mui/joy/Stack";
 import FormControl from "@mui/joy/FormControl";
@@ -21,6 +22,7 @@ import CardActions from "@mui/joy/CardActions";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import Autocomplete from '@mui/joy/Autocomplete';
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
 import {API_SERVER, headers} from "../constant";
@@ -134,14 +136,30 @@ const Profile = () => {
 
 
   //function to open notification
-  const openNotification = (message) => {
+  const openErrorNotification = (pauseOnHover) => (message) => {
     api.open({
-      message: 'Error message',
+      message: 'Error Message',
       description:message,
-      duration: 10,
-      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />, // Icon to display in the notification
+      showProgress: true,
+      duration: 20,
+      pauseOnHover,
+      icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />
     });
   };
+  //handles success notifications
+  const openSuccessNotification = (pauseOnHover) => (message) => {
+    api.open({
+      message: 'SUCCESS MESSAGE',
+      description:message,
+      showProgress: true,
+      duration: 20,
+      pauseOnHover,
+      icon: <CheckCircleOutlineOutlinedIcon style={{ color: '#45b39d' }} />
+    });
+  };
+
+  const notifySuccess = openSuccessNotification(true);
+  const notifyError = openErrorNotification(true);
 
   //handleOpen function mostly to open the modal
   const handleOpen = (type,row) => {
@@ -218,7 +236,7 @@ const Profile = () => {
     if (missingFields.length > 0) {
       // setModalType("result");
       // setValidationError(`Please fill in the following fields: ${missingFields.join(", ")}`);
-      openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
+      notifyError(`Please fill in the following fields: ${missingFields.join(", ")}`);
       return;
     }
     
@@ -257,7 +275,7 @@ const Profile = () => {
       
       // If there are any missing fields, show a notification with the list of missing fields
       if (missingFields.length > 0) {
-        openNotification(`Please fill in the following fields: ${missingFields.join(", ")}`);
+        notifyError(`Please fill in the following fields: ${missingFields.join(", ")}`);
         return; // Exit the function early since the validation failed
       }
     
@@ -286,8 +304,10 @@ const Profile = () => {
       //post delete request to deactivate parameter
       const response = await axios.put(`${ENDPOINT}/users/deactivate/${deactivateApproverId}`,{}, { headers });
       setIsFetching(true);
-      handleOpen('result');
-      setSuccess(response.data);
+      // handleOpen('result');
+      // setSuccess(response.data);
+      notifySuccess(response.data.message);
+      setModalType(null);
 
     } catch (error) {
       console.error("Error deactivating parameter:", error);
@@ -302,8 +322,10 @@ const Profile = () => {
       const response = await axios.put(`${ENDPOINT}/users/activate/${deactivateApproverId}`,{}, { headers });
       
       setIsFetching(true);
-      handleOpen('result');
-      setSuccess(response.data);
+      // handleOpen('result');
+      // setSuccess(response.data);
+      notifySuccess(response.data.message);
+      setModalType(null);
 
     } catch (error) {
       console.error("Error activating parameter:", error);
@@ -324,6 +346,7 @@ const Profile = () => {
       const ranking = response_emp.data.ranking;
       const first_name = response_emp.data.first_name;
       const last_name = response_emp.data.last_name;
+      const branch = response_emp.data.branch;
 
       const response = await axios.post(ENDPOINT + `/users/register`, {
         employee_id: formValues.employee_id,
@@ -334,19 +357,23 @@ const Profile = () => {
         signature: signature,
         rank: ranking,
         first_name: first_name,
-        last_name: last_name
+        last_name: last_name,
+        branch:branch
       },{headers: headers});
 
 
-      handleOpen('result');
-      setSuccess(response.data);
+      // handleOpen('result');
+      // setSuccess(response.data);
+      notifySuccess(response.data.message);
+      setModalType(null);
 
       if(response.data.code === "200") {
         setIsFetching(true);
       }
     } catch (error) {
-      handleOpen('result');
-      setSuccess(error.response.data);
+      // handleOpen('result');
+      // setSuccess(error.response.data);
+      notifyError(error.response.data.message)
       console.error("Error:", error);
     }
   };
@@ -366,13 +393,15 @@ const Profile = () => {
         setIsFetching(true);
       }
 
-      handleOpen('result');
+      // handleOpen('result');
       // setSuccessModal(true);
-      setSuccess(response.data);
+      notifySuccess(response.data.message);
+      // setSuccess(response.data);
       
     } catch (error) {
-      handleOpen('result');
-      setSuccess(response.data);
+      // handleOpen('result');
+      // setSuccess(response.data);
+      notifyError(error.response.data.message);
       console.error("Error:", error);
     }
   };
@@ -509,6 +538,13 @@ const Profile = () => {
                                 </Option>
                             ))}
                             </Select>
+                            {/* <Autocomplete
+                              placeholder="Combo box"
+                              options={employees}
+                              value={formValues.employee_id}
+                              sx={{ width: 300 }}
+                              onChange={(e, newValue) => handleInputChange("employee_id", newValue)}
+                            /> */}
                         </FormControl>
 
                         <FormLabel>Role</FormLabel>

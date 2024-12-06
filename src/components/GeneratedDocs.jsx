@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Result,notification } from "antd";
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, EyeInvisibleFilled } from '@ant-design/icons';
 import GeneratedDocsTable from "../components/GeneratedDocsTable";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import CardOverflow from "@mui/joy/CardOverflow";
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
 import Divider from "@mui/joy/Divider";
@@ -73,7 +74,7 @@ const GeneratedDocs = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/get-docs`, { headers });
+        const response = await axios.get(`http://localhost:3004/v1/api/dms/get-generated-docs`, { headers });
         setApprovers(response.data.documents);
         console.log("Approvers:", response.data.documents);
         setIsFetching(false);
@@ -575,7 +576,26 @@ const GeneratedDocs = () => {
                             ))}
                           </Select>
                         </FormControl>
-                        <FormControl sx={{ width: "100%" }}>
+                        <FormControl sx={{ width: "80%" }}>
+                          <FormLabel >Document Id</FormLabel>
+                          <Input
+                            size="sm"
+                            value={selectedDocId}
+                            placeholder="document id"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            onChange={(e) => handleInputChange("doc_id",e.target.value)}
+                          />
+                        </FormControl>
+                        <Button
+                          size="sm"
+                          variant="solid"
+                          sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                          color="neutral"
+                          onClick={handleButtonClick}>
+                          <RemoveRedEyeIcon/>
+                        </Button>
+                        {/* <FormControl sx={{ width: "100%" }}>
                           <FormLabel >Branch</FormLabel>
                           <Select
                             size="sm"
@@ -591,7 +611,7 @@ const GeneratedDocs = () => {
                               </Option>
                             ))}
                           </Select>
-                        </FormControl>
+                        </FormControl> */}
                     </Stack>
                     {selectedRequestedAmount !== null && (
                       <Stack direction="row" spacing={4}>
@@ -638,7 +658,7 @@ const GeneratedDocs = () => {
                           />
                         </FormControl>
                       </Stack>
-                      <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                      {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
                       <FormControl sx={{ width: "44%" }}>
                           <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
                           <Input
@@ -658,7 +678,7 @@ const GeneratedDocs = () => {
                           onClick={handleButtonClick}>
                           View Doc
                         </Button>
-                      </Stack>
+                      </Stack> */}
                       
                   </Stack>
                 
@@ -726,21 +746,26 @@ const GeneratedDocs = () => {
                             ))}
                           </Select>
                         </FormControl>
-                        <FormControl sx={{ width: "100%" }}>
-                          <FormLabel required>Branch</FormLabel>
-                          <Select
+                        <FormControl sx={{ width: "80%" }}>
+                          <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
+                          <Input
                             size="sm"
-                            value={selectedBranchId}
-                            placeholder="Select Branch"
-                            onChange={(e, newValue) => handleInputChange("branch_id",newValue)}
-                          >
-                            {branches.map((branch) => (
-                              <Option key={branch.id} value={branch.id}>
-                                {branch.description}
-                              </Option>
-                            ))}
-                          </Select>
+                            value={selectedDocId}
+                            placeholder="document id"
+                            disabled
+                            sx={{ backgroundColor: "#eaecee" }}
+                            onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                          />
                         </FormControl>
+                        <Button
+                          size="sm"
+                          variant="solid"
+                          sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                          color="neutral"
+                          onClick={handleButtonClick}>
+                          <RemoveRedEyeIcon/>
+                        </Button>
+                        
                     </Stack>
                     {isTransType === "1" && (
                       <Stack direction="row" spacing={4}>
@@ -796,8 +821,8 @@ const GeneratedDocs = () => {
                           />
                         </Stack>
                       </div>
-                      <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
-                      <FormControl sx={{ width: "44%" }}>
+                      {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                        <FormControl sx={{ width: "44%" }}>
                           <FormLabel required>Document Id (Upload doc to generate new id)</FormLabel>
                           <Input
                             size="sm"
@@ -814,9 +839,9 @@ const GeneratedDocs = () => {
                           sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
                           color="neutral"
                           onClick={handleButtonClick}>
-                          View Doc
+                          <RemoveRedEyeIcon/>
                         </Button>
-                      </Stack>
+                      </Stack> */}
                       
                   </Stack>
                   <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
@@ -839,9 +864,6 @@ const GeneratedDocs = () => {
 
             </Sheet>
       </Modal>
-
-     
-    
 
       {/* Success Modal */}
       <Modal

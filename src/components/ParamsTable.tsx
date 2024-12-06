@@ -57,16 +57,13 @@ function stableSort<T>(
 interface ApproversTableProps {
   data: Array<{
     id: number;
-    details: string;
-    doctype_name: string;
-    doc_id: string;
-    doctype_id: string;
-    status: string;
+    code: string;
+    description: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
 
-const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -98,10 +95,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
 
   // Ensure data is an array
   const approversData = Array.isArray(data) ? data : [];
-  console.log("app",approversData);
-  // if (approversData.length === 0) {
-  //   return <div>No data available</div>;
-  // }
+  
 
   return (
     <React.Fragment>
@@ -216,18 +210,19 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Code</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
+              {/* <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Details</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>*/}
+              <th style={{ width: 140, padding: "12px 6px" }}>Actions</th> 
             </tr>
           </thead>
           <tbody>
           {data === undefined || data === null ? (
                 // Data is being fetched, show loader
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                  <td colSpan={3} style={{ textAlign: 'center', height: '100px' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                       <CircularProgress />
                     </div>
@@ -236,7 +231,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
               ) : data.length === 0 ? (
                 // Data has been fetched but no records found
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                  <td colSpan={4} style={{ textAlign: 'center', height: '100px' }}>
                     <Typography level="body-md">No records found</Typography>
                   </td>
                 </tr>
@@ -247,18 +242,21 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   <Typography level="body-sm">{row.id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doc_id}</Typography>
+                  <Typography level="body-sm">{row.code}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.description}</Typography>
+                </td>
+                {/* <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.doctype_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.details}</Typography>
-                </td>
+                </td> */}
                 {/* <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.status}</Typography>
                 </td> */}
-                <td>
+                {/* <td>
                   <Chip
                     variant="soft"
                     size="sm"
@@ -278,7 +276,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   >
                     {row.status}
                   </Chip>
-                </td>
+                </td> */}
                 
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -294,14 +292,14 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                         
                       </Button>
                     </Tooltip> */}
-                      <Tooltip title="Verify">
+                      <Tooltip title="Edit">
                         <Button
                           sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                          onClick={() => handleOpen("view",row.id)}
+                          onClick={() => handleOpen("edit",row.id)}
                           size="sm"
                           variant="solid"
                         >
-                          <VerifiedIcon />
+                          <Edit />
                           
                         </Button>
                       </Tooltip>
@@ -374,4 +372,4 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
   );
 };
 
-export default VerificationTable;
+export default ParamsTable;

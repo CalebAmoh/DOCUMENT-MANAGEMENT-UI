@@ -12,6 +12,7 @@ import Option from "@mui/joy/Option";
 import Typography from "@mui/joy/Typography";
 import Card from "@mui/joy/Card";
 import CardActions from "@mui/joy/CardActions";
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import CardOverflow from "@mui/joy/CardOverflow";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import Modal from "@mui/joy/Modal";
@@ -23,6 +24,8 @@ import { Alert, notification, Result } from "antd";
 import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
 import CircularProgress from "@mui/material/CircularProgress";
+// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 
 const Initial = () => {
@@ -62,7 +65,7 @@ const Initial = () => {
       // try {
       //   const response = await axios.post(`https://igdwebsite.azurewebsites.net/api/GetCitizenInfo`, {
       //     "NIN": "RFE7GTPM",
-      //     "OTP": "M8ZP",
+      //     "OTP": "W965",
       //     "Token": "9NJY4N955WQWPFNJDX8BA8ZY55QCE5E8PZ899AVB984XHFRH78XQNJ8BXU5986Z9RRGYHPKDB6BCDBQXPGFGGZUE37KPEVDCH4F2929SXTNRG67VDGV2ZT326C6KC69R394J6YYWGXTXND779ZK7ANMZBQ666XQ3T7YGBWZQT9TC9DP3E8MNUCQPWDHQ33ZTH2ERPZ6MA5NB4JZ8AC27MBGRRKV7PJW2HA4G98PQC9NZYPUMNKQZA4FFTX9DD88Z"
       //   }, {
       //     headers: {
@@ -88,8 +91,9 @@ const Initial = () => {
       // }
       
     } catch (error) {
-      setModalType('result');
-      setSuccess(error.response.data);
+      // setModalType('result');
+      // setSuccess(error.response.data);
+      notifyError(error.response.data.message);
       console.error("Error uploading document:", error);
     } finally {
       console.log(modalType);
@@ -188,7 +192,7 @@ const Initial = () => {
   };
 
   //function to open notification
-  const openNotification = (pauseOnHover) => (message) => {
+  const openErrorNotification = (pauseOnHover) => (message) => {
     api.open({
       message: 'Error Message',
       description:message,
@@ -198,6 +202,19 @@ const Initial = () => {
       icon: <CloseCircleOutlined style={{ color: '#ff0000' }} />
     });
   };
+  //handles success notifications
+  const openSuccessNotification = (pauseOnHover) => (message) => {
+    api.open({
+      message: 'SUCCESS MESSAGE',
+      description:message,
+      showProgress: true,
+      duration: 20,
+      pauseOnHover,
+      icon: <CheckCircleOutlineOutlinedIcon style={{ color: '#45b39d' }} />
+    });
+  };
+  const notifySuccess = openSuccessNotification(true);
+  const notifyError = openErrorNotification(true);
 
   // to handle closing of the modal
   const handleClose = () => setModalType(null);
@@ -224,9 +241,9 @@ const Initial = () => {
       validationErrors.push("document type");
     }
 
-    if (!selectedBranch) {
-      validationErrors.push("branch");
-    }
+    // if (!selectedBranch) {
+    //   validationErrors.push("branch");
+    // }
 
     if (!selectedRequestedAmount && isTransType !== "0") {
       validationErrors.push("requested amount");
@@ -245,7 +262,7 @@ const Initial = () => {
     }
 
     if (validationErrors.length > 0) {
-      const notify = openNotification(true);
+      const notify = openErrorNotification(true);
       let errors = validationErrors;
       if (errors.length > 1) {
           errors = errors.slice(0, -1).join(", ") + " and " + errors.slice(-1);
@@ -262,7 +279,7 @@ const Initial = () => {
 
     const formData = {
       doctype_id: selectedDocType,
-      branch: selectedBranch,
+      // branch: selectedBranch,
       requested_amount: selectedRequestedAmount,
       customer_number: selectedCustomerNumber,
       details: details,
@@ -286,15 +303,17 @@ const Initial = () => {
           axios.request(config)
             .then((response) => {
               console.log(JSON.stringify(response.data));
-              setModalType('result');
-              setSuccess(response.data);
+              // setModalType('result');
+              // setSuccess(response.data);
+              notifySuccess(response.data.message)
 
               // Reset the form after successful posting
               resetForm();
           })
           .catch((error) => {
-            setModalType('result');
-            setSuccess(error.response.data);
+            // setModalType('result');
+            // setSuccess(error.response.data);
+            notifyError(error.response.data.message);
             console.log(error);
           });
 
@@ -354,7 +373,7 @@ const Initial = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl sx={{ width: "100%" }}>
+              {/* <FormControl sx={{ width: "100%" }}>
                 <FormLabel required>Branch</FormLabel>
                 <Select
                   size="sm"
@@ -369,6 +388,17 @@ const Initial = () => {
                     </Option>
                   ))}
                 </Select>
+              </FormControl> */}
+              <FormControl sx={{ width: "100%" }}>
+                <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
+                <Input
+                  size="sm"
+                  value={docId}
+                  placeholder="document id"
+                  disabled
+                  sx={{ backgroundColor: "#eaecee",fontWeight: "bold" }}
+                  onChange={(e) => setGeneratedDocId(e.target.value)}
+                />
               </FormControl>
             </Stack>
 
@@ -432,7 +462,7 @@ const Initial = () => {
               </Stack>
             </div>
 
-            <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+            {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
             <FormControl sx={{ width: "45%" }}>
                 <FormLabel required>Document Id (Upload doc to generate id)</FormLabel>
                 <Input
@@ -444,7 +474,7 @@ const Initial = () => {
                   onChange={(e) => setGeneratedDocId(e.target.value)}
                 />
               </FormControl>
-            </Stack>
+            </Stack> */}
           </Stack>
 
           <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>

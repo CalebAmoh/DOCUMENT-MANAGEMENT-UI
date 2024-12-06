@@ -56,8 +56,8 @@ function stableSort<T>(
 interface ApproversTableProps {
   data: Array<{
     id: number;
-    branch_name: string;
     doctype_name: string;
+    details: string;
     doc_id: string;
     doctype_id: string;
     status: string;
@@ -85,12 +85,12 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
         </Select>
       </FormControl>
       <FormControl size="sm">
-        <FormLabel>Branch</FormLabel>
+        <FormLabel>Document Type</FormLabel>
         <Select size="sm" placeholder="All">
           <Option value="all">All</Option>
-          <Option value="Bank of America">Tema</Option>
-          <Option value="Chase Bank">Accra</Option>
-          <Option value="Wells Fargo">Kasoa</Option>
+          <Option value="Bank of America">Invoice</Option>
+          <Option value="Chase Bank">Projects</Option>
+          <Option value="Wells Fargo">Loans</Option>
         </Select>
       </FormControl>
     </React.Fragment>
@@ -166,178 +166,178 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
         </FormControl>
         {renderFilters()}
       </Box>
-    <Sheet
-    className="BankTableContainer"
-    variant="outlined"
-    sx={{
-      display: { xs: "none", sm: "initial" },
-      width: "100%",
-      borderRadius: "sm",
-      flexShrink: 1,
-      overflow: "auto",
-      minHeight: 0,
-    }}
-  >
-        <Table
-          aria-labelledby="tableTitle"
-          stickyHeader
-          hoverRow
-          sx={{
-            "--TableCell-headBackground":
-              "var(--joy-palette-background-level1)",
-            "--Table-headerUnderlineThickness": "1px",
-            "--TableRow-hoverBackground":
-              "var(--joy-palette-background-level1)",
-            "--TableCell-paddingY": "4px",
-            "--TableCell-paddingX": "8px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
-              ></th>
-              <th style={{ width: 120, padding: "12px 6px" }}>
-                <Link
-                  underline="none"
-                  color="primary"
-                  component="button"
-                  // onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
-                  fontWeight="lg"
-                  endDecorator={<ArrowDropDownIcon />}
-                  // sx={{
-                  //   "& svg": {
-                  //     transition: "0.2s",
-                  //     transform:
-                  //       order === "desc" ? "rotate(0deg)" : "rotate(180deg)",
-                  //   },
-                  // }}
-                >
-                  ID
-                </Link>
-              </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          {data === undefined || data === null ? (
-                // Data is being fetched, show loader
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                      <CircularProgress />
-                    </div>
-                  </td>
-                </tr>
-              ) : data.length === 0 ? (
-                // Data has been fetched but no records found
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
-                    <Typography level="body-md">No records found</Typography>
-                  </td>
-                </tr>
-              ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
-              <tr key={row.id}>
-                <td style={{ textAlign: "center", width: 120 }}></td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.id}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doc_id}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.branch_name}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doctype_name}</Typography>
-                </td>
-                {/* <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.status}</Typography>
-                </td> */}
-                <td>
-                  <Chip
-                    variant="soft"
-                    size="sm"
-                    startDecorator={
-                      {
-                        draft: <CheckRoundedIcon />,
-                        declined: <BlockIcon />,
-                      }[row.status]
-                    }
-                    color={
-                      {
-                        draft: "success",
-                        declined: "danger",
-                      }[row.status] as ColorPaletteProp
-                    }
+      <Sheet
+      className="BankTableContainer"
+      variant="outlined"
+      sx={{
+        display: { xs: "none", sm: "initial" },
+        width: "100%",
+        borderRadius: "sm",
+        flexShrink: 1,
+        overflow: "auto",
+        minHeight: 0,
+      }}
+    >
+          <Table
+            aria-labelledby="tableTitle"
+            stickyHeader
+            hoverRow
+            sx={{
+              "--TableCell-headBackground":
+                "var(--joy-palette-background-level1)",
+              "--Table-headerUnderlineThickness": "1px",
+              "--TableRow-hoverBackground":
+                "var(--joy-palette-background-level1)",
+              "--TableCell-paddingY": "4px",
+              "--TableCell-paddingX": "8px",
+            }}
+          >
+            <thead>
+              <tr>
+                <th
+                  style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
+                ></th>
+                <th style={{ width: 120, padding: "12px 6px" }}>
+                  <Link
+                    underline="none"
+                    color="primary"
+                    component="button"
+                    // onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
+                    fontWeight="lg"
+                    endDecorator={<ArrowDropDownIcon />}
+                    // sx={{
+                    //   "& svg": {
+                    //     transition: "0.2s",
+                    //     transform:
+                    //       order === "desc" ? "rotate(0deg)" : "rotate(180deg)",
+                    //   },
+                    // }}
                   >
-                    {row.status}
-                  </Chip>
-                </td>
-                
-                <td>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <Link level="body-xs" component="button">
-                    <Tooltip title="View">
-                      <Button
-                        sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
-                        onClick={() => handleOpen("view",row.id)}
-                        size="sm"
-                        variant="solid"
-                      >
-                        <RemoveRedEyeIcon />
-                        
-                      </Button>
-                      </Tooltip>
-                    <Tooltip title="Edit">
-                      <Button
-                        sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                        onClick={() => handleOpen("update",row.id)}
-                        size="sm"
-                        variant="solid"
-                      >
-                        <Edit />
-                        
-                      </Button>
-                      </Tooltip>
-                      {row.status === "draft" ? (
-                        <Tooltip title="Submit">
-                          <Button
-                            sx={{ backgroundColor: "#4CAF50", width: 35 }}
-                            onClick={() => handleOpen("submit",row.id)}
-                            size="sm"
-                            variant="solid"
-                          >
-                            <CallMadeIcon />
-                            
-                          </Button>
-                      </Tooltip>
-                      ):(
-                        <Tooltip title="Declined Reason">
-                          <Button
-                            sx={{ backgroundColor: "#839192", width: 35 }}
-                            onClick={() => handleMessage(row.id)}
-                            size="sm"
-                            variant="solid"
-                          >
-                            <MessageIcon/>
+                    ID
+                  </Link>
+                </th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            {data === undefined || data === null ? (
+                  // Data is being fetched, show loader
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                        <CircularProgress />
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.length === 0 ? (
+                  // Data has been fetched but no records found
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                      <Typography level="body-md">No records found</Typography>
+                    </td>
+                  </tr>
+                ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
+                <tr key={row.id}>
+                  <td style={{ textAlign: "center", width: 120 }}></td>
+                  <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.id}</Typography>
+                  </td>
+                  <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.doc_id}</Typography>
+                  </td>
+                  <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.doctype_name}</Typography>
+                  </td>
+                  <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.details}</Typography>
+                  </td>
+                  {/* <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.status}</Typography>
+                  </td> */}
+                  <td>
+                    <Chip
+                      variant="soft"
+                      size="sm"
+                      startDecorator={
+                        {
+                          draft: <CheckRoundedIcon />,
+                          declined: <BlockIcon />,
+                        }[row.status]
+                      }
+                      color={
+                        {
+                          draft: "success",
+                          declined: "danger",
+                        }[row.status] as ColorPaletteProp
+                      }
+                    >
+                      {row.status}
+                    </Chip>
+                  </td>
+                  
+                  <td>
+                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                      <Link level="body-xs" component="button">
+                      <Tooltip title="View">
+                        <Button
+                          sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
+                          onClick={() => handleOpen("view",row.id)}
+                          size="sm"
+                          variant="solid"
+                        >
+                          <RemoveRedEyeIcon />
+                          
                         </Button>
                         </Tooltip>
-                      )}
+                      <Tooltip title="Edit">
+                        <Button
+                          sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
+                          onClick={() => handleOpen("update",row.id)}
+                          size="sm"
+                          variant="solid"
+                        >
+                          <Edit />
+                          
+                        </Button>
+                        </Tooltip>
+                        {row.status === "draft" ? (
+                          <Tooltip title="Submit">
+                            <Button
+                              sx={{ backgroundColor: "#4CAF50", width: 35 }}
+                              onClick={() => handleOpen("submit",row.id)}
+                              size="sm"
+                              variant="solid"
+                            >
+                              <CallMadeIcon />
+                              
+                            </Button>
+                        </Tooltip>
+                        ):(
+                          <Tooltip title="Declined Reason">
+                            <Button
+                              sx={{ backgroundColor: "#839192", width: 35 }}
+                              onClick={() => handleMessage(row.id)}
+                              size="sm"
+                              variant="solid"
+                            >
+                              <MessageIcon/>
+                          </Button>
+                          </Tooltip>
+                        )}
+                        
                       
-                     
-                    </Link>
-                  </Box>
-                </td>
-              </tr>
-            )))}
-          </tbody>
-        </Table>
-    </Sheet>
+                      </Link>
+                    </Box>
+                  </td>
+                </tr>
+              )))}
+            </tbody>
+          </Table>
+      </Sheet>
     <Box
     className="Pagination-laptopUp"
     sx={{

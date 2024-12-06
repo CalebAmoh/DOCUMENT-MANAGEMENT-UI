@@ -54,10 +54,10 @@ function stableSort<T>(
   return stabilizedThis.map((el) => el[0]);
 }
 
-interface ApproversTableProps {
+interface ApprovalActivityTableProp {
   data: Array<{
     id: number;
-    details: string;
+    branch_name: string;
     doctype_name: string;
     doc_id: string;
     doctype_id: string;
@@ -66,7 +66,7 @@ interface ApproversTableProps {
   handleOpen: (type: string, row: any) => void;
 }
 
-const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
+const ApprovalActivityTable: React.FC<ApprovalActivityTableProp> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
@@ -217,8 +217,8 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                 </Link>
               </th>
               <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Branch</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Details</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
             </tr>
@@ -250,10 +250,10 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   <Typography level="body-sm">{row.doc_id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doctype_name}</Typography>
+                  <Typography level="body-sm">{row.branch_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.details}</Typography>
+                  <Typography level="body-sm">{row.doctype_name}</Typography>
                 </td>
                 {/* <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.status}</Typography>
@@ -374,4 +374,4 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
   );
 };
 
-export default VerificationTable;
+export default ApprovalActivityTable;

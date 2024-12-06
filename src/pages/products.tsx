@@ -19,7 +19,7 @@ import CardOverflow from "@mui/joy/CardOverflow";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import Initial from "../components/Initial";
 import GeneratedDocs from "../components/GeneratedDocs";
-import Verification from "../components/Verification";
+import ApprovalActivity from "../components/ApprovalActivity";
 
 export default function Categories() {
   return (
@@ -71,7 +71,7 @@ export default function Categories() {
             </Tab>
           </TabList>
           <TabPanel value={0}>
-            <Verification />
+            <ApprovalActivity />
           </TabPanel>
         </Tabs>
       </Box>

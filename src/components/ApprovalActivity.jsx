@@ -6,18 +6,18 @@ import { Result,notification } from "antd";
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import VerificationTable from './VerificationTable';
-import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
+import ApprovalActivityTable from './ApprovalActivityTable';
 import { API_SERVER, headers } from "../constant";
 import axios from "axios";
 
-const Verification = () => {
+const ApprovalActivity = () => {
 
     // Initialize state with an object to track modals
     const [modals, setModals] = useState({
         view: false,
         viewDoc: false,
         decline: false,
+        approval: false,
         response: false,
     });
 
@@ -54,8 +54,8 @@ const Verification = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER}/get-submitted-docs`, { headers });
-            const data = response.data.documents;
+            const response = await axios.get(`${API_SERVER}/approval_activities`, { headers });
+            const data = response.data.pending_approvals;
             setState((prevState) => ({
                 ...prevState,
                 docs: data,
@@ -176,7 +176,7 @@ const Verification = () => {
     }, []);
 
     //this function is used to handle verification
-    const handleVerify = useCallback(async () => {
+    const handleApprove = useCallback(async () => {
         try {
             const response = await axios.put(`${API_SERVER}/verify-doc/${state.selectedDocId}`, {}, {headers: headers})
             
@@ -269,7 +269,7 @@ const Verification = () => {
                         }}
                     >
                     </Box>
-                    <VerificationTable data={state.docs} handleOpen={handleOpen} />
+                    <ApprovalActivityTable data={state.docs} handleOpen={handleOpen} />
 
                     {/* Modal for viewing doc details */}
                     <Modal
@@ -331,7 +331,7 @@ const Verification = () => {
                                             ))}
                                         </Select>
                                         </FormControl>
-                                        {/* <FormControl sx={{ width: "100%" }}>
+                                        <FormControl sx={{ width: "100%" }}>
                                         <FormLabel >Branch</FormLabel>
                                         <Select
                                             size="sm"
@@ -347,27 +347,7 @@ const Verification = () => {
                                             </Option>
                                             ))}
                                         </Select>
-                                        </FormControl> */}
-                                        <FormControl sx={{ width: "80%" }}>
-                                            <FormLabel >Document Id (Upload file to generate id)</FormLabel>
-                                            <Input
-                                                size="sm"
-                                                value={state.docNumber}
-                                                placeholder="document id"
-                                                disabled
-                                                sx={{ backgroundColor: "#eaecee" }}
-                                                onChange={(e) => handleInputChange("doc_id",e.target.value)}
-                                            />
                                         </FormControl>
-                                        <Button
-                                            size="sm"
-                                            variant="solid"
-                                            sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
-                                            color="neutral"
-                                            onClick={() => handleOpen("viewDoc")}
-                                        >
-                                            <RemoveRedEyeIcon/>
-                                        </Button>
                                     </Stack>
                                     {state.requestedAmount !== null && (
                                     <Stack direction="row" spacing={4}>
@@ -414,17 +394,17 @@ const Verification = () => {
                                         />
                                         </FormControl>
                                     </Stack>
-                                    {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
-                                        <FormControl sx={{ width: "44%" }}>
-                                            <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
-                                            <Input
-                                                size="sm"
-                                                value={state.docNumber}
-                                                placeholder="document id"
-                                                disabled
-                                                sx={{ backgroundColor: "#eaecee" }}
-                                                onChange={(e) => handleInputChange("doc_id",e.target.value)}
-                                            />
+                                    <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                                    <FormControl sx={{ width: "44%" }}>
+                                        <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
+                                        <Input
+                                            size="sm"
+                                            value={state.docNumber}
+                                            placeholder="document id"
+                                            disabled
+                                            sx={{ backgroundColor: "#eaecee" }}
+                                            onChange={(e) => handleInputChange("doc_id",e.target.value)}
+                                        />
                                         </FormControl>
                                         <Button
                                             size="sm"
@@ -435,7 +415,7 @@ const Verification = () => {
                                         >
                                             View Doc
                                         </Button>
-                                    </Stack> */}
+                                    </Stack>
                                     
                                 </Stack>
                                     <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
@@ -446,10 +426,10 @@ const Verification = () => {
                                             variant="solid"
                                             sx={{ backgroundColor: "#00357A",marginLeft: "8px" }}
                                             onClick={() => {
-                                            handleVerify();
+                                            handleOpen("approval",state.selectedDocId);
                                             }}
                                         >
-                                            Submit for approval
+                                            Approve
                                         </Button><Button
                                             size="sm"
                                             variant="solid"
@@ -458,7 +438,7 @@ const Verification = () => {
                                             handleOpen("decline",state.selectedDocId);
                                             }}
                                         >
-                                            Decline
+                                            Reject
                                         </Button>
                                         </CardActions>
                                     </CardOverflow>
@@ -550,7 +530,7 @@ const Verification = () => {
                                 
                                 <Box sx={{ mb: 1 }}>
                                     <Typography level="title-md">
-                                    Decline Reason
+                                    Rejection Reason
                                     </Typography>
                                 </Box>
                                 <Divider sx={{ marginBottom: 2 }} />
@@ -576,6 +556,97 @@ const Verification = () => {
                                             <Typography variant="body2">
                                             {maxChars - (state.declineReason?.length || 0)} characters left
                                             </Typography>
+                                        </FormControl>
+                                    </Stack>
+                                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            sx={{ backgroundColor: "#00357A" }}
+                                            onClick={() => {
+                                            handleDecline();
+                                            }}
+                                        >
+                                            Submit
+                                        </Button>
+                                    </CardActions>
+                                </Stack>
+
+                                
+                            </Typography>
+                            </Sheet>
+                    </Modal>
+                    
+                    
+                    {/* Approval modal */}
+                    <Modal
+                            aria-labelledby="modal-title"
+                            aria-describedby="modal-desc"
+                            open={modals.approval} onClose={() => handleClose("approval")}
+                            slotProps={{
+                            backdrop: {
+                                sx: {
+                                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                backdropFilter: "none",
+                                },
+                            },
+                            }}
+                            sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginLeft: "15%",
+                            }}
+                        >
+                            <Sheet
+                            variant="outlined"
+                            sx={{
+                                maxWidth: '30%',
+                                width: "30%",
+                                borderRadius: "md",
+                                p: 3,
+                                boxShadow: "lg",
+                            }}
+                            >
+                            <ModalClose variant="plain" sx={{ m: 1 }} />
+                            <Typography id="modal-desc" textColor="text.tertiary">
+                                
+                                <Box sx={{ mb: 1 }}>
+                                    <Typography level="title-md">
+                                     Approval
+                                    </Typography>
+                                </Box>
+                                <Divider sx={{ marginBottom: 2 }} />
+                                <Stack spacing={4}>
+                                    <Stack direction="row" spacing={4}>
+                                        <FormControl sx={{ width: "100%" }}>
+                                            <FormLabel>Approved Amount</FormLabel>
+                                            {/* <Textarea
+                                            color="neutral"
+                                            minRows={4}
+                                            value={state.declineReason || ""}
+                                            placeholder="Enter Decline Reason"
+                                            onChange={(e) => {
+                                                if (e.target.value.length <= maxChars) {
+                                                setState((prevState) => ({
+                                                    ...prevState,
+                                                    declineReason: e.target.value,
+                                                }));
+                                                handleInputChange("decline_reason", e.target.value);
+                                                }
+                                            }}
+                                            /> */}
+                                            {/* <Typography variant="body2">
+                                            {maxChars - (state.declineReason?.length || 0)} characters left
+                                            </Typography> */}
+                                            <Input
+                                                size="sm"
+                                                type="text"
+                                                value={state.requestedAmount}
+                                                placeholder="Enter approved Amount"
+                                                onChange={(newValue) => handleInputChange("requested_amount",newValue)} 
+                                            />
+                                            
                                         </FormControl>
                                     </Stack>
                                     <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
@@ -702,4 +773,4 @@ const Verification = () => {
     );
 };
 
-export default React.memo(Verification);
+export default React.memo(ApprovalActivity);
