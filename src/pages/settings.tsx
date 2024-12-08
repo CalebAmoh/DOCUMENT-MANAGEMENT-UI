@@ -9,9 +9,7 @@ import Profile from "../components/Profile";
 import Params from "../components/Params";
 import Approvers from "../components/Approvers";
 import TempApprovers from "../components/TempApprovers";
-// import Initial from "../components/Initial";
-// import Renewal from "../components/Renewal";
-
+import ApprovalSetup from "../components/ApprovalSetup";
 const Settings = () => {
   return (
     <div className="">
@@ -84,12 +82,20 @@ const Settings = () => {
               >
                 Temporary Approvers
               </Tab> */}
+              
               <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={3}
               >
                 Parameters
+              </Tab>
+              <Tab
+                sx={{ borderRadius: "6px 6px 0 0" }}
+                indicatorInset
+                value={4}
+              >
+                Document Approval Setup
               </Tab>
             </TabList>
             <TabPanel value={1}>
@@ -104,6 +110,9 @@ const Settings = () => {
             </TabPanel> */}
             <TabPanel value={3}>
               <Params />
+            </TabPanel>
+            <TabPanel value={4}>
+              <ApprovalSetup />
             </TabPanel>
           </Tabs>
           {/* <Divider /> */}
