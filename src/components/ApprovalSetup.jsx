@@ -12,6 +12,7 @@ import axios from "axios";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Checkbox from '@mui/joy/Checkbox';
+import Chip from '@mui/joy/Chip';
 
 const ApprovalSetup = () => {
 
@@ -255,6 +256,9 @@ const ApprovalSetup = () => {
 
     // Add these handler functions
     const handleNumStagesChange = (value) => {
+        if(value === ""){
+            value = 0;
+        }
         const num = parseInt(value);
         setNumStages(num);
         
@@ -345,6 +349,9 @@ const ApprovalSetup = () => {
         { userId: 'user4', name: 'Alice Williams', department: 'Finance' },
         { userId: 'user5', name: 'Mike Brown', department: 'IT' },
     ]);
+
+    console.log('Current stage approvers:', approvalStages[currentStage - 1]?.approvers);
+    console.log('Available users:', availableUsers);
 
     return (
         <div>
@@ -497,31 +504,58 @@ const ApprovalSetup = () => {
                                             
                                             <Card variant="outlined" sx={{ p: 2 }}>
                                                 <Stack spacing={2}>
-                                                    <FormControl>
-                                                        <FormLabel>Stage Name</FormLabel>
-                                                        <Input
-                                                            size="sm"
-                                                            placeholder="Enter Stage Name"
-                                                            value={approvalStages[currentStage - 1]?.name || ''}
-                                                            onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
-                                                        />
+                                                    <Stack direction="row" spacing={2}>
+                                                    <FormControl sx={{ flex: 1 }}>
+                                                    <FormLabel>Stage Name</FormLabel>
+                                                            <Input
+                                                                size="sm"
+                                                                placeholder="Enter stage name"
+                                                                value={approvalStages[currentStage - 1]?.name || ''}
+                                                                onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
+                                                            />
                                                     </FormControl>
-
-                                                    <FormControl>
+                                                    <FormControl sx={{ flex: 1 }}>
+                                                        <FormLabel>Approvers Needed </FormLabel>
+                                                            <Input size="sm" type="number"
+                                                            placeholder="Select number of approvers needed"
+                                                            />
+                                                    </FormControl>
+                                                    </Stack>
+                                                </Stack>
+                                                <Stack spacing={2}>
+                                                    <Stack direction="row" spacing={2}>
+                                                        <FormControl sx={{ flex: 1 }}>
+                                                            <FormLabel>Required Approvers</FormLabel>
+                                                                <Input size="sm" type="number"
+                                                                placeholder="Select number of required approvers"
+                                                                />
+                                                        </FormControl>
+                                                        <FormControl sx={{ flex: 1 }}>
                                                         <FormLabel>
                                                             Select Approvers
-                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', ml: 1, display: 'inline' }}>
+                                                            {/* <Typography level="body-sm" sx={{ color: 'text.secondary', ml: 1, display: 'inline' }}>
                                                                 (Check box to make approver mandatory)
-                                                            </Typography>
+                                                            </Typography> */}
                                                         </FormLabel>
-                                                        
                                                         {/* User Selection */}
                                                         <Select
                                                             multiple
                                                             size="sm"
-                                                            placeholder="Select Approvers"
-                                                            sx={{ mb: 2 }}
-                                                            value={approvalStages[currentStage - 1]?.approvers.map(a => a.userId) || []}
+                                                            defaultValue={approvalStages[currentStage - 1]?.approvers.map(a => a.userId) || []}
+                                                            renderValue={(selected) => (
+                                                                <Box sx={{ display: 'flex', gap: '0.25rem' }}>
+                                                                    {selected.map((userId) => {
+                                                                        console.log(userId)
+                                                                        const user = availableUsers.find(u => u.userId === userId);
+                                                                        return (
+                                                                            <Chip key={userId} variant="soft" color="primary">
+                                                                                {user}
+                                                                            </Chip>
+                                                                        );
+                                                                    })}
+                                                                </Box>
+                                                            )}
+                                                            sx={{ minWidth: '15rem', mb: 2 }}
                                                             onChange={(e, newValues) => {
                                                                 const currentStageIndex = currentStage - 1;
                                                                 setApprovalStages(prev => {
@@ -551,7 +585,7 @@ const ApprovalSetup = () => {
                                                             }}
                                                             slotProps={{
                                                                 listbox: {
-                                                                    sx: { maxHeight: '200px', overflow: 'auto' }
+                                                                    sx: { width: '100%', maxHeight: '200px', overflow: 'auto' }
                                                                 }
                                                             }}
                                                         >
@@ -569,6 +603,8 @@ const ApprovalSetup = () => {
                                                                 </Option>
                                                             ))}
                                                         </Select>
+                                                        
+                                                        
 
                                                         {/* Selected Approvers List */}
                                                         {approvalStages[currentStage - 1]?.approvers.length > 0 ? (
@@ -628,7 +664,24 @@ const ApprovalSetup = () => {
                                                             </Typography>
                                                         )}
                                                     </FormControl>
+                                                        {/* <FormControl sx={{ flex: 1 }}>
+                                                        <FormLabel>
+                                                            Approvers
+                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', ml: 1, display: 'inline' }}>
+                                                                (Check box to make approver mandatory)
+                                                            </Typography>
+                                                        </FormLabel>
+                                                                <Input
+                                                                    size="sm"
+                                                                    placeholder="Select approvers"
+                                                                    value={approvalStages[currentStage - 1]?.name || ''}
+                                                                    onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
+                                                                />
+                                                        </FormControl> */}
+                                                    
+                                                    </Stack>
                                                 </Stack>
+                                               
                                             </Card>
                                         </Box>
                                     )}
