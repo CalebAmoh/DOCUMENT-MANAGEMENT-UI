@@ -234,7 +234,7 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
               ) : data.length === 0 ? (
                 // Data has been fetched but no records found
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', height: '100px' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
                     <Typography level="body-md">No records found</Typography>
                   </td>
                 </tr>

@@ -7,12 +7,10 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ParamsTable from './ParamsTable';
 import AddIcon from "@mui/icons-material/Add";
 import { API_SERVER1,API_SERVER, headers } from "../constant";
-import InfoIcon from '@mui/icons-material/Info';
 import axios from "axios";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Checkbox from '@mui/joy/Checkbox';
 import Chip from '@mui/joy/Chip';
+import { SearchableSelect } from './SearchableSelect'
 
 const ApprovalSetup = () => {
 
@@ -348,6 +346,11 @@ const ApprovalSetup = () => {
         { userId: 'user3', name: 'Bob Johnson', department: 'Operations' },
         { userId: 'user4', name: 'Alice Williams', department: 'Finance' },
         { userId: 'user5', name: 'Mike Brown', department: 'IT' },
+        { userId: 'user6', name: 'Sarah Davis', department: 'Marketing' },
+        { userId: 'user7', name: 'David Lee', department: 'Sales' },
+        { userId: 'user8', name: 'Emily White', department: 'Engineering' },
+        { userId: 'user9', name: 'Michael Green', department: 'Legal' },
+        { userId: 'user10', name: 'Olivia Black', department: 'Customer Service' },
     ]);
 
     console.log('Current stage approvers:', approvalStages[currentStage - 1]?.approvers);
@@ -462,9 +465,15 @@ const ApprovalSetup = () => {
                                                             value={state.trans_type}
                                                             onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
                                                         >
-                                                            <Option value="1">Transactional Document</Option>
-                                                            <Option value="0">Non-Transactional Document</Option>
+                                                            {state.docs.map((doc) => (
+                                                                <Option value={doc.id}>{doc.description}</Option>
+                                                            ))}
                                                         </Select>
+                                                        <SearchableSelect
+                                                            options={state.docs.map(doc => ({ label: doc.description, value: doc.id }))}
+                                                            onChange={handleInputChange}
+                                                            value={state.trans_type}
+                                                        />
                                                     </FormControl>
                                                 </Box>
                                                 <Box sx={{ flex: 1 }}>
@@ -482,8 +491,8 @@ const ApprovalSetup = () => {
                                                     </FormControl>
                                                 </Box>
                                             </Stack>
-                                            <Button
-                                                sx={{ backgroundColor: "#00357A", mt: 2 }}
+                                            {/* <Button
+                                                sx={{ backgroundColor: "#00357A", mt: 2,width:"30%",display: "flex" }}
                                                 onClick={() => {
                                                     if (numStages > 0 && state.trans_type) {
                                                         setCurrentStage(1);
@@ -493,7 +502,7 @@ const ApprovalSetup = () => {
                                                 }}
                                             >
                                                 Continue to Stage Setup
-                                            </Button>
+                                            </Button> */}
                                         </Stack>
                                     ) : (
                                         // Stage Setup Content
@@ -506,10 +515,10 @@ const ApprovalSetup = () => {
                                                 <Stack spacing={2}>
                                                     <Stack direction="row" spacing={2}>
                                                     <FormControl sx={{ flex: 1 }}>
-                                                    <FormLabel>Stage Name</FormLabel>
+                                                    <FormLabel>Stage Description</FormLabel>
                                                             <Input
                                                                 size="sm"
-                                                                placeholder="Enter stage name"
+                                                                placeholder="Enter stage description"
                                                                 value={approvalStages[currentStage - 1]?.name || ''}
                                                                 onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
                                                             />
@@ -541,21 +550,8 @@ const ApprovalSetup = () => {
                                                         <Select
                                                             multiple
                                                             size="sm"
-                                                            defaultValue={approvalStages[currentStage - 1]?.approvers.map(a => a.userId) || []}
-                                                            renderValue={(selected) => (
-                                                                <Box sx={{ display: 'flex', gap: '0.25rem' }}>
-                                                                    {selected.map((userId) => {
-                                                                        console.log(userId)
-                                                                        const user = availableUsers.find(u => u.userId === userId);
-                                                                        return (
-                                                                            <Chip key={userId} variant="soft" color="primary">
-                                                                                {user}
-                                                                            </Chip>
-                                                                        );
-                                                                    })}
-                                                                </Box>
-                                                            )}
-                                                            sx={{ minWidth: '15rem', mb: 2 }}
+                                                            
+                                                            sx={{ minWidth: '15rem', mb: 2,maxWidth: '343px' }}
                                                             onChange={(e, newValues) => {
                                                                 const currentStageIndex = currentStage - 1;
                                                                 setApprovalStages(prev => {
@@ -596,9 +592,9 @@ const ApprovalSetup = () => {
                                                                 >
                                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                                                         <Typography>{user.name}</Typography>
-                                                                        <Typography level="body-sm" sx={{ color: 'text.secondary' }}>
+                                                                        {/* <Typography level="body-sm" sx={{ color: 'text.secondary' }}>
                                                                             {user.department}
-                                                                        </Typography>
+                                                                        </Typography> */}
                                                                     </Box>
                                                                 </Option>
                                                             ))}
@@ -608,58 +604,62 @@ const ApprovalSetup = () => {
 
                                                         {/* Selected Approvers List */}
                                                         {approvalStages[currentStage - 1]?.approvers.length > 0 ? (
-                                                            <Card variant="outlined" sx={{ p: 2 }}>
+                                                            <Card variant="outlined" sx={{ p: 1.5,maxWidth: '400px' }}>
                                                                 <Typography level="body-sm" sx={{ mb: 1, fontWeight: 'bold' }}>
                                                                     Selected Approvers:
                                                                 </Typography>
                                                                 <Stack spacing={1}>
-                                                                    {approvalStages[currentStage - 1]?.approvers.map((approver) => (
-                                                                        <Box 
-                                                                            key={approver.userId}
-                                                                            sx={{
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                justifyContent: 'space-between',
-                                                                                p: 1,
-                                                                                bgcolor: 'background.level1',
-                                                                                borderRadius: 'sm',
-                                                                                '&:hover': {
-                                                                                    bgcolor: 'background.level2',
-                                                                                }
-                                                                            }}
-                                                                        >
-                                                                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                                                <Typography>{approver.name}</Typography>
-                                                                                <Typography level="body-xs" sx={{ color: 'text.secondary' }}>
-                                                                                    {approver.department}
-                                                                                </Typography>
+                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                                                                        {approvalStages[currentStage - 1]?.approvers.map((approver) => (
+                                                                            <Box 
+                                                                                key={approver.userId}
+                                                                                sx={{
+                                                                                    display: 'flex',
+                                                                                    flexDirection: 'column',
+                                                                                    p: 1,
+                                                                                    bgcolor: 'background.level1',
+                                                                                    borderRadius: 'sm',
+                                                                                    '&:hover': {
+                                                                                        bgcolor: 'background.level2',
+                                                                                    },
+                                                                                    width: 'calc(50% - 8px)' // Two items per row
+                                                                                }}
+                                                                            >
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                                                        <Typography level="body-xs">{approver.name}</Typography>
+                                                                                        {/* <Typography level="body-xs" sx={{ color: 'text.secondary' }}>
+                                                                                            {approver.department}
+                                                                                        </Typography> */}
+                                                                                    </Box>
+                                                                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                                                                    <Checkbox
+                                                                                        size="sm"
+                                                                                        checked={approver.isMandatory}
+                                                                                        onChange={() => handleMandatoryChange(currentStage - 1, approver.userId)}
+                                                                                        label="Mandatory"
+                                                                                    />
+                                                                                    {approver.isMandatory && (
+                                                                                        <Typography 
+                                                                                            level="body-xs"
+                                                                                            sx={{ 
+                                                                                                color: 'warning.main',
+                                                                                                bgcolor: 'warning.softBg',
+                                                                                                px: 0.5,
+                                                                                                borderRadius: 'xs',
+                                                                                                ml: 1
+                                                                                            }}
+                                                                                        >
+                                                                                            Required
+                                                                                        </Typography>
+                                                                                    )}
+                                                                                </Box>
                                                                             </Box>
-                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                                {approver.isMandatory && (
-                                                                                    <Typography 
-                                                                                        level="body-sm" 
-                                                                                        sx={{ 
-                                                                                            color: 'warning.main',
-                                                                                            bgcolor: 'warning.softBg',
-                                                                                            px: 1,
-                                                                                            borderRadius: 'sm',
-                                                                                        }}
-                                                                                    >
-                                                                                        Mandatory
-                                                                                    </Typography>
-                                                                                )}
-                                                                                <Checkbox
-                                                                                    checked={approver.isMandatory}
-                                                                                    onChange={() => handleMandatoryChange(currentStage - 1, approver.userId)}
-                                                                                    label="Mandatory"
-                                                                                />
-                                                                            </Box>
-                                                                        </Box>
-                                                                    ))}
+                                                                        ))}
+                                                                    </Box>
                                                                 </Stack>
                                                             </Card>
                                                         ) : (
-                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', textAlign: 'center', py: 2 }}>
+                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', textAlign: 'center', py: 1.5 }}>
                                                                 No approvers selected yet
                                                             </Typography>
                                                         )}
@@ -681,7 +681,7 @@ const ApprovalSetup = () => {
                                                     
                                                     </Stack>
                                                 </Stack>
-                                               
+                                              
                                             </Card>
                                         </Box>
                                     )}
