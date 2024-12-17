@@ -21,7 +21,7 @@ import CardActions from "@mui/joy/CardActions";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
-import {API_SERVER, headers} from "../constant";
+import {API_SERVER, headers,API_SERVER1} from "../constant";
 import CircularProgress from "@mui/material/CircularProgress";
 import DocumentScan from "./DocumentScan";
 import InfoIcon from '@mui/icons-material/Info';
@@ -74,11 +74,16 @@ const GeneratedDocs = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3004/v1/api/dms/get-generated-docs`, { headers });
+        const response = await axios.get(`${API_SERVER1}/get-generated-docs`, { headers });
         setApprovers(response.data.documents);
         console.log("Approvers:", response.data.documents);
         setIsFetching(false);
       } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          notifyError(error.response.data.message);
+        } else {
+          notifyError("An error occurred while fetching bank names");
+        }
         console.error("Error fetching data:", error);
       }
     };
@@ -95,7 +100,11 @@ const GeneratedDocs = () => {
         setBranches(response.data.branches);
         console.log("Bank names:", response.data);
       } catch (error) {
-        notifyError(error.response.data.message);
+        if (error.response && error.response.data && error.response.data.message) {
+          notifyError(error.response.data.message);
+        } else {
+          notifyError("An error occurred while fetching bank names");
+        }
         console.error("Error fetching bank names:", error);
       }
     };

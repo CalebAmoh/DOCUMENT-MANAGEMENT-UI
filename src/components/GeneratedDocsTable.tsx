@@ -17,6 +17,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
 import MessageIcon from '@mui/icons-material/Message';
+import { ReactComponent as FileSvg } from "../utils/icons/pdf-file-svgrepo-com.svg";
+import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
+import { ReactComponent as OptionsSvg } from "../utils/icons/options-svgrepo-com.svg";
 type Order = "asc" | "desc";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -61,6 +64,7 @@ interface ApproversTableProps {
     doc_id: string;
     doctype_id: string;
     status: string;
+    created_at: string;
   }>;
   handleOpen: (type: string, row: any) => void;
   handleMessage: (id: number) => void;
@@ -127,21 +131,6 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
         >
           <FilterAltIcon />
         </IconButton>
-        {/* <Modal open={open} onClose={() => setOpen(false)}>
-          <ModalDialog aria-labelledby="filter-modal" layout="fullscreen">
-            <ModalClose />
-            <Typography id="filter-modal" level="h2">
-              Filters
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <Sheet sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {renderFilters()}
-              <Button color="primary" onClick={() => setOpen(false)}>
-                Submit
-              </Button>
-            </Sheet>
-          </ModalDialog>
-        </Modal> */}
       </Sheet>
       <Box
         className="SearchAndFilters-tabletUp"
@@ -216,8 +205,8 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                     ID
                   </Link>
                 </th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Document</th>
+                <th style={{ width: 140, padding: "12px 30px" }}>Type</th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
@@ -244,12 +233,31 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                 <tr key={row.id}>
                   <td style={{ textAlign: "center", width: 120 }}></td>
                   <td className="font-semibold text-sm ">
+                    
                     <Typography level="body-sm">{row.id}</Typography>
                   </td>
                   <td className="font-semibold text-sm ">
-                    <Typography level="body-sm">{row.doc_id}</Typography>
+                    <Typography level="body-sm">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PdfSvg style={{width: 30, height: 30}} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          {row.doc_id}
+                          <Typography level="body-xs" sx={{ color: 'text.tertiary', display: 'flex', gap: 0.5, whiteSpace: 'nowrap' }}>
+                            <span>Uploaded</span> {new Date(row.created_at).toLocaleDateString('en-US', {
+                              day: 'numeric',
+                              month: 'short', 
+                              year: 'numeric'
+                            }).replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              const suffix = ['th', 'st', 'nd', 'rd'][(day % 10 > 3 || day / 10 === 1) ? 0 : day % 10];
+                              return day + suffix;
+                            })}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Typography>
                   </td>
-                  <td className="font-semibold text-sm ">
+                  <td className="font-semibold text-sm " style={{ paddingLeft: '32px' }}>
                     <Typography level="body-sm">{row.doctype_name}</Typography>
                   </td>
                   <td className="font-semibold text-sm ">
@@ -292,7 +300,10 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                           <RemoveRedEyeIcon />
                           
                         </Button>
-                        </Tooltip>
+                      </Tooltip>
+                      {/* <Tooltip title="Options">
+                          <OptionsSvg style={{width: 15, height: 15}} />
+                      </Tooltip> */}
                       <Tooltip title="Edit">
                         <Button
                           sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}

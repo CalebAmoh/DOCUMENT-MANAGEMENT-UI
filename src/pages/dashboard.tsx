@@ -304,9 +304,9 @@ const Dashboard = () => {
                   </Card>
                 </Grid>
                 <Grid item xs={9}>
-                  <div className="bg-[#FFFFFF] mt-5 mr-5 px-6 py-4  rounded shadow">
+                  {/* <div className="bg-[#FFFFFF] mt-5 mr-5 px-6 py-4  rounded shadow">
                     <BarC />
-                  </div>
+                  </div> */}
                 </Grid>
                 <Grid item xs={3}>
                     <div className="bg-[#FFFFFF] mt-5 mr-5 px-6 py-4  rounded shadow">

@@ -30,6 +30,8 @@ const ApprovalSetup = () => {
         expense_code: "", // Expense code of the document
         status: "", // Status of the document
     });
+
+    
    
 
     // Initialize notification
@@ -306,6 +308,28 @@ const ApprovalSetup = () => {
         });
     };
 
+    const handleApproversNeededChange = (index, value) => {
+        setApprovalStages(prev => {
+            const newStages = [...prev];
+            newStages[index] = { 
+                ...newStages[index], 
+                approversNeeded: value 
+            };
+            return newStages;
+        });
+    };
+    
+    const handleRequiredApproversChange = (index, value) => {
+        setApprovalStages(prev => {
+            const newStages = [...prev];
+            newStages[index] = { 
+                ...newStages[index], 
+                requiredApprovers: value 
+            };
+            return newStages;
+        });
+    };
+
     // Add these new state variables at the top of your component
     const [currentStage, setCurrentStage] = useState(0);
     const [isStageValid, setIsStageValid] = useState(false);
@@ -319,7 +343,11 @@ const ApprovalSetup = () => {
         
         // For approval stages (stage 1 and above)
         const stage = approvalStages[currentStage - 1];
-        return stage && stage.name?.trim() && stage.approvers?.length > 0;
+        return stage && 
+               stage.name?.trim() && 
+               stage.approversNeeded && 
+               stage.requiredApprovers && 
+               stage.approvers?.length > 0;
     }, [approvalStages, currentStage, numStages, state.trans_type]);
 
     // Add these handler functions
@@ -459,7 +487,7 @@ const ApprovalSetup = () => {
                                                 <Box sx={{ flex: 1 }}>
                                                     <FormLabel>Document Type</FormLabel>
                                                     <FormControl sx={{ width: "100%" }}>
-                                                        <Select
+                                                        {/* <Select
                                                             size="sm"
                                                             placeholder="Select Document type"
                                                             value={state.trans_type}
@@ -468,11 +496,21 @@ const ApprovalSetup = () => {
                                                             {state.docs.map((doc) => (
                                                                 <Option value={doc.id}>{doc.description}</Option>
                                                             ))}
-                                                        </Select>
-                                                        <SearchableSelect
+                                                        </Select> */}
+                                                        {/* <SearchableSelect 
                                                             options={state.docs.map(doc => ({ label: doc.description, value: doc.id }))}
-                                                            onChange={handleInputChange}
+                                                            onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
                                                             value={state.trans_type}
+                                                        /> */}
+                                                        <SearchableSelect 
+                                                            options={state.docs.map(doc => ({ label: doc.description, value: doc.id.toString() }))}
+                                                            onChange={(newValue) => handleInputChange("trans_type", newValue)}
+                                                            label="Document Type"
+                                                            placeholder="Select Document type"
+                                                            initialValue={state.trans_type ? {
+                                                                label: state.docs.find(doc => doc.id.toString() === state.trans_type)?.description || '',
+                                                                value: state.trans_type
+                                                            } : null}
                                                         />
                                                     </FormControl>
                                                 </Box>
@@ -525,9 +563,13 @@ const ApprovalSetup = () => {
                                                     </FormControl>
                                                     <FormControl sx={{ flex: 1 }}>
                                                         <FormLabel>Approvers Needed </FormLabel>
-                                                            <Input size="sm" type="number"
+                                                        <Input 
+                                                            size="sm" 
+                                                            type="number"
                                                             placeholder="Select number of approvers needed"
-                                                            />
+                                                            value={approvalStages[currentStage - 1]?.approversNeeded || ''}
+                                                            onChange={(e) => handleApproversNeededChange(currentStage - 1, e.target.value)}
+                                                        />
                                                     </FormControl>
                                                     </Stack>
                                                 </Stack>
@@ -535,9 +577,13 @@ const ApprovalSetup = () => {
                                                     <Stack direction="row" spacing={2}>
                                                         <FormControl sx={{ flex: 1 }}>
                                                             <FormLabel>Required Approvers</FormLabel>
-                                                                <Input size="sm" type="number"
+                                                            <Input 
+                                                                size="sm" 
+                                                                type="number"
                                                                 placeholder="Select number of required approvers"
-                                                                />
+                                                                value={approvalStages[currentStage - 1]?.requiredApprovers || ''}
+                                                                onChange={(e) => handleRequiredApproversChange(currentStage - 1, e.target.value)}
+                                                            />
                                                         </FormControl>
                                                         <FormControl sx={{ flex: 1 }}>
                                                         <FormLabel>

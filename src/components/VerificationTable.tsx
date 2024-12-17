@@ -17,6 +17,7 @@ import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
+import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
 
 type Order = "asc" | "desc";
 
@@ -62,6 +63,7 @@ interface ApproversTableProps {
     doc_id: string;
     doctype_id: string;
     status: string;
+    created_at: string;
   }>;
   handleOpen: (type: string, row: any) => void;
 }
@@ -216,8 +218,8 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document ID</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Document</th>
+              <th style={{ width: 140, padding: "12px 20px" }}>Type</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Details</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
@@ -247,9 +249,27 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                   <Typography level="body-sm">{row.id}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.doc_id}</Typography>
+                    <Typography level="body-sm">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PdfSvg style={{width: 30, height: 30}} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          {row.doc_id}
+                          <Typography level="body-xs" sx={{ color: 'text.tertiary', display: 'flex', gap: 0.5, whiteSpace: 'nowrap' }}>
+                            <span>Uploaded</span> {new Date(row.created_at).toLocaleDateString('en-US', {
+                              day: 'numeric',
+                              month: 'short', 
+                              year: 'numeric'
+                            }).replace(/(\d+)/, (match) => {
+                              const day = parseInt(match);
+                              const suffix = ['th', 'st', 'nd', 'rd'][(day % 10 > 3 || day / 10 === 1) ? 0 : day % 10];
+                              return day + suffix;
+                            })}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Typography>
                 </td>
-                <td className="font-semibold text-sm ">
+                <td className="font-semibold text-sm " style={{ paddingLeft: '20px' }}>
                   <Typography level="body-sm">{row.doctype_name}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
