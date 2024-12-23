@@ -165,7 +165,7 @@ const Verification = () => {
             response: false,
           });
         }
-      }, []);
+    }, []);
 
     //this function is used to handle input change
     const handleInputChange = useCallback((key, value) => {
