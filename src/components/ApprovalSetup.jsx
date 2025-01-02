@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback,useRef } from 'react';
 import { Stack, Modal, ModalClose, Sheet, Divider, Typography, Box, CardActions, Button, FormControl,FormLabel
     ,Select,Option,Input,Card,AspectRatio} from "@mui/joy";
 import { Result,notification } from "antd";
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import ParamsTable from './ParamsTable';
+import ApprovalSetupTable from './ApprovalSetupTable';
 import AddIcon from "@mui/icons-material/Add";
 import { API_SERVER1,API_SERVER, headers } from "../constant";
 import axios from "axios";
 import Checkbox from '@mui/joy/Checkbox';
 import { SearchableSelect } from './SearchableSelect'
+
+const options = ['Create a merge commit', 'Squash and merge', 'Rebase and merge'];
 
 const ApprovalSetup = () => {
 
@@ -21,9 +23,14 @@ const ApprovalSetup = () => {
         response: false,
     });
 
+
+    const actionRef = useRef(null);
+    const anchorRef = useRef(null);
+
      // this handles the state of the component
     const [state, setState] = useState({
         docs: [], // Array to store the generated documents
+        setups: [], // Array to store the approver setups
         description: "", // Description of the document type
         trans_type: "", // Transaction type of the document
         doc_type: "", // Document type 
@@ -31,6 +38,8 @@ const ApprovalSetup = () => {
         status: "", // Status of the document
         numOfNeededApprovers: 0,
         numOfRequiredApprovers: 0,
+        openMenu:false,
+        selectedIndex:1
     });
 
     
@@ -68,6 +77,17 @@ const ApprovalSetup = () => {
 
     //opens error notification
     const notifyError = openErrorNotification(true);
+
+
+    //to toggle menu on table
+    const handleMenuClick = () => {
+        console.info(`You clicked ${options[state.selectedIndex]}`);
+    };
+    
+    const handleMenuItemClick = (event, index) => {
+        state.selectedIndex(index);
+        state.openMenu(false);
+    };
 
     // to toggle modals
     const handleOpen = useCallback((modalType, rowData) => {
@@ -123,8 +143,8 @@ const ApprovalSetup = () => {
         }));
     }, []);
 
-    //this function fetches all document types
-    const fetchDocs = useCallback(async () => {
+    //this function fetches all doc types
+    const fetchDocTypes = useCallback(async () => {
         try {
             setState((prevState) => ({
                 ...prevState,
@@ -146,12 +166,38 @@ const ApprovalSetup = () => {
             }));
         }
     }, []);
+    
+    
+    //this function fetches all approver setups
+    const fetchApproverSetups = useCallback(async () => {
+        try {
+            setState((prevState) => ({
+                ...prevState,
+                loading: true
+            }));
+
+            const response = await axios.get(`${API_SERVER1}/get-approver-setups`, { headers });
+            const data = response.data.setups;
+            setState((prevState) => ({
+                ...prevState,
+                setups: data,
+                loading: false
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+                loading: false
+            }));
+        }
+    }, []);
 
    
 
     //this useEffect fetches the submitted documents
     useEffect(() => {
-        fetchDocs();
+        fetchDocTypes();
+        fetchApproverSetups();
     }, []);
 
     // Inside your component, add this new state
@@ -305,7 +351,6 @@ const ApprovalSetup = () => {
         if(currentStage > 0){
             // Add required vs needed approvers validation
 
-            const requiredApprovers = parseInt(stage.requiredApprovers) || 0;
             const neededApprovers = parseInt(stage.approversNeeded) || 0;
             const selectedApprovers = parseInt(stage.approvers.length) || 0;
             
@@ -333,10 +378,41 @@ const ApprovalSetup = () => {
         setCurrentStage(prev => Math.max(0, prev - 1));
     };
 
+
     //this function handles the save all stages
-    const handleSave = () => {
-        console.log("approval stages",approvalStages);
-    };
+    const handleSave = useCallback(async() => {
+        // Validate the last stage before saving
+        const isValid = validateCurrentStage();
+        if (!isValid) {
+            notifyError("Please fill in all required fields for this stage");
+            return;
+        }
+
+        try {
+            
+            // Prepare the payload
+            const payload = {
+                doctype_id: state.doc_type, // Document type ID
+                stages: approvalStages, // Array of approval stages
+            };
+
+            // Send the payload to the server
+            const response = await axios.post(`${API_SERVER}/approvers`, payload, { headers });
+            if (response.status === 200) {
+                notifySuccess("Document approval stages saved successfully");
+                // Reset the form
+                setCurrentStage(0);
+                setNumStages(0);
+                setApprovalStages([]);
+                handleClose("add");
+                fetchApproverSetups();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            notifyError("An error occurred while saving document approval stages");
+            
+        }
+    }, [approvalStages,state.doc_type,validateCurrentStage]);
 
     // Add this to your state declarations at the top
     const [availableUsers] = useState([
@@ -401,7 +477,7 @@ const ApprovalSetup = () => {
                         Add New
                       </Button>
                     </Box>
-                    <ParamsTable data={state.docs} handleOpen={handleOpen} />
+                    <ApprovalSetupTable setups={state.setups} handleOpen={handleOpen} />
 
                     {/* Modal for adding document type */}
                     <Modal
