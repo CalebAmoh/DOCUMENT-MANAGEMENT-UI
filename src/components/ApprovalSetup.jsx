@@ -117,10 +117,10 @@ const ApprovalSetup = () => {
         // Clear form inputs
         setState(prevState => ({
             ...prevState,
-            description: "",
-            trans_type: "",
-            expense_code: "",
-            status: ""
+            currentStage: 0,
+            numStages: 0,
+            approvalStages: [],
+            doc_type: "",
         }));
         if (modalType) {
           setModals((prevModals) => ({
@@ -203,9 +203,7 @@ const ApprovalSetup = () => {
         fetchApproverSetups();
     }, []);
 
-    // Inside your component, add this new state
-    // const [state.approvalStages, setApprovalStages] = useState([]);
-
+   
     // Add these handler functions
     const handleNumStagesChange = (value) => {
         if(value === ""){
