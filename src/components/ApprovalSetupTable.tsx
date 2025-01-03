@@ -69,13 +69,13 @@ const ApprovalSetupTable: React.FC<ApproversTableProps> = ({ setups, handleOpen 
   
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const [selectedRow, setSelectedRow] = React.useState<number | null>(null)
+  const [selectedRow, setSelectedRow] = React.useState<any | null>(null)
   const [tabValue, setTabValue] = React.useState(3)
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, id: number) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, data: any) => {
     setAnchorEl(event.currentTarget)
-    setSelectedRow(id)
+    setSelectedRow(data)
   }
 
   const handleMenuClose = () => {
@@ -284,7 +284,7 @@ const ApprovalSetupTable: React.FC<ApproversTableProps> = ({ setups, handleOpen 
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
                     
-                        <IconButton onClick={(event) => handleMenuClick(event, row.id)}>
+                        <IconButton onClick={(event) => handleMenuClick(event, row)}>
                           <Kebab style={{ width: 25, height: 25 }} />
                         </IconButton>
 
@@ -302,7 +302,7 @@ const ApprovalSetupTable: React.FC<ApproversTableProps> = ({ setups, handleOpen 
           ref={menuRef}
         >
           <Tooltip title="Edit">
-          <MenuItem onClick={handleMenuClose}><EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
+          <MenuItem onClick={(event) => handleOpen("edit", selectedRow)} >Edit Approval Setup <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
           </Tooltip>
         </Menu>
         </Table>

@@ -9,9 +9,11 @@ import AddIcon from "@mui/icons-material/Add";
 import { API_SERVER1,API_SERVER, headers } from "../constant";
 import axios from "axios";
 import Checkbox from '@mui/joy/Checkbox';
-import { SearchableSelect } from './SearchableSelect'
+import { SearchableSelect } from './SearchableSelect';
+import { ReactComponent as UpdateIcon } from "../utils/icons/update-page-svgrepo-com.svg";
+import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
+import { ReactComponent as NextIcon } from "../utils/icons/next-svgrepo-com.svg";
 
-const options = ['Create a merge commit', 'Squash and merge', 'Rebase and merge'];
 
 const ApprovalSetup = () => {
 
@@ -21,6 +23,7 @@ const ApprovalSetup = () => {
         viewDoc: false,
         decline: false,
         response: false,
+        edit: false,
     });
 
 
@@ -39,12 +42,13 @@ const ApprovalSetup = () => {
         numOfNeededApprovers: 0,
         numOfRequiredApprovers: 0,
         openMenu:false,
-        selectedIndex:1
+        selectedIndex:1,
+        numStages: 0, // Number of approval stages
+        currentStage: 0, // Current stage of the approval setup
+        approvalStages: [], // Array to store the approval stages
     });
 
     
-   
-
     // Initialize notification
     const [api, contextHolder] = notification.useNotification();
 
@@ -78,35 +82,34 @@ const ApprovalSetup = () => {
     //opens error notification
     const notifyError = openErrorNotification(true);
 
-
-    //to toggle menu on table
-    const handleMenuClick = () => {
-        console.info(`You clicked ${options[state.selectedIndex]}`);
-    };
-    
-    const handleMenuItemClick = (event, index) => {
-        state.selectedIndex(index);
-        state.openMenu(false);
-    };
-
     // to toggle modals
     const handleOpen = useCallback((modalType, rowData) => {
         setModals((prevModals) => ({
         ...prevModals,
         [modalType]: true,
         }));
+
         // If we're opening edit modal and have row data, set the form state
         if (modalType === 'edit' && rowData) {
+
+            // Parse the approval stages from the details field
+            let approval_stages = JSON.parse(rowData.details);
+
             setState((prevState) => ({
                 ...prevState,
-                description: rowData.description,
-                trans_type: rowData.trans_type,
-                expense_code: rowData.expense_code,
-                status: rowData.status,
-                selectedDocId: rowData.id // Store the ID for update API call
+                doc_type: rowData.doctype_id.toString(),
+                numStages: rowData.approval_stages,
+                approvalStages: approval_stages
+                // description: rowData.description,
+                // trans_type: rowData.trans_type,
+                // expense_code: rowData.expense_code,
+                // status: rowData.status,
+                // selectedDocId: rowData.id // Store the ID for update API call
             }));
         }
     }, []);  
+
+    
 
     // handleClose to close all modals when called without an argument
     const handleClose = useCallback((modalType) => {
@@ -201,8 +204,7 @@ const ApprovalSetup = () => {
     }, []);
 
     // Inside your component, add this new state
-    const [approvalStages, setApprovalStages] = useState([]);
-    const [numStages, setNumStages] = useState(0);
+    // const [state.approvalStages, setApprovalStages] = useState([]);
 
     // Add these handler functions
     const handleNumStagesChange = (value) => {
@@ -210,27 +212,33 @@ const ApprovalSetup = () => {
             value = 0;
         }
         const num = parseInt(value);
-        setNumStages(num);
-        
-        setApprovalStages(prev => {
+        setState(prevState => {
             const newStages = [];
             for (let i = 0; i < num; i++) {
-                newStages[i] = prev[i] || {
+                newStages[i] = prevState.approvalStages[i] || {
                     name: '',
                     approvers: [], // Will now store objects: { userId, name, isMandatory }
                 };
             }
-            return newStages;
+            return {
+                ...prevState,
+                numStages: num,
+                approvalStages: newStages
+            }
         });
+        
     };
 
 
     //this function handles the stage name change
     const handleStageNameChange = (index, value) => {
-        setApprovalStages(prev => {
-            const newStages = [...prev];
+        setState(prevState => {
+            const newStages = [...prevState.approvalStages];
             newStages[index] = { ...newStages[index], name: value };
-            return newStages;
+            return {
+                ...prevState,
+                approvalStages: newStages
+            };
         });
     };
 
@@ -238,13 +246,13 @@ const ApprovalSetup = () => {
 
     // Add this new handler for mandatory status
     const handleMandatoryChange = (stageIndex, userId) => {
-        setApprovalStages(prev => {
-            const newStages = [...prev];
-            const stage = {...newStages[stageIndex]};
+        setState(prevState => {
+            const newStages = [...prevState.approvalStages];
+            const stage = { ...newStages[stageIndex] };
             
             // Count current mandatory approvers
             const mandatoryApproversCount = stage.approvers.filter(a => a.isMandatory).length;
-
+    
             // Update the approvers' mandatory status
             stage.approvers = stage.approvers.map(approver => {
                 if (approver.userId === userId) {
@@ -252,7 +260,7 @@ const ApprovalSetup = () => {
                     const isCurrentlyMandatory = approver.isMandatory;
                     // If toggling to mandatory, check if we can allow it
                     if (!isCurrentlyMandatory && mandatoryApproversCount >= stage.requiredApprovers) {
-                        notifyError(`You have already selected ${stage.requiredApprovers} mandatory approvers`)
+                        notifyError(`You have already selected ${stage.requiredApprovers} mandatory approvers`);
                         return { ...approver, isMandatory: false }; // Keep it unchecked
                     }
                     return { ...approver, isMandatory: !isCurrentlyMandatory };
@@ -261,63 +269,67 @@ const ApprovalSetup = () => {
             });
             
             newStages[stageIndex] = stage;
-            return newStages;
+            return {
+                ...prevState,
+                approvalStages: newStages
+            };
         });
     };
 
     //this function handles the approvers needed change
     const handleApproversNeededChange = (index, value) => {
         // Get current number of selected approvers
-        // const currentApprovers = approvalStages[index]?.approvers?.length || 0;
-        
-        setApprovalStages(prev => {
-            const newStages = [...prev];
+        // const currentApprovers = state.approvalStages[index]?.approvers?.length || 0;
+
+        setState(prevState => {
+            const newStages = [...prevState.approvalStages];
             newStages[index] = { 
                 ...newStages[index], 
                 // Set approversNeeded to the current number of selected approvers
                 // approversNeeded: currentApprovers.toString() == "0" ? value : currentApprovers.toString()
-                approversNeeded: value
+                approversNeeded: value 
             };
-            return newStages;
+            return {
+                ...prevState,
+                approvalStages: newStages
+            };
         });
     };
     
     //this function handles the required approvers change
-    const handleRequiredApproversChange = (index, value) => {
-        // Get the current stage's needed approvers
-        const neededApprovers = approvalStages[index]?.approversNeeded || 0;
+    // const handleRequiredApproversChange = (index, value) => {
+    //     // Get the current stage's needed approvers
+    //     const neededApprovers = state.approvalStages[index]?.approversNeeded || 0;
         
-        // Convert value to number
-        const requiredValue = parseInt(value) || 0;
+    //     // Convert value to number
+    //     const requiredValue = parseInt(value) || 0;
         
-        // Check if required approvers exceed needed approvers
-        if (requiredValue > neededApprovers) {
-            notifyError("Required approvers cannot be more than approvers needed");
-            return;
-        }
+    //     // Check if required approvers exceed needed approvers
+    //     if (requiredValue > neededApprovers) {
+    //         notifyError("Required approvers cannot be more than approvers needed");
+    //         return;
+    //     }
         
-        setApprovalStages(prev => {
-            const newStages = [...prev];
-            newStages[index] = { 
-                ...newStages[index], 
-                requiredApprovers: value 
-            };
-            return newStages;
-        });
-    };
+    //     setApprovalStages(prev => {
+    //         const newStages = [...prev];
+    //         newStages[index] = { 
+    //             ...newStages[index], 
+    //             requiredApprovers: value 
+    //         };
+    //         return newStages;
+    //     });
+    // };
 
-    // Add these new state variables at the top of your component
-    const [currentStage, setCurrentStage] = useState(0);
 
     // Modify the validateCurrentStage function to use useCallback with proper dependencies
     const validateCurrentStage = useCallback(() => {
         // Initial setup stage validation
-        if (currentStage === 0) {
-            return numStages > 0 && state.doc_type;
+        if (state.currentStage === 0) {
+            return state.numStages > 0 && state.doc_type;
         }
         
         // Approval stages validation
-        const stage = approvalStages[currentStage - 1];
+        const stage = state.approvalStages[state.currentStage - 1];
         if (!stage) return false;
 
 
@@ -339,16 +351,16 @@ const ApprovalSetup = () => {
             // stage.requiredApprovers && 
             stage.approvers?.length > 0
         );
-    }, [currentStage, numStages, state.doc_type, approvalStages, notifyError]);
+    }, [state.currentStage, state.numStages, state.doc_type, state.approvalStages, notifyError]);
 
     // Modify the handleNext function to use the validation result more efficiently
     const handleNext = useCallback(() => {
         const isValid = validateCurrentStage();
 
         // Approval stages validation
-        const stage = approvalStages[currentStage - 1];
+        const stage = state.approvalStages[state.currentStage - 1];
         
-        if(currentStage > 0){
+        if(state.currentStage > 0){
             // Add required vs needed approvers validation
 
             const neededApprovers = parseInt(stage.approversNeeded) || 0;
@@ -366,17 +378,24 @@ const ApprovalSetup = () => {
         
         
         if (isValid) {
-            setCurrentStage(prev => prev + 1);
+            // setCurrentStage(prev => prev + 1);
+            setState((prevState) => ({
+                ...prevState,
+                currentStage: prevState.currentStage + 1
+            }))
         } else {
             notifyError("Please fill in all required fields for this stage");
         }
-    }, [validateCurrentStage, notifyError,approvalStages]);
+    }, [validateCurrentStage, notifyError,state.approvalStages,state.currentStage]);
 
-    // Add these handler functions
-    const handlePrevious = () => {
-        // Allow going back to stage 0 (initial setup)
-        setCurrentStage(prev => Math.max(0, prev - 1));
-    };
+    // handles previous stages
+    const handlePrevious = useCallback(() =>{
+        setState((prevState) => ({
+            ...prevState,
+            currentStage: Math.max(0,prevState.currentStage - 1)
+        }))
+    },[state.currentStage])
+    
 
 
     //this function handles the save all stages
@@ -393,26 +412,68 @@ const ApprovalSetup = () => {
             // Prepare the payload
             const payload = {
                 doctype_id: state.doc_type, // Document type ID
-                stages: approvalStages, // Array of approval stages
+                stages: state.approvalStages, // Array of approval stages
             };
-
+            // console.log(payload);return;
             // Send the payload to the server
             const response = await axios.post(`${API_SERVER}/approvers`, payload, { headers });
             if (response.status === 200) {
                 notifySuccess("Document approval stages saved successfully");
                 // Reset the form
-                setCurrentStage(0);
-                setNumStages(0);
-                setApprovalStages([]);
                 handleClose("add");
                 fetchApproverSetups();
+                setState(prevState => ({
+                    ...prevState,
+                    currentStage: 0,
+                    numStages: 0,
+                    approvalStages: []
+                }));
             }
         } catch (error) {
             console.error("Error:", error);
             notifyError("An error occurred while saving document approval stages");
             
         }
-    }, [approvalStages,state.doc_type,validateCurrentStage]);
+    }, [state.approvalStages,state.doc_type,validateCurrentStage]);
+    
+    
+    //this function handles the update all stages
+    const handleUpdate = useCallback(async() => {
+        // Validate the last stage before saving
+        const isValid = validateCurrentStage();
+        if (!isValid) {
+            notifyError("Please fill in all required fields for this stage");
+            return;
+        }
+
+        try {
+            
+            // Prepare the payload
+            const payload = {
+                doctype_id: state.doc_type, // Document type ID
+                stages: state.approvalStages, // Array of approval stages
+            };
+            // console.log(payload);return;
+            // Send the payload to the server
+            const response = await axios.post(`${API_SERVER}/approvers/update`, payload, { headers });
+            if (response.status === 200) {
+                notifySuccess("Document approval stages updated successfully");
+                // Reset the form
+                handleClose("edit");
+                fetchApproverSetups();
+                setState(prevState => ({
+                    ...prevState,
+                    currentStage: 0,
+                    numStages: 0,
+                    approvalStages: []
+                }));
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            notifyError("An error occurred while saving document approval stages");
+            
+        }
+    }, [state.approvalStages,state.doc_type,validateCurrentStage]);
 
     // Add this to your state declarations at the top
     const [availableUsers] = useState([
@@ -479,7 +540,7 @@ const ApprovalSetup = () => {
                     </Box>
                     <ApprovalSetupTable setups={state.setups} handleOpen={handleOpen} />
 
-                    {/* Modal for adding document type */}
+                    {/* Modal for adding approval setup */}
                     <Modal
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
@@ -525,7 +586,7 @@ const ApprovalSetup = () => {
                                     flexGrow: 1,
                                     overflowY: 'auto',
                                 }}>
-                                    {currentStage === 0 ? (
+                                    {state.currentStage === 0 ? (
                                         // Initial Setup Content
                                         <Stack spacing={2}>
                                             <Stack direction="row" spacing={2}>
@@ -568,30 +629,18 @@ const ApprovalSetup = () => {
                                                             min="1"
                                                             max="10"
                                                             placeholder="Enter Number of Stages"
-                                                            value={numStages}
+                                                            value={state.numStages}
                                                             onChange={(e) => handleNumStagesChange(e.target.value)}
                                                         />
                                                     </FormControl>
                                                 </Box>
                                             </Stack>
-                                            {/* <Button
-                                                sx={{ backgroundColor: "#00357A", mt: 2,width:"30%",display: "flex" }}
-                                                onClick={() => {
-                                                    if (numStages > 0 && state.trans_type) {
-                                                        setCurrentStage(1);
-                                                    } else {
-                                                        notifyError("Please set document type and number of stages");
-                                                    }
-                                                }}
-                                            >
-                                                Continue to Stage Setup
-                                            </Button> */}
                                         </Stack>
                                     ) : (
                                         // Stage Setup Content
                                         <Box>
                                             <Typography level="h4" sx={{ mb: 2 }}>
-                                                Stage {currentStage} of {numStages}
+                                                Stage {state.currentStage} of {state.numStages}
                                             </Typography>
                                             
                                             <Card variant="outlined" sx={{ p: 2 }}>
@@ -602,8 +651,8 @@ const ApprovalSetup = () => {
                                                                 <Input
                                                                     size="sm"
                                                                     placeholder="Enter stage description"
-                                                                    value={approvalStages[currentStage - 1]?.name || ''}
-                                                                    onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
+                                                                    value={state.approvalStages[state.currentStage - 1]?.name || ''}
+                                                                    onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
                                                                 />
                                                         </FormControl>
                                                         {/* <FormControl sx={{ flex: 1 }}>
@@ -612,8 +661,8 @@ const ApprovalSetup = () => {
                                                                 size="sm" 
                                                                 type="number"
                                                                 placeholder="Select number of approvers needed"
-                                                                value={approvalStages[currentStage - 1]?.approversNeeded || ''}
-                                                                onChange={(e) => handleApproversNeededChange(currentStage - 1, e.target.value)}
+                                                                value={state.approvalStages[state.currentStage - 1]?.approversNeeded || ''}
+                                                                onChange={(e) => handleApproversNeededChange(state.currentStage - 1, e.target.value)}
                                                             />
                                                         </FormControl> */}
                                                     </Stack>
@@ -626,8 +675,8 @@ const ApprovalSetup = () => {
                                                                 size="sm" 
                                                                 type="number"
                                                                 placeholder="Select number of required approvers"
-                                                                value={approvalStages[currentStage - 1]?.requiredApprovers || ''}
-                                                                onChange={(e) => handleRequiredApproversChange(currentStage - 1, e.target.value)}
+                                                                value={state.approvalStages[state.currentStage - 1]?.requiredApprovers || ''}
+                                                                onChange={(e) => handleRequiredApproversChange(state.currentStage - 1, e.target.value)}
                                                             />
                                                         </FormControl> */}
                                                         <FormControl sx={{ flex: 1 }}>
@@ -642,11 +691,11 @@ const ApprovalSetup = () => {
                                                             multiple
                                                             size="sm"
                                                             sx={{ minWidth: '15rem', mb: 2, maxWidth: '550px' }}
-                                                            value={approvalStages[currentStage - 1]?.approvers?.map(a => a.userId) || []}
+                                                            value={state.approvalStages[state.currentStage - 1]?.approvers?.map(a => a.userId) || []}
                                                             onChange={(e, newValues) => {
-                                                                const currentStageIndex = currentStage - 1;
-                                                                setApprovalStages(prev => {
-                                                                    const newStages = [...prev];
+                                                                const currentStageIndex = state.currentStage - 1;
+                                                                setState(prevState => {
+                                                                    const newStages = [...prevState.approvalStages];
                                                                     const stage = {...newStages[currentStageIndex]};
                                                                     
                                                                     // Preserve existing approvers' mandatory status
@@ -658,7 +707,7 @@ const ApprovalSetup = () => {
                                                                     // Check if the new selection exceeds the approvers needed
                                                                     if (newValues.length > stage.approversNeeded) {
                                                                         notifyError(`You can only select up to ${stage.approversNeeded} approvers.`);
-                                                                        return prev; // Return the previous state without updating
+                                                                        return prevState; // Return the previous state without updating
                                                                     }
 
                                                                     // Update approvers list with new selections, limited by approversNeeded
@@ -667,14 +716,16 @@ const ApprovalSetup = () => {
                                                                         return {
                                                                             userId,
                                                                             name: user.name,
-                                                                            department: user.department,
                                                                             isMandatory: existingApprovers[userId] || false
                                                                         };
                                                                     });
                                                                     
                                                                     newStages[currentStageIndex] = stage;
-                                                                    return newStages;
-                                                                });
+                                                                    return {
+                                                                        ...prevState,
+                                                                        approvalStages: newStages
+                                                                    };
+                                                                })
                                                             }}
                                                             slotProps={{
                                                                 listbox: {
@@ -686,7 +737,7 @@ const ApprovalSetup = () => {
                                                                 <Option 
                                                                     key={user.userId} 
                                                                     value={user.userId}
-                                                                    disabled={approvalStages[currentStage - 1]?.approvers.filter(a => a.isMandatory).length >= approvalStages[currentStage - 1]?.requiredApprovers && !approvalStages[currentStage - 1]?.approvers.find(a => a.userId === user.userId)?.isMandatory}
+                                                                    disabled={state.approvalStages[state.currentStage - 1]?.approvers.filter(a => a.isMandatory).length >= state.approvalStages[state.currentStage - 1]?.requiredApprovers && !state.approvalStages[state.currentStage - 1]?.approvers.find(a => a.userId === user.userId)?.isMandatory}
                                                                 >
                                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                                                         <Typography>{user.name}</Typography>
@@ -698,14 +749,14 @@ const ApprovalSetup = () => {
                                                         
 
                                                         {/* Selected Approvers List */}
-                                                        {approvalStages[currentStage - 1]?.approvers.length > 0 ? (
+                                                        {state.approvalStages[state.currentStage - 1]?.approvers.length > 0 ? (
                                                             <Card variant="outlined" sx={{ p: 1.5,maxWidth: '550px',mt:2 }}>
                                                                 <Typography level="body-sm" sx={{ mb: 1, fontWeight: 'bold' }}>
                                                                     Selected Approvers:
                                                                 </Typography>
                                                                 <Stack spacing={1}>
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                                                                        {approvalStages[currentStage - 1]?.approvers.map((approver) => (
+                                                                        {state.approvalStages[state.currentStage - 1]?.approvers.map((approver) => (
                                                                             <Box 
                                                                                 key={approver.userId}
                                                                                 sx={{
@@ -730,7 +781,7 @@ const ApprovalSetup = () => {
                                                                                     <Checkbox
                                                                                         size="sm"
                                                                                         checked={approver.isMandatory}
-                                                                                        onChange={() => handleMandatoryChange(currentStage - 1, approver.userId)}
+                                                                                        onChange={() => handleMandatoryChange(state.currentStage - 1, approver.userId)}
                                                                                         label="Mandatory"
                                                                                     />
                                                                                     {approver.isMandatory && (
@@ -769,8 +820,8 @@ const ApprovalSetup = () => {
                                                                 <Input
                                                                     size="sm"
                                                                     placeholder="Select approvers"
-                                                                    value={approvalStages[currentStage - 1]?.name || ''}
-                                                                    onChange={(e) => handleStageNameChange(currentStage - 1, e.target.value)}
+                                                                    value={state.approvalStages[state.currentStage - 1]?.name || ''}
+                                                                    onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
                                                                 />
                                                         </FormControl> */}
                                                     
@@ -800,7 +851,7 @@ const ApprovalSetup = () => {
                                             Previous
                                         </Button>
                                         
-                                        {currentStage === numStages ? (
+                                        {state.currentStage === state.numStages ? (
                                             <Button
                                                 sx={{ backgroundColor: "#00357A" }}
                                                 onClick={handleSave}
@@ -814,21 +865,21 @@ const ApprovalSetup = () => {
                                                 onClick={handleNext}
                                                 disabled={!validateCurrentStage()}
                                             >
-                                                Next Stage
+                                                Next Stage <NextIcon style={{width:25, height:25}}/>
                                             </Button>
                                         )}
                                     </Stack>
 
                                     {/* Progress Indicator */}
                                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                                        {[...Array(numStages + 1)].map((_, index) => (
+                                        {[...Array(state.numStages + 1)].map((_, index) => (
                                             <Box
                                                 key={index}
                                                 sx={{
                                                     width: 10,
                                                     height: 10,
                                                     borderRadius: '50%',
-                                                    backgroundColor: index === currentStage ? '#00357A' : '#ccc'
+                                                    backgroundColor: index === state.currentStage ? '#00357A' : '#ccc'
                                                 }}
                                             />
                                         ))}
@@ -836,8 +887,8 @@ const ApprovalSetup = () => {
                                 </Box>
                             </Sheet>
                     </Modal>
-
-                    {/* Display document */}
+                   
+                    {/* Modal for editing approval setup */}
                     <Modal
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
@@ -861,91 +912,316 @@ const ApprovalSetup = () => {
                             <Sheet
                             variant="outlined"
                             sx={{
-                                width: 500,
+                                width: 650,
+                                maxHeight: '85vh',
                                 borderRadius: "md",
-                                p: 3,
                                 boxShadow: "lg",
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden', // Prevent overall overflow
                             }}
                             >
                             <ModalClose variant="plain" sx={{ m: 1 }} />
-                            <Typography id="modal-desc" textColor="text.tertiary">
-                            <Box sx={{ mb: 1 }}>
-                                        <Typography level="title-md">
-                                        Update Document Type
-                                        </Typography>
-                                    </Box>
-                                    <Divider sx={{ marginBottom: 2 }} />
-                                    
-                                   <Stack spacing={2}>
-                                        <Stack spacing={1}>
-                                        <FormLabel>Description</FormLabel>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <Input
-                                            size="sm"
-                                            placeholder="Enter Description"
-                                            value={state.description}
-                                            onChange={(e) => handleInputChange("description", e.target.value)}/>
-                                        </FormControl>
-                                        
-                                        
-                                         <FormLabel>Transaction Document Type</FormLabel>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <Select
-                                            placeholder="Select Transaction type"
-                                            value={state.trans_type}
-                                            onChange={(e,newValue) => handleInputChange("trans_type", newValue)}
-                                            >
-                                            <Option value="1">Yes</Option>
-                                            <Option value="0">No</Option>
-                                            </Select>
-                                        </FormControl>
+                            
+                                <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+                                    <Typography level="title-md">
+                                        Edit Document Approval Setup
+                                    </Typography>
+                                </Box>
 
-                                        {state.trans_type === "1" && (
-                                            <FormLabel>Expense code</FormLabel>
-                                        )}
-                                        {state.trans_type === "1" && (
-                                            <FormControl sx={{ width: "100%" }}>
-                                            <Select
-                                                placeholder="Select Type of Expense"
-                                                value={state.expense_code}
-                                                onChange={(e,newValue) => handleInputChange("expense_code", newValue)}
-                                            >
-                                                <Option value="1">Donation</Option>
-                                                <Option value="0">Procument</Option>
-                                            </Select>
-                                            </FormControl>
-                                        )}
-                                        <FormLabel>Status</FormLabel>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <Select
-                                            placeholder="Select Status"
-                                            value={state.status}
-                                            onChange={(e,newValue) =>
-                                                handleInputChange("status", newValue)
-                                            }
-                                            >
-                                            <Option value="1">Active</Option>
-                                            <Option value="0">Inactive</Option>
-                                            </Select>
-                                        </FormControl>
-
+                                <Box sx={{ 
+                                    p: 3,
+                                    flexGrow: 1,
+                                    overflowY: 'auto',
+                                }}>
+                                    {state.currentStage === 0 ? (
+                                        // Initial Setup Content
+                                        <Stack spacing={2}>
+                                            <Stack direction="row" spacing={2}>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <FormLabel>Document Type</FormLabel>
+                                                    <FormControl sx={{ width: "100%" }}>
+                                                        <SearchableSelect 
+                                                            options={state.docs.map(doc => ({ label: doc.description, value: doc.id.toString() }))}
+                                                            onChange={(newValue) => handleInputChange("doc_type", newValue)}
+                                                            label="Document Type"
+                                                            placeholder="Select Document type"
+                                                            initialValue={state.doc_type ? {
+                                                                label: state.docs.find(doc => doc.id.toString() === state.doc_type)?.description || '',
+                                                                value: state.doc_type
+                                                            } : null}
+                                                        />
+                                                    </FormControl>
+                                                </Box>
+                                                <Box sx={{ flex: 1 }}>
+                                                    <FormLabel>Number of Approval Stages</FormLabel>
+                                                    <FormControl sx={{ width: "100%" }}>
+                                                        <Input
+                                                            size="sm"
+                                                            type="number"
+                                                            min="1"
+                                                            max="10"
+                                                            placeholder="Enter Number of Stages"
+                                                            value={state.numStages}
+                                                            onChange={(e) => handleNumStagesChange(e.target.value)}
+                                                        />
+                                                    </FormControl>
+                                                </Box>
+                                            </Stack>
                                         </Stack>
-                                    </Stack> 
-                                    <CardActions>
+                                    ) : (
+                                        // Stage Setup Content
+                                        <Box>
+                                            <Typography level="h4" sx={{ mb: 2 }}>
+                                                Stage {state.currentStage} of {state.numStages}
+                                            </Typography>
+                                            
+                                            <Card variant="outlined" sx={{ p: 2 }}>
+                                                <Stack spacing={2}>
+                                                    <Stack direction="row" spacing={2}>
+                                                        <FormControl sx={{ flex: 1 }}>
+                                                                <FormLabel>Stage Description</FormLabel>
+                                                                <Input
+                                                                    size="sm"
+                                                                    placeholder="Enter stage description"
+                                                                    value={state.approvalStages[state.currentStage - 1]?.name || ''}
+                                                                    onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
+                                                                />
+                                                        </FormControl>
+                                                        {/* <FormControl sx={{ flex: 1 }}>
+                                                            <FormLabel>Approvers Needed </FormLabel>
+                                                            <Input 
+                                                                size="sm" 
+                                                                type="number"
+                                                                placeholder="Select number of approvers needed"
+                                                                value={state.approvalStages[state.currentStage - 1]?.approversNeeded || ''}
+                                                                onChange={(e) => handleApproversNeededChange(state.currentStage - 1, e.target.value)}
+                                                            />
+                                                        </FormControl> */}
+                                                    </Stack>
+                                                </Stack>
+                                                <Stack spacing={2}>
+                                                    <Stack direction="row" spacing={2}>
+                                                        {/* <FormControl sx={{ flex: 1 }}>
+                                                            <FormLabel>Required Approvers</FormLabel>
+                                                            <Input 
+                                                                size="sm" 
+                                                                type="number"
+                                                                placeholder="Select number of required approvers"
+                                                                value={state.approvalStages[state.currentStage - 1]?.requiredApprovers || ''}
+                                                                onChange={(e) => handleRequiredApproversChange(state.currentStage - 1, e.target.value)}
+                                                            />
+                                                        </FormControl> */}
+                                                        <FormControl sx={{ flex: 1 }}>
+                                                        <FormLabel>
+                                                            Select Approvers
+                                                            {/* <Typography level="body-sm" sx={{ color: 'text.secondary', ml: 1, display: 'inline' }}>
+                                                                (Check box to make approver mandatory)
+                                                            </Typography> */}
+                                                        </FormLabel>
+                                                        {/* User Selection */}
+                                                        <Select
+                                                            multiple
+                                                            size="sm"
+                                                            sx={{ minWidth: '15rem', mb: 2, maxWidth: '550px' }}
+                                                            value={state.approvalStages[state.currentStage - 1]?.approvers?.map(a => a.userId) || []}
+                                                            onChange={(e, newValues) => {
+                                                                const currentStageIndex = state.currentStage - 1;
+                                                                setState(prevState => {
+                                                                    const newStages = [...prevState.approvalStages];
+                                                                    const stage = {...newStages[currentStageIndex]};
+                                                                    
+                                                                    // Preserve existing approvers' mandatory status
+                                                                    const existingApprovers = stage.approvers?.reduce((acc, curr) => {
+                                                                        acc[curr.userId] = curr.isMandatory;
+                                                                        return acc;
+                                                                    }, {}) || {};
+                                                                    
+                                                                    // Check if the new selection exceeds the approvers needed
+                                                                    if (newValues.length > stage.approversNeeded) {
+                                                                        notifyError(`You can only select up to ${stage.approversNeeded} approvers.`);
+                                                                        return prevState; // Return the previous state without updating
+                                                                    }
+
+                                                                    // Update approvers list with new selections, limited by approversNeeded
+                                                                    stage.approvers = newValues.slice(0, stage.approversNeeded).map(userId => {
+                                                                        const user = availableUsers.find(u => u.userId === userId);
+                                                                        return {
+                                                                            userId,
+                                                                            name: user.name,
+                                                                            isMandatory: existingApprovers[userId] || false
+                                                                        };
+                                                                    });
+                                                                    
+                                                                    newStages[currentStageIndex] = stage;
+                                                                    return {
+                                                                        ...prevState,
+                                                                        approvalStages: newStages
+                                                                    };
+                                                                })
+                                                            }}
+                                                            slotProps={{
+                                                                listbox: {
+                                                                    sx: { width: '100%', maxHeight: '200px', overflow: 'auto' }
+                                                                }
+                                                            }}
+                                                        >
+                                                            {availableUsers.map((user) => (
+                                                                <Option 
+                                                                    key={user.userId} 
+                                                                    value={user.userId}
+                                                                    disabled={state.approvalStages[state.currentStage - 1]?.approvers.filter(a => a.isMandatory).length >= state.approvalStages[state.currentStage - 1]?.requiredApprovers && !state.approvalStages[state.currentStage - 1]?.approvers.find(a => a.userId === user.userId)?.isMandatory}
+                                                                >
+                                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                                        <Typography>{user.name}</Typography>
+                                                                    </Box>
+                                                                </Option>
+                                                            ))}
+                                                        </Select>
+                                                        
+                                                        
+
+                                                        {/* Selected Approvers List */}
+                                                        {state.approvalStages[state.currentStage - 1]?.approvers.length > 0 ? (
+                                                            <Card variant="outlined" sx={{ p: 1.5,maxWidth: '550px',mt:2 }}>
+                                                                <Typography level="body-sm" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                                                    Selected Approvers:
+                                                                </Typography>
+                                                                <Stack spacing={1}>
+                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                                                                        {state.approvalStages[state.currentStage - 1]?.approvers.map((approver) => (
+                                                                            <Box 
+                                                                                key={approver.userId}
+                                                                                sx={{
+                                                                                    display: 'flex',
+                                                                                    flexDirection: 'column',
+                                                                                    p: 1,
+                                                                                    bgcolor: 'background.level1',
+                                                                                    borderRadius: 'sm',
+                                                                                    '&:hover': {
+                                                                                        bgcolor: 'background.level2',
+                                                                                    },
+                                                                                    width: 'calc(50% - 8px)' // Two items per row
+                                                                                }}
+                                                                            >
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                                                        <Typography level="body-xs">{approver.name}</Typography>
+                                                                                        {/* <Typography level="body-xs" sx={{ color: 'text.secondary' }}>
+                                                                                            {approver.department}
+                                                                                        </Typography> */}
+                                                                                    </Box>
+                                                                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                                                                    <Checkbox
+                                                                                        size="sm"
+                                                                                        checked={approver.isMandatory}
+                                                                                        onChange={() => handleMandatoryChange(state.currentStage - 1, approver.userId)}
+                                                                                        label="Mandatory"
+                                                                                    />
+                                                                                    {approver.isMandatory && (
+                                                                                        <Typography 
+                                                                                            level="body-xs"
+                                                                                            sx={{ 
+                                                                                                color: 'warning.main',
+                                                                                                bgcolor: 'warning.softBg',
+                                                                                                px: 0.5,
+                                                                                                borderRadius: 'xs',
+                                                                                                ml: 1
+                                                                                            }}
+                                                                                        >
+                                                                                            Required
+                                                                                        </Typography>
+                                                                                    )}
+                                                                                </Box>
+                                                                            </Box>
+                                                                        ))}
+                                                                    </Box>
+                                                                </Stack>
+                                                            </Card>
+                                                        ) : (
+                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', textAlign: 'center', py: 1.5 }}>
+                                                                No approvers selected yet
+                                                            </Typography>
+                                                        )}
+                                                    </FormControl>
+                                                        {/* <FormControl sx={{ flex: 1 }}>
+                                                        <FormLabel>
+                                                            Approvers
+                                                            <Typography level="body-sm" sx={{ color: 'text.secondary', ml: 1, display: 'inline' }}>
+                                                                (Check box to make approver mandatory)
+                                                            </Typography>
+                                                        </FormLabel>
+                                                                <Input
+                                                                    size="sm"
+                                                                    placeholder="Select approvers"
+                                                                    value={state.approvalStages[state.currentStage - 1]?.name || ''}
+                                                                    onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
+                                                                />
+                                                        </FormControl> */}
+                                                    
+                                                    </Stack>
+                                                </Stack>
+                                              
+                                            </Card>
+                                        </Box>
+                                    )}
+                                </Box>
+
+                                <Box sx={{ 
+                                    p: 3,
+                                    borderTop: '1px solid',
+                                    borderColor: 'divider',
+                                    bgcolor: 'background.surface',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 2
+                                }}>
+                                    {/* Navigation Buttons */}
+                                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between' }}>
                                         <Button
-                                        sx={{
-                                            backgroundColor: "#00357A",
-                                            color: "#fff",
-                                            marginTop: "16px",
-                                        }}
-                                        // onClick={handleUpdate}
+                                            variant="outlined"
+                                            onClick={handlePrevious}
                                         >
-                                        Update
+                                            <PreviousIcon style={{width:25, height:25}}/> Previous
                                         </Button>
-                                    </CardActions>
-                            </Typography>
+                                        
+                                        {state.currentStage === state.numStages ? (
+                                            <Button
+                                                sx={{ backgroundColor: "#00357A" }}
+                                                onClick={handleUpdate}
+                                                disabled={!validateCurrentStage()}
+                                            >
+                                               <UpdateIcon style={{width:25, height:25}}/> Update All Stages
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                sx={{ backgroundColor: "#00357A" }}
+                                                onClick={handleNext}
+                                                disabled={!validateCurrentStage()}
+                                            >
+                                                Next Stage <NextIcon style={{width:25, height:25}}/>
+                                            </Button>
+                                        )}
+                                    </Stack>
+
+                                    {/* Progress Indicator */}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                        {[...Array(state.numStages + 1)].map((_, index) => (
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: '50%',
+                                                    backgroundColor: index === state.currentStage ? '#00357A' : '#ccc'
+                                                }}
+                                            />
+                                        ))}
+                                    </Box>
+                                </Box>
                             </Sheet>
                     </Modal>
+
+                  
                 </Box>
             </div>
         </div>

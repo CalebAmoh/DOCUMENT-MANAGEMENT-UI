@@ -25,6 +25,7 @@ import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as AddDocIcon } from "../utils/icons/add-file-svgrepo.svg";
+
 import { Add } from "@mui/icons-material";
 // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
