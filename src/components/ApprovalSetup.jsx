@@ -170,6 +170,30 @@ const ApprovalSetup = () => {
         }
     }, []);
     
+    //this function fetches all doc types
+    const fetchApproverUsers = useCallback(async () => {
+        try {
+            setState((prevState) => ({
+                ...prevState,
+                loading: true
+            }));
+
+            const response = await axios.get(`${API_SERVER1}/get-approver-users`, { headers });
+            const data = response.data.approvers;
+            setState((prevState) => ({
+                ...prevState,
+                docs: data,
+                loading: false
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+                loading: false
+            }));
+        }
+    }, []);
+    
     
     //this function fetches all approver setups
     const fetchApproverSetups = useCallback(async () => {
@@ -201,6 +225,7 @@ const ApprovalSetup = () => {
     useEffect(() => {
         fetchDocTypes();
         fetchApproverSetups();
+        fetchApproverUsers();
     }, []);
 
    
@@ -591,21 +616,7 @@ const ApprovalSetup = () => {
                                                 <Box sx={{ flex: 1 }}>
                                                     <FormLabel>Document Type</FormLabel>
                                                     <FormControl sx={{ width: "100%" }}>
-                                                        {/* <Select
-                                                            size="sm"
-                                                            placeholder="Select Document type"
-                                                            value={state.trans_type}
-                                                            onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
-                                                        >
-                                                            {state.docs.map((doc) => (
-                                                                <Option value={doc.id}>{doc.description}</Option>
-                                                            ))}
-                                                        </Select> */}
-                                                        {/* <SearchableSelect 
-                                                            options={state.docs.map(doc => ({ label: doc.description, value: doc.id }))}
-                                                            onChange={(e, newValue) => handleInputChange("trans_type", newValue)}
-                                                            value={state.trans_type}
-                                                        /> */}
+                                                        
                                                         <SearchableSelect 
                                                             options={state.docs.map(doc => ({ label: doc.description, value: doc.id.toString() }))}
                                                             onChange={(newValue) => handleInputChange("doc_type", newValue)}

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useState, useEffect,useRef,Fragment} from 'react';
 import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import Button from "@mui/joy/Button";
 import Tooltip from "@mui/joy/Tooltip";
+import { Menu, MenuItem } from '@mui/joy';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CallMadeIcon from '@mui/icons-material/CallMade';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -17,6 +18,8 @@ import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
+import { ReactComponent as Kebab } from "../utils/icons/kebab-svgrepo.svg";
+import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
 
 type Order = "asc" | "desc";
 
@@ -68,11 +71,40 @@ interface ApproversTableProps {
 
 const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
-  const [order, setOrder] = React.useState<Order>("desc");
-  const [open, setOpen] = React.useState(false);
+  const [order, setOrder] = useState<Order>("desc");
+  const [open, setOpen] = useState(false);
+
+  
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+    const [selectedRow, setSelectedRow] = useState<any | null>(null)
+    const [tabValue, setTabValue] = useState(3)
+    const menuRef = useRef<HTMLDivElement>(null);
+  
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>, data: any) => {
+      setAnchorEl(event.currentTarget)
+      setSelectedRow(data)
+    }
+  
+    const handleMenuClose = () => {
+      setAnchorEl(null)
+      setSelectedRow(null)
+    }
+  
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+          handleMenuClose();
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [menuRef]);
 
   const renderFilters = () => (
-    <React.Fragment>
+    <Fragment>
       <FormControl size="sm">
         <FormLabel>Status</FormLabel>
         <Select
@@ -93,7 +125,7 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
           <Option value="Wells Fargo">Kasoa</Option>
         </Select>
       </FormControl>
-    </React.Fragment>
+    </Fragment>
   );
 
   // Ensure data is an array
@@ -101,7 +133,7 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
   
 
   return (
-    <React.Fragment>
+    <Fragment>
       <Sheet
         className="SearchAndFilters-mobile"
         sx={{
@@ -287,52 +319,31 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
-                    {/* <Tooltip title="View">
-                      <Button
-                        sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
-                        onClick={() => handleOpen("view",row.id)}
-                        size="sm"
-                        variant="solid"
-                      >
-                        <RemoveRedEyeIcon />
-                        
-                      </Button>
-                    </Tooltip> */}
-                      <Tooltip title="Edit">
-                        <Button
-                          sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
-                          onClick={() => handleOpen("edit",row)}
-                          size="sm"
-                          variant="solid"
-                        >
-                          <Edit />
-                          
-                        </Button>
-                      </Tooltip>
-                      
-                        {/* <Tooltip title="Submit">
-                          <Button
-                            sx={{ backgroundColor: "#4CAF50", width: 35 }}
-                            onClick={() => handleOpen("submit",row.id)}
-                            size="sm"
-                            variant="solid"
-                          >
-                            <CallMadeIcon />
-                            
-                          </Button>
-                      </Tooltip> */}
-                      
-                     
+                    
+                        <IconButton onClick={(event) => handleMenuClick(event, row)} /*onClick={() => handleOpen("edit",row)}*/>
+                          <Kebab style={{ width: 25, height: 25 }} />
+                        </IconButton>
+
                     </Link>
                   </Box>
                 </td>
               </tr>
             )))}
           </tbody>
+          <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              ref={menuRef}
+            >
+              <Tooltip title="Edit">
+              <MenuItem onClick={() => handleOpen("edit",selectedRow)} >Edit Parameter <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
+              </Tooltip>
+            </Menu>
         </Table>
     </Sheet>
    
-  </React.Fragment>
+  </Fragment>
   );
 };
 

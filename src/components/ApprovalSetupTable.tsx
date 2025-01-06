@@ -11,6 +11,7 @@ import {Delete, Recycling} from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as Kebab } from "../utils/icons/kebab-svgrepo.svg";
 import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
+import { ReactComponent as ApprovalIcon } from "../utils/icons/approval-svgrepo-com.svg";
 import Fade from "@mui/material/Fade";
 
 type Order = "asc" | "desc";
@@ -181,7 +182,7 @@ const ApprovalSetupTable: React.FC<ApproversTableProps> = ({ setups, handleOpen 
         }}
       >
         <FormControl sx={{ flex: 1 }} size="sm">
-          <FormLabel>Search for documents</FormLabel>
+          <FormLabel>Search for approval setup</FormLabel>
           <Input
             size="sm"
             placeholder="Search"
@@ -216,95 +217,97 @@ const ApprovalSetupTable: React.FC<ApproversTableProps> = ({ setups, handleOpen 
             "--TableCell-paddingX": "8px",
           }}
         >
-          <thead>
-            <tr>
-              <th
-                style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
-              ></th>
-              <th style={{ width: 120, padding: "12px 6px" }}>
-                <Link
-                  underline="none"
-                  color="primary"
-                  component="button"
-                  // onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
-                  fontWeight="lg"
-                  endDecorator={<ArrowDropDownIcon />}
-                  // sx={{
-                  //   "& svg": {
-                  //     transition: "0.2s",
-                  //     transform:
-                  //       order === "desc" ? "rotate(0deg)" : "rotate(180deg)",
-                  //   },
-                  // }}
-                >
-                  ID
-                </Link>
-              </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Approval Stages</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Approvers</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Required Approvers</th>
-              <th style={{ width: 140, padding: "12px 6px" }}></th> 
-            </tr>
-          </thead>
-          <tbody>
-          {setups.length === 0 ? (
-                // Data has been fetched but no records found
+              <thead>
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
-                    <Typography level="body-md">No records found</Typography>
-                  </td>
-                </tr>
-              ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
-              <tr key={row.id}>
-                <td style={{ textAlign: "center", width: 120 }}></td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.id}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.description}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.approval_stages}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.number_of_approvers}</Typography>
-                </td>
-                <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.mandatory_approvers}</Typography>
-                </td>
-                {/*<td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.details}</Typography>
-                </td> */}
-                {/* <td className="font-semibold text-sm ">
-                  <Typography level="body-sm">{row.status}</Typography>
-                </td> */}
-
-                <td>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <Link level="body-xs" component="button">
-                    
-                        <IconButton onClick={(event) => handleMenuClick(event, row)}>
-                          <Kebab style={{ width: 25, height: 25 }} />
-                        </IconButton>
-
+                  <th
+                    style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
+                  ></th>
+                  <th style={{ width: 120, padding: "12px 6px" }}>
+                    <Link
+                      underline="none"
+                      color="primary"
+                      component="button"
+                      // onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
+                      fontWeight="lg"
+                      endDecorator={<ArrowDropDownIcon />}
+                      // sx={{
+                      //   "& svg": {
+                      //     transition: "0.2s",
+                      //     transform:
+                      //       order === "desc" ? "rotate(0deg)" : "rotate(180deg)",
+                      //   },
+                      // }}
+                    >
+                      ID
                     </Link>
-                  </Box>
-                </td>
-              </tr>
-               
-            )))}
-          </tbody>
-          <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          ref={menuRef}
-        >
-          <Tooltip title="Edit">
-          <MenuItem onClick={(event) => handleOpen("edit", selectedRow)} >Edit Approval Setup <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
-          </Tooltip>
-        </Menu>
+                  </th>
+                  <th style={{ width: 140, padding: "12px 6px" }}>Document Type</th>
+                  <th style={{ width: 140, padding: "12px 6px" }}>Approval Stages</th>
+                  <th style={{ width: 140, padding: "12px 6px" }}>Approvers</th>
+                  <th style={{ width: 140, padding: "12px 6px" }}>Required Approvers</th>
+                  <th style={{ width: 140, padding: "12px 6px" }}></th> 
+                </tr>
+              </thead>
+              <tbody>
+              {setups.length === 0 ? (
+                    // Data has been fetched but no records found
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', height: '100px' }}>
+                        <Typography level="body-md">No records found</Typography>
+                      </td>
+                    </tr>
+                  ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
+                  <tr key={row.id}>
+                    <td style={{ textAlign: "center", width: 120 }}></td>
+                    <td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.id}</Typography>
+                    </td>
+                    <td className="font-semibold text-sm ">
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <ApprovalIcon style={{width:20, height:20}}/><Typography level="body-sm" sx={{ml:1}}>{row.description}</Typography>
+                      </Box>
+                    </td>
+                    <td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.approval_stages}</Typography>
+                    </td>
+                    <td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.number_of_approvers}</Typography>
+                    </td>
+                    <td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.mandatory_approvers}</Typography>
+                    </td>
+                    {/*<td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.details}</Typography>
+                    </td> */}
+                    {/* <td className="font-semibold text-sm ">
+                      <Typography level="body-sm">{row.status}</Typography>
+                    </td> */}
+
+                    <td>
+                      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                        <Link level="body-xs" component="button">
+                        
+                            <IconButton onClick={(event) => handleMenuClick(event, row)}>
+                              <Kebab style={{ width: 25, height: 25 }} />
+                            </IconButton>
+
+                        </Link>
+                      </Box>
+                    </td>
+                  </tr>
+                  
+                )))}
+              </tbody>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                ref={menuRef}
+              >
+              <Tooltip title="Edit">
+              <MenuItem onClick={(event) => handleOpen("edit", selectedRow)} >Edit Approval Setup <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
+              </Tooltip>
+            </Menu>
         </Table>
     </Sheet>
    
