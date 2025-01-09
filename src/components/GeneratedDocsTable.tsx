@@ -74,6 +74,15 @@ interface ApproversTableProps {
   handleMessage: (id: number) => void;
 }
 
+//handles truncating text
+const truncateText = (text:string, wordLimit:number) => {
+  const words = text.split(' ');
+  if (words.length > wordLimit) {
+    return words.slice(0, wordLimit).join(' ') + '...';
+  }
+  return text;
+};
+
 const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, handleMessage }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
@@ -240,9 +249,9 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                 </th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Document</th>
                 <th style={{ width: 140, padding: "12px 30px" }}>Type</th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
+                <th style={{ width: 180, padding: "12px 6px" }}>Description</th>
+                <th style={{ width: 120, padding: "12px 6px" }}>Status</th>
+                <th style={{ width: 120, padding: "12px 6px" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -294,7 +303,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                     <Typography level="body-sm">{row.doctype_name}</Typography>
                   </td>
                   <td className="font-semibold text-sm ">
-                    <Typography level="body-sm">{row.details}</Typography>
+                    <Typography level="body-sm">{truncateText(row.details,10)}</Typography>
                   </td>
                   {/* <td className="font-semibold text-sm ">
                     <Typography level="body-sm">{row.status}</Typography>

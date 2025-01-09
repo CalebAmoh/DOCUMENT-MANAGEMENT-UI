@@ -60,13 +60,14 @@ const Initial = () => {
     setModalType('progress');
     setProgress(true); // Set loading to true before making the API call
     try {
-      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
-        file: doc,
-      }, {
-        timeout: 30000 // 30 seconds timeout
-      });
+      // const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+      //   file: doc,
+      // }, {
+      //   timeout: 30000 // 30 seconds timeout
+      // });
       
-      setGeneratedDocId(response.data.token);
+      // setGeneratedDocId(response.data.token);
+      setGeneratedDocId("0028373779");
 
       
     } catch (error) {
