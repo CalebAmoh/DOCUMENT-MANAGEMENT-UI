@@ -46,6 +46,7 @@ const ApprovalSetup = () => {
         numStages: 0, // Number of approval stages
         currentStage: 0, // Current stage of the approval setup
         approvalStages: [], // Array to store the approval stages
+        availableUsers: [], // Array to store the approvers
     });
 
     
@@ -180,9 +181,10 @@ const ApprovalSetup = () => {
 
             const response = await axios.get(`${API_SERVER1}/get-approver-users`, { headers });
             const data = response.data.approvers;
+            console.log("users data",data);
             setState((prevState) => ({
                 ...prevState,
-                docs: data,
+                availableUsers: data,
                 loading: false
             }));
         } catch (error) {
@@ -445,6 +447,7 @@ const ApprovalSetup = () => {
                 // Reset the form
                 handleClose("add");
                 fetchApproverSetups();
+                fetchDocTypes();
                 setState(prevState => ({
                     ...prevState,
                     currentStage: 0,
@@ -499,18 +502,18 @@ const ApprovalSetup = () => {
     }, [state.approvalStages,state.doc_type,validateCurrentStage]);
 
     // Add this to your state declarations at the top
-    const [availableUsers] = useState([
-        { userId: 'user1', name: 'John Doe', department: 'Finance' },
-        { userId: 'user2', name: 'Jane Smith', department: 'HR' },
-        { userId: 'user3', name: 'Bob Johnson', department: 'Operations' },
-        { userId: 'user4', name: 'Alice Williams', department: 'Finance' },
-        { userId: 'user5', name: 'Mike Brown', department: 'IT' },
-        { userId: 'user6', name: 'Sarah Davis', department: 'Marketing' },
-        { userId: 'user7', name: 'David Lee', department: 'Sales' },
-        { userId: 'user8', name: 'Emily White', department: 'Engineering' },
-        { userId: 'user9', name: 'Michael Green', department: 'Legal' },
-        { userId: 'user10', name: 'Olivia Black', department: 'Customer Service' },
-    ]);
+    // const [availableUsers] = useState([
+    //     { userId: 'user1', name: 'John Doe', department: 'Finance' },
+    //     { userId: 'user2', name: 'Jane Smith', department: 'HR' },
+    //     { userId: 'user3', name: 'Bob Johnson', department: 'Operations' },
+    //     { userId: 'user4', name: 'Alice Williams', department: 'Finance' },
+    //     { userId: 'user5', name: 'Mike Brown', department: 'IT' },
+    //     { userId: 'user6', name: 'Sarah Davis', department: 'Marketing' },
+    //     { userId: 'user7', name: 'David Lee', department: 'Sales' },
+    //     { userId: 'user8', name: 'Emily White', department: 'Engineering' },
+    //     { userId: 'user9', name: 'Michael Green', department: 'Legal' },
+    //     { userId: 'user10', name: 'Olivia Black', department: 'Customer Service' },
+    // ]);
 
 
     return (
@@ -721,7 +724,7 @@ const ApprovalSetup = () => {
 
                                                                     // Update approvers list with new selections, limited by approversNeeded
                                                                     stage.approvers = newValues.slice(0, stage.approversNeeded).map(userId => {
-                                                                        const user = availableUsers.find(u => u.userId === userId);
+                                                                        const user = state.availableUsers.find(u => u.userId === userId);
                                                                         return {
                                                                             userId,
                                                                             name: user.name,
@@ -742,7 +745,7 @@ const ApprovalSetup = () => {
                                                                 }
                                                             }}
                                                         >
-                                                            {availableUsers.map((user) => (
+                                                            {state.availableUsers.map((user) => (
                                                                 <Option 
                                                                     key={user.userId} 
                                                                     value={user.userId}
@@ -1054,7 +1057,7 @@ const ApprovalSetup = () => {
 
                                                                     // Update approvers list with new selections, limited by approversNeeded
                                                                     stage.approvers = newValues.slice(0, stage.approversNeeded).map(userId => {
-                                                                        const user = availableUsers.find(u => u.userId === userId);
+                                                                        const user = state.availableUsers.find(u => u.userId === userId);
                                                                         return {
                                                                             userId,
                                                                             name: user.name,
@@ -1075,7 +1078,7 @@ const ApprovalSetup = () => {
                                                                 }
                                                             }}
                                                         >
-                                                            {availableUsers.map((user) => (
+                                                            {state.availableUsers.map((user) => (
                                                                 <Option 
                                                                     key={user.userId} 
                                                                     value={user.userId}

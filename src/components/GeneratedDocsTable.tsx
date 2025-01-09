@@ -1,8 +1,9 @@
-import React from 'react';
+import React,{ useState, useRef, useEffect }  from 'react';
 import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import Button from "@mui/joy/Button";
 import Tooltip from "@mui/joy/Tooltip";
+import { Menu, MenuItem } from '@mui/joy';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CallMadeIcon from '@mui/icons-material/CallMade';
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -15,11 +16,14 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
-import CircularProgress from "@mui/material/CircularProgress";
-import MessageIcon from '@mui/icons-material/Message';
+import CircularProgress from "@mui/material/CircularProgress";  
 import { ReactComponent as FileSvg } from "../utils/icons/pdf-file-svgrepo-com.svg";
+import { ReactComponent as Kebab } from "../utils/icons/kebab-svgrepo.svg";
 import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
-import { ReactComponent as OptionsSvg } from "../utils/icons/options-svgrepo-com.svg";
+import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
+import { ReactComponent as ViewIcon } from "../utils/icons/eye-password-eye-password-svgrepo-com.svg";
+import { ReactComponent as SubmitIcon } from "../utils/icons/send-svgrepo-com.svg";
+import { ReactComponent as MessageIcon } from "../utils/icons/message-list-svgrepo-com.svg";
 type Order = "asc" | "desc";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -74,6 +78,35 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const [selectedRow, setSelectedRow] = React.useState<any | null>(null)
+  const [tabValue, setTabValue] = React.useState(3)
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, data: any) => {
+    setAnchorEl(event.currentTarget)
+    // console.log("data",data);
+    setSelectedRow(data)
+  }
+
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+    setSelectedRow(null)
+  }
+
+  
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+          handleMenuClose();
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+  }, [menuRef]);
 
   const renderFilters = () => (
     <React.Fragment>
@@ -101,9 +134,9 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
   );
 
   // Ensure data is an array
-  const approversData = Array.isArray(data) ? data : [];
-  console.log("app",approversData);
-  // if (approversData.length === 0) {
+  const generatedDocs = Array.isArray(data) ? data : [];
+  console.log("app",generatedDocs);
+  // if (generatedDocs.length === 0) {
   //   return <div>No data available</div>;
   // }
 
@@ -229,7 +262,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       <Typography level="body-md">No records found</Typography>
                     </td>
                   </tr>
-                ) :(stableSort(approversData, getComparator(order, "id")).map((row) => (
+                ) :(stableSort(generatedDocs, getComparator(order, "id")).map((row) => (
                 <tr key={row.id}>
                   <td style={{ textAlign: "center", width: 120 }}></td>
                   <td className="font-semibold text-sm ">
@@ -242,8 +275,8 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                         <PdfSvg style={{width: 30, height: 30}} />
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                           {row.doc_id}
-                          <Typography level="body-xs" sx={{ color: 'text.tertiary', display: 'flex', gap: 0.5, whiteSpace: 'nowrap' }}>
-                            <span>Uploaded</span> {new Date(row.created_at).toLocaleDateString('en-US', {
+                          <Typography level="body-xs" color="neutral" sx={{ display: 'flex', gap: 0.5, whiteSpace: 'nowrap' }}>
+                            <span>uploaded</span> {new Date(row.created_at).toLocaleDateString('en-US', {
                               day: 'numeric',
                               month: 'short', 
                               year: 'numeric'
@@ -288,9 +321,9 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                   </td>
                   
                   <td>
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                      <Link level="body-xs" component="button">
-                      <Tooltip title="View">
+                    {/* <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}> */}
+                      {/* <Link level="body-xs" component="button"> */}
+                      {/* <Tooltip title="View">
                         <Button
                           sx={{ backgroundColor: "#d4ac0d", width: 35, marginRight: 1 }}
                           onClick={() => handleOpen("view",row.id)}
@@ -300,11 +333,11 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                           <RemoveRedEyeIcon />
                           
                         </Button>
-                      </Tooltip>
+                      </Tooltip> */}
                       {/* <Tooltip title="Options">
                           <OptionsSvg style={{width: 15, height: 15}} />
                       </Tooltip> */}
-                      <Tooltip title="Edit">
+                      {/* <Tooltip title="Edit">
                         <Button
                           sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
                           onClick={() => handleOpen("update",row.id)}
@@ -314,7 +347,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                           <Edit />
                           
                         </Button>
-                        </Tooltip>
+                      </Tooltip>
                         {row.status === "draft" ? (
                           <Tooltip title="Submit">
                             <Button
@@ -338,15 +371,61 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                               <MessageIcon/>
                           </Button>
                           </Tooltip>
-                        )}
+                        )} */}
                         
                       
-                      </Link>
-                    </Box>
+                      {/* </Link> */}
+                    {/* </Box> */}
+
+                      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                        <Link level="body-xs" component="button">
+                        
+                            <IconButton onClick={(event) => handleMenuClick(event, row)}>
+                              <Kebab style={{ width: 25, height: 25 }} />
+                            </IconButton>
+
+                        </Link>
+                      </Box>
                   </td>
                 </tr>
               )))}
             </tbody>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                ref={menuRef}
+              >
+              
+              <MenuItem onClick={(event) => handleOpen("update", selectedRow.id)}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  Edit Document
+                  <EditIcon style={{ width: 25, height: 25 }} />
+                </Box>
+              </MenuItem>
+              <MenuItem onClick={(event) => handleOpen("view", selectedRow.id)}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  View Document
+                  <ViewIcon style={{ width: 25, height: 25 }} />
+                </Box>
+              </MenuItem>
+              {selectedRow && selectedRow.status === "draft" ? (
+                <MenuItem onClick={(event) => handleOpen("submit", selectedRow.id)}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    Submit Document
+                    <SubmitIcon style={{ width: 25, height: 25 }} />
+                  </Box>
+                </MenuItem>
+              ):(
+                <MenuItem onClick={(event) => handleMessage(selectedRow.id)}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    Declined Reason
+                    <MessageIcon style={{ width: 25, height: 25 }} />
+                  </Box>
+                </MenuItem>
+                // <MenuItem onClick={(event) => handleMessage(selectedRow.id)} >Declined Reason <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
+              )}
+            </Menu>
           </Table>
       </Sheet>
     <Box

@@ -65,14 +65,14 @@ const Settings = () => {
                 Users
               </Tab>
 
-              <Tab
+              {/* <Tab
                 sx={{ borderRadius: "6px 6px 0 0" }}
                 indicatorInset
                 value={0}
                 // onClick={<Initial />}
               >
                 Approvers
-              </Tab>
+              </Tab> */}
               
               
               {/* <Tab
@@ -102,9 +102,9 @@ const Settings = () => {
               <Profile />
             </TabPanel>
             
-            <TabPanel value={0}>
+            {/* <TabPanel value={0}>
               <Approvers />
-            </TabPanel>
+            </TabPanel> */}
             {/* <TabPanel value={2}>
               <TempApprovers />
             </TabPanel> */}

@@ -25,7 +25,7 @@ import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as AddDocIcon } from "../utils/icons/add-file-svgrepo.svg";
-
+import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { Add } from "@mui/icons-material";
 // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -62,45 +62,24 @@ const Initial = () => {
     try {
       const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
         file: doc,
+      }, {
+        timeout: 30000 // 30 seconds timeout
       });
+      
       setGeneratedDocId(response.data.token);
 
-      // try {
-      //   const response = await axios.post(`https://igdwebsite.azurewebsites.net/api/GetCitizenInfo`, {
-      //     "NIN": "RFE7GTPM",
-      //     "OTP": "W965",
-      //     "Token": "9NJY4N955WQWPFNJDX8BA8ZY55QCE5E8PZ899AVB984XHFRH78XQNJ8BXU5986Z9RRGYHPKDB6BCDBQXPGFGGZUE37KPEVDCH4F2929SXTNRG67VDGV2ZT326C6KC69R394J6YYWGXTXND779ZK7ANMZBQ666XQ3T7YGBWZQT9TC9DP3E8MNUCQPWDHQ33ZTH2ERPZ6MA5NB4JZ8AC27MBGRRKV7PJW2HA4G98PQC9NZYPUMNKQZA4FFTX9DD88Z"
-      //   }, {
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'Cookie': 'ARRAffinity=b1633e0e24eb358f6ad73d240f6693706fe7b6a1916a7cd60c898ba804a95116; ARRAffinitySameSite=b1633e0e24eb358f6ad73d240f6693706fe7b6a1916a7cd60c898ba804a95116'
-      //     }
-      //   });
-      //   console.log(response.data);
-      // } catch (error) {
-      //   if (error.response) {
-      //     // The request was made and the server responded with a status code
-      //     // that falls out of the range of 2xx
-      //     console.error('Error response:', error.response.data);
-      //     console.error('Error status:', error.response.status);
-      //     console.error('Error headers:', error.response.headers);
-      //   } else if (error.request) {
-      //     // The request was made but no response was received
-      //     console.error('Error request:', error.request);
-      //   } else {
-      //     // Something happened in setting up the request that triggered an Error
-      //     console.error('Error message:', error.message);
-      //   }
-      // }
       
     } catch (error) {
-      // setModalType('result');
-      // setSuccess(error.response.data);
-      notifyError(error.response.data.message);
-      console.error("Error uploading document:", error);
+      // console.error("Error:", error);
+      // Handle specific network timeout error
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout') || error.message.includes('Network Error')) {
+        notifyError("Connection timed out. Please check your network connection and try again.");
+      } else {
+        // Handle other errors
+        notifyError(error.response?.data?.message || "An error occurred while uploading the document");
+      }
     } finally {
       console.log(modalType);
-      // closeModal();
       setModalType('');
       setProgress(false); //Set loading to false after the API call is complete
     }
@@ -165,7 +144,7 @@ const Initial = () => {
               headers: headers
             });
             
-            const transType = response.data.code_detail[0].trans_type;
+            const transType = response.data[0].trans_type;
 
             //checks to see if the document type is a transactional document 
             if(transType === "1"){

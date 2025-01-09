@@ -7,7 +7,7 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ApprovalActivityTable from './ApprovalActivityTable';
-import { API_SERVER, headers } from "../constant";
+import { API_SERVER, API_SERVER1, headers } from "../constant";
 import axios from "axios";
 
 const ApprovalActivity = () => {
@@ -54,8 +54,8 @@ const ApprovalActivity = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER}/approval_activities`, { headers });
-            const data = response.data.pending_approvals;
+            const response = await axios.get(`${API_SERVER1}/get-submitted-docs`, { headers });
+            const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
                 docs: data,
@@ -71,7 +71,6 @@ const ApprovalActivity = () => {
     }, []);
 
     
-
     //this function fetches document types
     const fetchDocTypes = useCallback(async () => {
         try {

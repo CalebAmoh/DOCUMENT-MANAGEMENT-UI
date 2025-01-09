@@ -72,9 +72,9 @@ export default function Categories() {
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={1}>
               Generated Documents
             </Tab>
-            <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={2}>
+            {/* <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={2}>
               Document Verification
-            </Tab>
+            </Tab> */}
           </TabList>
           <TabPanel value={0}>
             <Initial />
