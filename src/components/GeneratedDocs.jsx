@@ -488,19 +488,20 @@ const GeneratedDocs = () => {
         component="main"
         className="MainContent"
         sx={{
-          px: { xs: 2, md: 6 },
+          px: { xs: 1, md: 6 },
           pt: {
             xs: "calc(12px + var(--Header-height))",
             sm: "calc(12px + var(--Header-height))",
             md: 3,
           },
-          pb: { xs: 2, sm: 2, md: 3 },
+          pb: { xs: 1, sm: 2, md: 3 },
           flex: 1,
           display: "flex",
           flexDirection: "column",
           minWidth: 0,
           height: "100dvh",
           gap: 1,
+          overflow: 'auto',
         }}
       >
         <Box
@@ -701,12 +702,12 @@ const GeneratedDocs = () => {
       <Modal
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
-            open={modalType === 'update'} onClose={handleClose}
+            open={modalType === 'update'} 
+            onClose={handleClose}
             slotProps={{
               backdrop: {
                 sx: {
                   backgroundColor: "rgba(0, 0, 0, 0.6)",
-                  backdropFilter: "none",
                 },
               },
             }}
@@ -714,16 +715,19 @@ const GeneratedDocs = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              marginLeft: "15%",
+              margin: { xs: '16px', md: '0 15%' },
             }}
           >
             <Sheet
               variant="outlined"
               sx={{
-                width: 800,
+                width: { xs: '100%', sm: 800 },
+                maxWidth: '100%',
                 borderRadius: "md",
-                p: 3,
+                p: { xs: 2, sm: 3 },
                 boxShadow: "lg",
+                overflow: 'auto',
+                maxHeight: '90vh',
               }}
             >
               <ModalClose variant="plain" sx={{ m: 1 }} />
@@ -736,45 +740,48 @@ const GeneratedDocs = () => {
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
                   
-                  <Stack spacing={4}>
-                    <Stack direction="row" spacing={4}>
-                        <FormControl sx={{ width: "100%" }}>
-                          <FormLabel required>Document</FormLabel>
-                          <Select
-                            autoFocus={true}
-                            size="sm"
-                            startDecorator={<AccountBalanceIcon />}
-                            value={selectedDocTypeId}
-                            placeholder="Select Document Type"
-                            onChange={(e, newValue) => handleInputChange("doctype_id",newValue)}
-                          >
-                            {docTypes.map((docType) => (
-                              <Option key={docType.id} value={docType.id}>
-                                {docType.description}
-                              </Option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <FormControl sx={{ width: "80%" }}>
-                          <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
-                          <Input
-                            size="sm"
-                            value={selectedDocId}
-                            placeholder="document id"
-                            disabled
-                            sx={{ backgroundColor: "#eaecee" }}
-                            onChange={(e) => setSelectedCustomerNumber(e.target.value)}
-                          />
-                        </FormControl>
-                        <Button
+                  <Stack spacing={{ xs: 2, sm: 4 }}>
+                    <Stack 
+                      direction={{ xs: "column", sm: "row" }} 
+                      spacing={{ xs: 2, sm: 4 }}
+                    >
+                      <FormControl sx={{ width: "100%" }}>
+                        <FormLabel required>Document</FormLabel>
+                        <Select
+                          autoFocus={true}
                           size="sm"
-                          variant="solid"
-                          sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
-                          color="neutral"
-                          onClick={handleButtonClick}>
-                          <RemoveRedEyeIcon/>
-                        </Button>
-                        
+                          startDecorator={<AccountBalanceIcon />}
+                          value={selectedDocTypeId}
+                          placeholder="Select Document Type"
+                          onChange={(e, newValue) => handleInputChange("doctype_id",newValue)}
+                        >
+                          {docTypes.map((docType) => (
+                            <Option key={docType.id} value={docType.id}>
+                              {docType.description}
+                            </Option>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <FormControl sx={{ width: "80%" }}>
+                        <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
+                        <Input
+                          size="sm"
+                          value={selectedDocId}
+                          placeholder="document id"
+                          disabled
+                          sx={{ backgroundColor: "#eaecee" }}
+                          onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                        />
+                      </FormControl>
+                      <Button
+                        size="sm"
+                        variant="solid"
+                        sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                        color="neutral"
+                        onClick={handleButtonClick}>
+                        <RemoveRedEyeIcon/>
+                      </Button>
+                      
                     </Stack>
                     {isTransType === "1" && (
                       <Stack direction="row" spacing={4}>
@@ -1007,17 +1014,18 @@ const GeneratedDocs = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              marginLeft: "15%",
+              margin: { xs: '16px', md: '0 15%' },
             }}
           >
             <Sheet
               variant="outlined"
               sx={{
-                maxWidth: '90%',
+                maxWidth: '100%',
                 width: "100%",
                 borderRadius: "md",
-                p: 3,
+                p: { xs: 1, sm: 3 },
                 boxShadow: "lg",
+                height: { xs: 'calc(80vh)', sm: 'auto' },
               }}
             >
               <ModalClose variant="plain" sx={{ m: 1 }} />
@@ -1026,9 +1034,15 @@ const GeneratedDocs = () => {
                     <iframe
                       src={`http://10.203.14.169/dms/filesearch-${selectedDocId}`}
                       width="100%"
-                      height="500px"
+                      height="100%"
                       title="Document Viewer"
-                      style={{ marginTop: '20px' }}
+                      style={{ 
+                        marginTop: '20px',
+                        height: '500px',
+                        '@media (max-width: 600px)': {
+                          height: 'calc(70vh)'
+                        }
+                      }}
                     />
 
                 

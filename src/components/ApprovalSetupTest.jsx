@@ -818,7 +818,7 @@ const ApprovalSetup = () => {
                                         </FormControl>
                                         
                                         
-                                         <FormLabel>Transaction Document Type</FormLabel>
+                                         <FormLabel>Is this a transactional type of document?</FormLabel>
                                         <FormControl sx={{ width: "100%" }}>
                                             <Select
                                             placeholder="Select Transaction type"

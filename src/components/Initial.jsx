@@ -23,6 +23,7 @@ import Textarea from '@mui/joy/Textarea';
 import { Alert, notification, Result } from "antd";
 import { API_SERVER, headers } from "../constant";
 import DocumentScan from "./DocumentScan";
+import CountrySelector from "./DocumentSelector";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as AddDocIcon } from "../utils/icons/add-file-svgrepo.svg";
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
@@ -60,14 +61,14 @@ const Initial = () => {
     setModalType('progress');
     setProgress(true); // Set loading to true before making the API call
     try {
-      // const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
-      //   file: doc,
-      // }, {
-      //   timeout: 30000 // 30 seconds timeout
-      // });
+      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+        file: doc,
+      }, {
+        timeout: 30000 // 30 seconds timeout
+      });
       
-      // setGeneratedDocId(response.data.token);
-      setGeneratedDocId("0028373779");
+      setGeneratedDocId(response.data.token);
+      // setGeneratedDocId("0028373779");
 
       
     } catch (error) {
@@ -319,13 +320,13 @@ const Initial = () => {
       {contextHolder}
       {" "}
       <Stack
-        spacing={4}
+        spacing={2}
         sx={{
           display: "flex",
           maxWidth: "800px",
           mx: "auto",
-          px: { xs: 2, md: 6 },
-          py: { xs: 2, md: 3 },
+          px: { xs: 1, sm: 2, md: 6 },
+          py: { xs: 1, sm: 2, md: 3 },
         }}
       >
         <Card>
@@ -336,8 +337,11 @@ const Initial = () => {
             </Typography> */}
           </Box>
           <Divider />
-          <Stack spacing={4}>
-            <Stack direction="row" spacing={4}>
+          <Stack spacing={2}>
+            <Stack 
+              direction={{ xs: "column", sm: "row" }}
+              spacing={{ xs: 2, sm: 4 }}
+            >
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel required>Document</FormLabel>
                 <Select
@@ -355,23 +359,8 @@ const Initial = () => {
                     </Option>
                   ))}
                 </Select>
+                {/* <CountrySelector /> */}
               </FormControl>
-              {/* <FormControl sx={{ width: "100%" }}>
-                <FormLabel required>Branch</FormLabel>
-                <Select
-                  size="sm"
-                  defaultValue="0"
-                  value={selectedBranch}
-                  placeholder="Select Type"
-                  onChange={(e, newValue) => setSelectedBranch(newValue)}
-                >
-                  {branches.map((branch) => (
-                    <Option key={branch.id} value={branch.id}>
-                      {branch.description}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl> */}
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
                 <Input
@@ -386,30 +375,37 @@ const Initial = () => {
             </Stack>
 
             {isTransType !== "0" && (
-            <Stack direction="row" spacing={4}>
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel>Requested Amount</FormLabel>
-                <Input
-                  size="sm"
-                  type="number"
-                  value={selectedRequestedAmount}
-                  placeholder="Enter requested Amount"
-                  onChange={(e) => setSelectedRequestedAmount(e.target.value)}
-                />
-              </FormControl>
+              <Stack 
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 2, sm: 4 }}
+              >
+                <FormControl sx={{ width: "100%" }}>
+                  <FormLabel>Requested Amount (GH)</FormLabel>
+                  <Input
+                    size="sm"
+                    type="number"
+                    value={selectedRequestedAmount}
+                    placeholder="Enter requested Amount"
+                    onChange={(e) => setSelectedRequestedAmount(e.target.value)}
+                  />
+                </FormControl>
 
-              <FormControl sx={{ width: "100%" }}>
-                <FormLabel>Customer number</FormLabel>
-                <Input
-                  size="sm"
-                  value={selectedCustomerNumber}
-                  placeholder="Enter customer number"
-                  onChange={(e) => setSelectedCustomerNumber(e.target.value)}
-                />
-              </FormControl>
-            
-            </Stack>)}
-            <Stack direction="row" spacing={4}>
+                <FormControl sx={{ width: "100%" }}>
+                  <FormLabel>Customer number</FormLabel>
+                  <Input
+                    size="sm"
+                    value={selectedCustomerNumber}
+                    placeholder="Enter customer number"
+                    onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                  />
+                </FormControl>
+              </Stack>
+            )}
+
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 2, sm: 4 }}
+            >
               <FormControl sx={{ width: "100%" }}>
                 <FormLabel required>Details</FormLabel>
                 <Textarea
@@ -429,7 +425,11 @@ const Initial = () => {
             )}
 
             <div className="w-full">
-              <Stack direction="row" spacing={4} sx={{ width: '100%' }} >
+              <Stack 
+                direction="row" 
+                spacing={{ xs: 2, sm: 4 }} 
+                sx={{ width: '100%' }}
+              >
                 <DocumentScan
                   selectedFile={selectedFile}
                   modalOpened={modalOpened}
@@ -440,51 +440,53 @@ const Initial = () => {
                   handleFile={handleFile}
                   closeModal={closeModal}
                   handleFileChange={handleFileChange}
-                  sx={{ flexGrow: 1 }}
+                  sx={{ 
+                    flexGrow: 1,
+                    width: '100%'
+                  }}
                 />
               </Stack>
             </div>
 
-            {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
-            <FormControl sx={{ width: "45%" }}>
-                <FormLabel required>Document Id (Upload doc to generate id)</FormLabel>
-                <Input
+            <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
+              <CardActions 
+                sx={{ 
+                  alignSelf: "flex-end", 
+                  pt: 2,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: { xs: 1, sm: 2 },
+                  width: { xs: '100%', sm: 'auto' }
+                }}
+              >
+                <Button
                   size="sm"
-                  value={docId}
-                  placeholder="document id"
-                  disabled
-                  sx={{ backgroundColor: "#eaecee",fontWeight: "bold" }}
-                  onChange={(e) => setGeneratedDocId(e.target.value)}
-                />
-              </FormControl>
-            </Stack> */}
+                  variant="outlined"
+                  color="neutral"
+                  onClick={() => handleClear()}
+                  sx={{ 
+                    width: { xs: '100%', sm: 'auto' }
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  variant="solid"
+                  sx={{ 
+                    backgroundColor: "#00357A",
+                    width: { xs: '100%', sm: 'auto' }
+                  }}
+                  onClick={() => {
+                    handleSave();
+                  }}
+                >
+                  <AddDocIcon style={{ width: 25, height: 25 }} />
+                  Save
+                </Button>
+              </CardActions>
+            </CardOverflow>
           </Stack>
 
-          <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
-            <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-              <Button
-                size="sm"
-                variant="outlined"
-                color="neutral"
-                onClick={() => handleClear()}
-              >
-                Clear
-              </Button>
-              <Button
-                size="sm"
-                variant="solid"
-                sx={{ backgroundColor: "#00357A" }}
-                onClick={() => {
-                  handleSave();
-                }}
-              ><AddDocIcon style={{ width: 25, height: 25 }} />
-                Save
-              </Button>
-            </CardActions>
-          </CardOverflow>
-          
-
-          {/* Success Modal */}
           <Modal
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
@@ -501,15 +503,15 @@ const Initial = () => {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  marginLeft: "15%",
+                  margin: { xs: 2, sm: '15%' },
                 }}
               >
                 <Sheet
                   variant="outlined"
                   sx={{
-                    maxWidth: 500,
+                    maxWidth: { xs: '95%', sm: 500 },
                     borderRadius: "md",
-                    p: 3,
+                    p: { xs: 2, sm: 3 },
                     boxShadow: "lg",
                   }}
                 >
@@ -532,7 +534,6 @@ const Initial = () => {
                 </Sheet>
           </Modal>
          
-          {/* Progress indicator */}
           <Modal
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
@@ -549,15 +550,15 @@ const Initial = () => {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  marginLeft: "15%",
+                  margin: { xs: 2, sm: '15%' },
                 }}
               >
                 <Sheet
                   variant="outlined"
                   sx={{
-                    maxWidth: 500,
+                    maxWidth: { xs: '95%', sm: 500 },
                     borderRadius: "md",
-                    p: 3,
+                    p: { xs: 2, sm: 3 },
                     boxShadow: "lg",
                   }}
                 >

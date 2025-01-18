@@ -7,8 +7,9 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ParamsTable from './ParamsTable';
 import AddIcon from "@mui/icons-material/Add";
 import { API_SERVER1,API_SERVER, headers } from "../constant";
-import InfoIcon from '@mui/icons-material/Info';
+import { SearchableSelect } from './SearchableSelect';
 import axios from "axios";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 const Params = () => {
 
@@ -27,6 +28,7 @@ const Params = () => {
         trans_type: "", // Transaction type of the document
         expense_code: "", // Expense code of the document
         status: "", // Status of the document
+        accounts: [], // Array to store the accounts
     });
    
 
@@ -116,37 +118,13 @@ const Params = () => {
         }));
     }, []);
 
-    //this function fetches all document types
-    const fetchDocs = useCallback(async () => {
-        try {
-            setState((prevState) => ({
-                ...prevState,
-                loading: true
-            }));
-
-            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
-            const data = response.data.documents;
-            setState((prevState) => ({
-                ...prevState,
-                docs: data,
-                loading: false
-            }));
-        } catch (error) {
-            console.error("Error:", error);
-            setState((prevState) => ({
-                ...prevState,
-                loading: false
-            }));
-        }
-    }, []);
-
-    //this function is used to save the document type
-    const handleSave = useCallback(async () => {
+     //this function is used to save the document type
+     const handleSave = useCallback(async () => {
         try {
             // Define an array of required fields with their corresponding display names
             const requiredFields = [
                 { field: state.description?.trim(), name: 'Description' },
-                { field: state.trans_type?.toString(), name: 'Transaction Document Type' }, // Convert to string
+                { field: state.trans_type?.toString(), name: 'Is this a transactional type of document?' }, // Convert to string
                 { field: state.status?.toString(), name: 'Status' }, // Convert to string
                 state.trans_type === "1" ? { field: state.expense_code, name: 'Expense code' } : { field: "data", name: "" }
             ];
@@ -196,7 +174,7 @@ const Params = () => {
             // Define an array of required fields with their corresponding display names
             const requiredFields = [
                 { field: state.description?.trim(), name: 'Description' }, // Check for empty strings after trimming
-                { field: state.trans_type, name: 'Transaction Document Type' },
+                { field: state.trans_type, name: 'Is this a transactional type of document?' },
                 { field: state.status, name: 'Status' },
                 //if the document type is a transactional document, then the expense code is required
                 state.trans_type === "1" ? { field: state.expense_code, name: 'Expense code' } : { field: "data", name: "" }
@@ -241,9 +219,55 @@ const Params = () => {
     }, [state.description, state.trans_type, state.status, state.expense_code]);
 
 
+    //this function fetches all document types
+    const fetchDocs = useCallback(async () => {
+        try {
+            setState((prevState) => ({
+                ...prevState,
+                loading: true
+            }));
+
+            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
+            const data = response.data.documents;
+            setState((prevState) => ({
+                ...prevState,
+                docs: data,
+                loading: false
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+                loading: false
+            }));
+        }
+    }, []);
+
+    //this function fetches all accounts
+    const fetchAccounts = useCallback(async () => {
+        try {
+           
+
+            const response = await axios.get(`${API_SERVER1}/get-all-accounts`, { headers });
+            const data = response.data.accounts;
+            setState((prevState) => ({
+                ...prevState,
+                accounts: data
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+            }));
+        }
+    }, []);
+
+   
+
     //this useEffect fetches the submitted documents
     useEffect(() => {
         fetchDocs();
+        fetchAccounts();
     }, []);
 
     return (
@@ -352,7 +376,7 @@ const Params = () => {
                                             </FormControl>
                                             
                                             
-                                            <FormLabel>Transaction Document Type</FormLabel>
+                                            <FormLabel>Is this a transactional type of document?</FormLabel>
                                             <FormControl sx={{ width: "100%" }}>
                                                 <Select
                                                 placeholder="Select Transaction type"
@@ -365,19 +389,20 @@ const Params = () => {
                                             </FormControl>
 
                                             {state.trans_type === "1" && (
-                                                <FormLabel>Expense code</FormLabel>
+                                                <FormLabel> Account</FormLabel>
                                             )}
                                             {state.trans_type === "1" && (
                                                 <FormControl sx={{ width: "100%" }}>
-                                                <Select
-                                                    placeholder="Select Type of Expense"
-                                                    value={state.expense_code}
-                                                    onChange={(e, newValue) => handleInputChange("expense_code", newValue)}
-                                                >
-                                                    <Option value="">Select Type of Expense</Option>
-                                                    <Option value="1">Donation</Option>
-                                                    <Option value="0">Procument</Option>
-                                                </Select>
+                                                    <SearchableSelect 
+                                                        options={state.accounts.map(account => ({ label: account.account_name, value: account.id }))}
+                                                        onChange={(newValue) => handleInputChange("expense_code", newValue)}
+                                                        label="Account"
+                                                        placeholder="Select Account"
+                                                        initialValue={state.expense_code ? {
+                                                            label: state.accounts.find(account => account.id.toString() === state.expense_code)?.account_name || '',
+                                                            value: state.expense_code
+                                                        } : null}
+                                                    />
                                                 </FormControl>
                                             )}
                                             <FormLabel>Status</FormLabel>
@@ -414,7 +439,7 @@ const Params = () => {
                             </Sheet>
                     </Modal>
 
-                    {/* Display document */}
+                    {/* Edit Account Modal */}
                     <Modal
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
@@ -465,7 +490,7 @@ const Params = () => {
                                         </FormControl>
                                         
                                         
-                                         <FormLabel>Transaction Document Type</FormLabel>
+                                         <FormLabel>Is this a transactional type of document?</FormLabel>
                                         <FormControl sx={{ width: "100%" }}>
                                             <Select
                                             placeholder="Select Transaction type"
@@ -478,18 +503,20 @@ const Params = () => {
                                         </FormControl>
 
                                         {state.trans_type === "1" && (
-                                            <FormLabel>Expense code</FormLabel>
+                                            <FormLabel> Account</FormLabel>
                                         )}
                                         {state.trans_type === "1" && (
                                             <FormControl sx={{ width: "100%" }}>
-                                            <Select
-                                                placeholder="Select Type of Expense"
-                                                value={state.expense_code}
-                                                onChange={(e,newValue) => handleInputChange("expense_code", newValue)}
-                                            >
-                                                <Option value="1">Donation</Option>
-                                                <Option value="0">Procument</Option>
-                                            </Select>
+                                                <SearchableSelect 
+                                                    options={state.accounts.map(account => ({ label: account.account_name, value: account.id }))}
+                                                    onChange={(newValue) => handleInputChange("expense_code", newValue)}
+                                                    label="Account"
+                                                    placeholder="Select Account"
+                                                    initialValue={state.expense_code ? {
+                                                        label: state.accounts.find(account => account.id.toString() === state.expense_code)?.account_name || '',
+                                                        value: state.expense_code
+                                                    } : null}
+                                                />
                                             </FormControl>
                                         )}
                                         <FormLabel>Status</FormLabel>

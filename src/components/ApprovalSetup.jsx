@@ -155,7 +155,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
+            const response = await axios.get(`${API_SERVER1}/get-available-doc-types`, { headers });
             const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,

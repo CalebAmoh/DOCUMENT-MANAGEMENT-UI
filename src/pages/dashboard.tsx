@@ -5,6 +5,7 @@ import Card from '@mui/joy/Card';
 import CardContent from '@mui/joy/CardContent';
 import Typography from '@mui/joy/Typography';
 import { styled } from '@mui/joy/styles';
+import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
 import { ReactComponent as FolderOpenIcon } from "../utils/icons/folder-open-svgrepo-com.svg";
 
 // Styled component for the dashboard container
@@ -28,11 +29,18 @@ const StyledCard = styled(Card)({
 });
 
 const Dashboard = () => {
-  const dashboardItems = [
+  const folders = [
     { title: 'Generated Documents', count: '23 Files', size: '50MB' },
     { title: 'Approved Documents', count: '170 Files', size: '129MB' },
     { title: 'Unapproved Documents', count: '170 Files', size: '129MB' },
     { title: 'Rejected Documents', count: '170 Files', size: '129MB' },
+  ];
+  
+  const recentFiles = [
+    { title: '2025 developmental project', doctype: 'Project', size: '15KB' },
+    { title: '140,000 loan request', doctype: 'Loan Request', size: '105KB' },
+    { title: '50,000 loan request', doctype: 'Loan Request', size: '155KB' },
+    { title: 'Student Sponsorship', doctype: 'Sponsorship', size: '155KB' },
   ];
 
   return (
@@ -41,7 +49,7 @@ const Dashboard = () => {
         Dashboard
       </Typography>
       <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-        {dashboardItems.map((item, index) => (
+        {folders.map((item, index) => (
           <Grid xs={12} sm={6} md={3} key={index}>
             <StyledCard variant="soft" sx={{
               boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.3)',
@@ -54,6 +62,31 @@ const Dashboard = () => {
                 <Typography level="body-xs">
                   {item.count} · {item.size}
                 </Typography>
+              </CardContent>
+            </StyledCard>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Typography color="neutral" level="title-lg" variant="plain" sx={{ mt: 4, mb: 1 }}>Recent</Typography>
+      <Grid container spacing={2} sx={{ flexGrow: 1 }}>
+        {recentFiles.map((item, index) => (
+          <Grid xs={12} sm={6} md={3} key={index}>
+            <StyledCard variant="outlined" sx={{
+              // boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.3)',
+              // color: '#fdfefe',
+              mr: 2
+            }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PdfSvg style={{width: 30, height: 30}} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography level="title-md">{item.title}</Typography>
+                    <Typography level="body-xs">
+                      Category: {item.doctype} · {item.size}
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
             </StyledCard>
           </Grid>

@@ -10,6 +10,7 @@ import Params from "../components/Params";
 import Approvers from "../components/Approvers";
 import TempApprovers from "../components/TempApprovers";
 import ApprovalSetup from "../components/ApprovalSetup";
+import GlSetup from "../components/GlSetup";
 const Settings = () => {
   return (
     <div className="">
@@ -97,6 +98,13 @@ const Settings = () => {
               >
                 Document Approval Setup
               </Tab>
+              <Tab
+                sx={{ borderRadius: "6px 6px 0 0" }}
+                indicatorInset
+                value={5}
+              >
+                Account Setup
+              </Tab>
             </TabList>
             <TabPanel value={1}>
               <Profile />
@@ -113,6 +121,9 @@ const Settings = () => {
             </TabPanel>
             <TabPanel value={4}>
               <ApprovalSetup />
+            </TabPanel>
+            <TabPanel value={5}>
+              <GlSetup />
             </TabPanel>
           </Tabs>
           {/* <Divider /> */}

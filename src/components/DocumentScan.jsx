@@ -45,18 +45,22 @@ function DocumentScan({
   return (
     <>
       <div
-        className="w-full flex items-center justify-center"
+        className="w-full flex items-center justify-center p-4"
         onDrop={handleFileDrop}
-        onDragOver={(event) => event.preventDefault()} // Prevent default behavior for drag and drop
+        onDragOver={(event) => event.preventDefault()}
       >
         <Label
           htmlFor="dropzone-file"
-          className="w-full flex h-64 w-64 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 bg-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-300"
-          style={{ width: "100%",height:"80%"}}
+          className="w-full flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 bg-gray-200 dark:hover:border-gray-500 dark:hover:bg-gray-300"
+          style={{ 
+            width: "100%",
+            minHeight: "200px",
+            height: "auto"
+          }}
         >
-          <div className="w-full flex flex-col items-center justify-center pb-6 pt-5">
+          <div className="w-full flex flex-col items-center justify-center p-4">
             <svg
-              className="mb-4 h-8 w-8 text-gray-500 dark:text-gray-400"
+              className="mb-2 h-6 w-6 sm:h-8 sm:w-8 text-gray-500 dark:text-gray-400"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -70,11 +74,11 @@ function DocumentScan({
                 d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
               />
             </svg>
-            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mb-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400">
               <span className="font-semibold">Click to upload</span> or drag and
               drop
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-center text-gray-500 dark:text-gray-400">
               PDF (MAX. 800x400px)
             </p>
           </div>
@@ -105,16 +109,27 @@ function DocumentScan({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              marginLeft: "15%",
+              margin: {
+                xs: '16px',
+                sm: '32px',
+                md: '15%'
+              },
             }}
           >
             <Sheet
               variant="outlined"
               sx={{
-                maxWidth: 900,
-                width:"100%",
+                maxWidth: {
+                  xs: '100%',
+                  sm: '90%',
+                  md: 900
+                },
+                width: "100%",
                 borderRadius: "md",
-                p: 3,
+                p: {
+                  xs: 2,
+                  sm: 3
+                },
                 boxShadow: "lg",
               }}
             >
@@ -122,7 +137,7 @@ function DocumentScan({
               
               <Typography id="modal-desc" textColor="text.tertiary">
                   <Box sx={{ mb: 1 }}>
-                    <img src="https://media.licdn.com/dms/image/C4D0BAQFyneLvWM12fg/company-logo_200_200/0/1630474848751?e=2147483647&v=beta&t=MkU6tTOVPg9u5fSNAOmsL0QNwav6jsycqP72-wTjwt0" className="h-8 w-8" alt="" srcset=""/>
+                    <img src="https://media.licdn.com/dms/image/C4D0BAQFyneLvWM12fg/company-logo_200_200/0/1630474848751?e=2147483647&v=beta&t=MkU6tTOVPg9u5fSNAOmsL0QNwav6jsycqP72-wTjwt0" className="h-6 w-6 sm:h-8 sm:w-8" alt="" srcset=""/>
                     <Typography level="title-md">
                       Update Details
                     </Typography>
@@ -169,13 +184,21 @@ function DocumentScan({
                         ))
                       )}
                   </Stack>
-                  <CardActions>
+                  <CardActions sx={{ 
+                    flexDirection: { 
+                      xs: 'column',
+                      sm: 'row' 
+                    },
+                    gap: 1
+                  }}>
                   <Button
                     sx={{
                       backgroundColor: "#00357A",
                       color: "#fff",
-                      width: "20%", // Adjust width to fit both buttons in a row
-                      marginRight: "1%",
+                      width: { 
+                        xs: '100%',
+                        sm: '20%' 
+                      },
                       marginTop: "4%"
                     }}
                     onClick={convertToBase64}
@@ -186,8 +209,14 @@ function DocumentScan({
                     sx={{
                       backgroundColor: "#6c757d",
                       color: "#fff",
-                      width: "20%", // Adjust width to fit both buttons in a row
-                      marginTop: "4%"
+                      width: { 
+                        xs: '100%',
+                        sm: '20%' 
+                      },
+                      marginTop: { 
+                        xs: '2%',
+                        sm: '4%' 
+                      }
                     }}
                     onClick={closeModal}
                   >

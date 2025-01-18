@@ -83,24 +83,53 @@ const truncateText = (text:string, wordLimit:number) => {
   return text;
 };
 
+// Add these styles for mobile responsiveness
+const mobileStyles = {
+  tableContainer: {
+    overflowX: 'auto',
+    width: '100%',
+    '@media (max-width: 600px)': {
+      fontSize: '14px',
+    }
+  },
+  mobileCell: {
+    '@media (max-width: 600px)': {
+      display: 'none'
+    }
+  },
+  responsiveCell: {
+    '@media (max-width: 600px)': {
+      padding: '8px 4px',
+      whiteSpace: 'nowrap',
+      fontSize: '12px'
+    }
+  },
+  hiddenOnMobile: {
+    '@media (max-width: 600px)': {
+      display: 'none'
+    }
+  }
+};
+
 const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, handleMessage }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const [selectedRow, setSelectedRow] = React.useState<any | null>(null)
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [selectedRow, setSelectedRow] = React.useState<any | null>(null);
   const [tabValue, setTabValue] = React.useState(3)
   const menuRef = useRef<HTMLDivElement>(null);
   
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, data: any) => {
-    setAnchorEl(event.currentTarget)
-    // console.log("data",data);
-    setSelectedRow(data)
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, row: any) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedRow(row);
+    setAnchorEl(event.currentTarget);
   }
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-    setSelectedRow(null)
+    setAnchorEl(null);
+    setSelectedRow(null);
   }
 
   
@@ -157,22 +186,32 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
           display: { xs: "flex", sm: "none" },
           my: 1,
           gap: 1,
+          flexDirection: 'column', // Changed to column for better mobile layout
+          width: '100%'
         }}
       >
         <Input
           size="sm"
           placeholder="Search"
           startDecorator={<SearchIcon />}
-          sx={{ flexGrow: 1 }}
+          sx={{ flexGrow: 1, width: '100%' }}
         />
-        <IconButton
-          size="sm"
-          variant="outlined"
-          color="neutral"
-          onClick={() => setOpen(true)}
-        >
-          <FilterAltIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+          <FormControl size="sm" sx={{ flexGrow: 1 }}>
+            <Select size="sm" placeholder="Status">
+              <Option value="active">Active</Option>
+              <Option value="inactive">Inactive</Option>
+            </Select>
+          </FormControl>
+          <IconButton
+            size="sm"
+            variant="outlined"
+            color="neutral"
+            onClick={() => setOpen(true)}
+          >
+            <FilterAltIcon />
+          </IconButton>
+        </Box>
       </Sheet>
       <Box
         className="SearchAndFilters-tabletUp"
@@ -201,7 +240,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
       className="BankTableContainer"
       variant="outlined"
       sx={{
-        display: { xs: "none", sm: "initial" },
+        ...mobileStyles.tableContainer,
         width: "100%",
         borderRadius: "sm",
         flexShrink: 1,
@@ -221,14 +260,18 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                 "var(--joy-palette-background-level1)",
               "--TableCell-paddingY": "4px",
               "--TableCell-paddingX": "8px",
+              "@media (max-width: 600px)": {
+                "--TableCell-paddingX": "4px",
+              }
             }}
           >
             <thead>
               <tr>
+              
                 <th
-                  style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
+                  style={{ ...mobileStyles.responsiveCell, width: 48, textAlign: "center" }}
                 ></th>
-                <th style={{ width: 120, padding: "12px 6px" }}>
+                <th style={{ ...mobileStyles.responsiveCell, width: 120 }}>
                   <Link
                     underline="none"
                     color="primary"
@@ -247,11 +290,15 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                     ID
                   </Link>
                 </th>
-                <th style={{ width: 140, padding: "12px 6px" }}>Document</th>
-                <th style={{ width: 140, padding: "12px 30px" }}>Type</th>
-                <th style={{ width: 180, padding: "12px 6px" }}>Description</th>
-                <th style={{ width: 120, padding: "12px 6px" }}>Status</th>
-                <th style={{ width: 120, padding: "12px 6px" }}>Actions</th>
+                <th style={{ ...mobileStyles.responsiveCell, width: 140 }}>Document</th>
+                <th style={{ ...mobileStyles.responsiveCell, width: 140 }}>Type</th>
+                <th style={{ 
+                  ...mobileStyles.responsiveCell, 
+                  ...mobileStyles.hiddenOnMobile,
+                  width: 180 
+                }}>Description</th>
+                <th style={{ ...mobileStyles.responsiveCell, width: 120 }}>Status</th>
+                <th style={{ ...mobileStyles.responsiveCell, width: 120 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -389,8 +436,16 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                         <Link level="body-xs" component="button">
                         
-                            <IconButton onClick={(event) => handleMenuClick(event, row)}>
-                              <Kebab style={{ width: 25, height: 25 }} />
+                            <IconButton 
+                              onClick={(event) => handleMenuClick(event, row)}
+                              variant="plain"
+                              color="neutral"
+                              sx={{ 
+                                '--IconButton-size': '30px',
+                                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+                              }}
+                            >
+                              <Kebab style={{ width: 20, height: 20 }} />
                             </IconButton>
 
                         </Link>
@@ -400,39 +455,62 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
               )))}
             </tbody>
             <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                ref={menuRef}
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              placement="bottom-end"
+              sx={{
+                zIndex: 9999,
+                minWidth: '200px',
+                '--Menu-decoratorChildOffset': '0.5rem',
+              }}
+            >
+              <MenuItem 
+                onClick={() => {
+                  handleOpen("update", selectedRow?.id);
+                  handleMenuClose();
+                }}
               >
-              
-              <MenuItem onClick={(event) => handleOpen("update", selectedRow.id)}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   Edit Document
-                  <EditIcon style={{ width: 25, height: 25 }} />
+                  <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                 </Box>
               </MenuItem>
-              <MenuItem onClick={(event) => handleOpen("view", selectedRow.id)}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <MenuItem 
+                onClick={() => {
+                  handleOpen("view", selectedRow?.id);
+                  handleMenuClose();
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   View Document
-                  <ViewIcon style={{ width: 25, height: 25 }} />
+                  <ViewIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                 </Box>
               </MenuItem>
               {selectedRow && selectedRow.status === "draft" ? (
-                <MenuItem onClick={(event) => handleOpen("submit", selectedRow.id)}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <MenuItem 
+                  onClick={() => {
+                    handleOpen("submit", selectedRow.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     Submit Document
-                    <SubmitIcon style={{ width: 25, height: 25 }} />
+                    <SubmitIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                   </Box>
                 </MenuItem>
-              ):(
-                <MenuItem onClick={(event) => handleMessage(selectedRow.id)}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              ) : (
+                <MenuItem 
+                  onClick={() => {
+                    handleMessage(selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     Declined Reason
-                    <MessageIcon style={{ width: 25, height: 25 }} />
+                    <MessageIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                   </Box>
                 </MenuItem>
-                // <MenuItem onClick={(event) => handleMessage(selectedRow.id)} >Declined Reason <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
               )}
             </Menu>
           </Table>
@@ -479,6 +557,35 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
     >
       Next
     </Button>
+    </Box>
+
+    {/* Mobile pagination */}
+    <Box
+      className="Pagination-mobile"
+      sx={{
+        display: { xs: 'flex', md: 'none' },
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        p: 2,
+      }}
+    >
+      <Button
+        size="sm"
+        variant="outlined"
+        color="neutral"
+        startDecorator={<KeyboardArrowLeftIcon />}
+      >
+        Previous
+      </Button>
+      <Typography level="body-sm">Page 1 of 10</Typography>
+      <Button
+        size="sm"
+        variant="outlined"
+        color="neutral"
+        endDecorator={<KeyboardArrowRightIcon />}
+      >
+        Next
+      </Button>
     </Box>
   </React.Fragment>
   );

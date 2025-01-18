@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import Autocomplete from '@mui/joy/Autocomplete';
 import { createFilterOptions } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import Box from '@mui/joy/Box';
 
 // Define interface for option structure
 interface Option {
@@ -74,6 +76,17 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       clearOnBlur
       handleHomeEndKeys
       placeholder={placeholder}
+      // Add the endDecorator prop for the dropdown icon
+      endDecorator={
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          color: 'neutral.500',
+          pointerEvents: 'none'
+        }}>
+          <ArrowDropDownIcon />
+        </Box>
+      }
       // Custom option label getter
       getOptionLabel={(option) => {
         if (typeof option === 'string') return option;
@@ -81,7 +94,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       }}
       // Custom option rendering
       renderOption={(props, option) => (
-        <li {...props}  style={{
+        <li {...props} style={{
             padding: '8px 12px',
             cursor: 'pointer'
           }}
@@ -95,7 +108,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       // Styling customization
       sx={{
         width: '100%',
-        // Add any additional custom styles here
+        '& .MuiAutocomplete-endDecorator': {
+          position: 'absolute',
+          right: '10px',
+        },
         '--Input-focusedHighlight': 'none',
         '--Input-focusedThickness': '0.5px',
       }}
