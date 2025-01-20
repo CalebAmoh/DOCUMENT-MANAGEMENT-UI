@@ -54,11 +54,15 @@ const ApprovalActivity = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-submitted-docs`, { headers });
-            const data = response.data.documents;
+            const data = {
+                userId: 2,
+            };
+
+            const response = await axios.post(`${API_SERVER1}/get-pending-docs`,data, { headers });
+            const pending_docs = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
-                docs: data,
+                docs: pending_docs,
                 loading: false
             }));
         } catch (error) {

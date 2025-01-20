@@ -33,6 +33,7 @@ const ApprovalSetup = () => {
      // this handles the state of the component
     const [state, setState] = useState({
         docs: [], // Array to store the generated documents
+        docsAvailable: [], // Array to store the generated documents
         setups: [], // Array to store the approver setups
         description: "", // Description of the document type
         trans_type: "", // Transaction type of the document
@@ -147,6 +148,30 @@ const ApprovalSetup = () => {
         }));
     }, []);
 
+    //this function fetches all available doc types
+    const fetchAvailableDocTypes = useCallback(async () => {
+        try {
+            setState((prevState) => ({
+                ...prevState,
+                loading: true
+            }));
+
+            const response = await axios.get(`${API_SERVER1}/get-available-doc-types`, { headers });
+            const data = response.data.documents;
+            setState((prevState) => ({
+                ...prevState,
+                docsAvailable: data,
+                loading: false
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+                loading: false
+            }));
+        }
+    }, []);
+    
     //this function fetches all doc types
     const fetchDocTypes = useCallback(async () => {
         try {
@@ -155,7 +180,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-available-doc-types`, { headers });
+            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
             const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
@@ -225,6 +250,7 @@ const ApprovalSetup = () => {
 
     //this useEffect fetches the submitted documents
     useEffect(() => {
+        fetchAvailableDocTypes();
         fetchDocTypes();
         fetchApproverSetups();
         fetchApproverUsers();
@@ -447,6 +473,7 @@ const ApprovalSetup = () => {
                 // Reset the form
                 handleClose("add");
                 fetchApproverSetups();
+                fetchAvailableDocTypes();
                 fetchDocTypes();
                 setState(prevState => ({
                     ...prevState,
@@ -621,7 +648,7 @@ const ApprovalSetup = () => {
                                                     <FormControl sx={{ width: "100%" }}>
                                                         
                                                         <SearchableSelect 
-                                                            options={state.docs.map(doc => ({ label: doc.description, value: doc.id.toString() }))}
+                                                            options={state.docsAvailable.map(doc => ({ label: doc.description, value: doc.id.toString() }))}
                                                             onChange={(newValue) => handleInputChange("doc_type", newValue)}
                                                             label="Document Type"
                                                             placeholder="Select Document type"

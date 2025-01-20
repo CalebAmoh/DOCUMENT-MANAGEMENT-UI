@@ -62,6 +62,15 @@ function stableSort<T>(
   return stabilizedThis.map((el) => el[0]);
 }
 
+//handles truncating text
+const truncateText = (text:string, wordLimit:number) => {
+  const words = text.split(' ');
+  if (words.length > wordLimit) {
+    return words.slice(0, wordLimit).join(' ') + '...';
+  }
+  return text;
+};
+
 interface ApproversTableProps {
   data: Array<{
     id: number;
@@ -297,7 +306,7 @@ const ApprovalActivityTable: React.FC<ApproversTableProps> = ({ data, handleOpen
                     <Typography level="body-sm">{row.doctype_name}</Typography>
                   </td>
                   <td className="font-semibold text-sm ">
-                    <Typography level="body-sm">{row.details}</Typography>
+                    <Typography level="body-sm">{truncateText(row.details,10)}</Typography>
                   </td>
                   {/* <td className="font-semibold text-sm ">
                     <Typography level="body-sm">{row.status}</Typography>
