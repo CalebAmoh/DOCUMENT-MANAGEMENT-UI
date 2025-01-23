@@ -20,9 +20,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as FileSvg } from "../utils/icons/pdf-file-svgrepo-com.svg";
 import { ReactComponent as Kebab } from "../utils/icons/kebab-svgrepo.svg";
 import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
-import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
-import { ReactComponent as ViewIcon } from "../utils/icons/eye-password-eye-password-svgrepo-com.svg";
-import { ReactComponent as SubmitIcon } from "../utils/icons/send-svgrepo-com.svg";
 import ApproveIcon  from "../utils/icons/accept-mark-check-tick-svgrepo-com.png";
 import { ReactComponent as RejectIcon } from "../utils/icons/cancel-remove-delete-cross-svgrepo-com.svg";
 
@@ -408,16 +405,22 @@ const ApprovalActivityTable: React.FC<ApproversTableProps> = ({ data, handleOpen
                 onClose={handleMenuClose}
                 ref={menuRef}
               >
-              <MenuItem onClick={(event) => handleOpen("edit", selectedRow.id)}>
+              {/* <MenuItem onClick={(event) => handleOpen("edit", selectedRow.id)}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                   Approve 
                   <img src={ApproveIcon} alt="Approve" style={{ width: 25, height: 25,marginLeft:'4px' }} />
                 </Box>
-              </MenuItem>
-              <MenuItem onClick={(event) => handleOpen("update", selectedRow.id)}>
+              </MenuItem> */}
+              {/* <MenuItem onClick={(event) => handleOpen("update", selectedRow.id)}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                   Reject 
                   <RejectIcon style={{ width: 25, height: 25 }} />
+                </Box>
+              </MenuItem> */}
+              <MenuItem onClick={(event) => handleOpen("view", selectedRow.id)}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  View Details 
+                  <RemoveRedEyeIcon sx={{mt:'3px',ml:'2px'}}/>
                 </Box>
               </MenuItem>
             </Menu>

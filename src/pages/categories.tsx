@@ -103,9 +103,9 @@ export default function Categories() {
             <Tab sx={{ borderRadius: '6px 6px 0 0' }} indicatorInset value={1}>
               Generated
             </Tab>
-            {/* <Tab sx={{ borderRadius: '6px 6px 0 0' }} indicatorInset value={2}>
+            <Tab sx={{ borderRadius: '6px 6px 0 0' }} indicatorInset value={2}>
               Verification
-            </Tab> */}
+            </Tab>
           </TabList>
           <TabPanel value={0}>
             <Initial />

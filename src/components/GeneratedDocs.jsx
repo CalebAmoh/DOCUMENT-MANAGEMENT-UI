@@ -447,9 +447,6 @@ const GeneratedDocs = () => {
   //fetches doc details based on idd
   const fetchDocDetails = async (id,type) => {
     try {
-
-      
-      
       const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
         headers: headers
       });

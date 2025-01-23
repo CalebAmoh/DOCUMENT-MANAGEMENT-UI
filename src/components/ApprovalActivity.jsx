@@ -7,7 +7,9 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ApprovalActivityTable from './ApprovalActivityTable';
+import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import { API_SERVER, API_SERVER1, headers } from "../constant";
+
 import axios from "axios";
 
 const ApprovalActivity = () => {
@@ -16,6 +18,7 @@ const ApprovalActivity = () => {
     const [modals, setModals] = useState({
         view: false,
         viewDoc: false,
+        approvalDetails: false,
         decline: false,
         approval: false,
         response: false,
@@ -39,12 +42,41 @@ const ApprovalActivity = () => {
         branches: [], // Array to store the branches
         decline_reason: null, // Decline reason
         success: null, // Success message
-        loading : false
+        loading : false,
+        recommended_amount : "",
+        remarks : null
     });
 
     // the maximum number of characters allowed
     const maxChars = 255;
 
+    // Add a useState hook for tracking the remaining characters
+    const [remainingChars, setRemainingChars] = useState(maxChars);
+
+    // Add a handler for text changes
+    const handleDeclineReasonChange = (value) => {
+        console.log(value,"remain")
+        setState(prev => ({
+            ...prev,
+            declineReason: value
+        }));
+        // Update remaining characters
+        setRemainingChars(maxChars - (value?.length || 0));
+    };
+   
+    // Add a handler for remarks changes
+    const handleRemarksChange = (value) => {
+        if (value.length <= maxChars) {
+            console.log(value,"remain");
+            setState(prev => ({
+                ...prev,
+                remarks: value
+            }));
+            
+            // Update remaining characters
+            setRemainingChars(maxChars - (value?.length || 0));
+        }
+    };
 
     //this function fetches submitted documents
     const fetchDocs = useCallback(async () => {
@@ -181,7 +213,18 @@ const ApprovalActivity = () => {
     //this function is used to handle verification
     const handleApprove = useCallback(async () => {
         try {
-            const response = await axios.put(`${API_SERVER}/verify-doc/${state.selectedDocId}`, {}, {headers: headers})
+
+            //holds data to be sent to the server
+            const data = {
+                docId: state.selectedDocId,
+                userId: 2,
+                recommended_amount: state.recommended_amount,
+                remarks: state.remarks
+            };
+
+            console.log(data);return;
+
+            const response = await axios.put(`${API_SERVER1}/approve-doc`, {data}, {headers});
             
             fetchDocs();
             handleClose();
@@ -275,6 +318,144 @@ const ApprovalActivity = () => {
                     <ApprovalActivityTable data={state.docs} handleOpen={handleOpen} />
 
                     {/* Modal for viewing doc details */}
+                   
+
+                    {/* Display document */}
+                    <Modal
+                            aria-labelledby="modal-title"
+                            aria-describedby="modal-desc"
+                            open={modals.viewDoc} onClose={() => handleClose("viewDoc")}
+                            slotProps={{
+                            backdrop: {
+                                sx: {
+                                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                backdropFilter: "none",
+                                },
+                            },
+                            }}
+                            sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginLeft: "15%",
+                            }}
+                        >
+                            <Sheet
+                            variant="outlined"
+                            sx={{
+                                maxWidth: '90%',
+                                width: "100%",
+                                borderRadius: "md",
+                                p: 3,
+                                boxShadow: "lg",
+                            }}
+                            >
+                            <ModalClose variant="plain" sx={{ m: 1 }} />
+                            <Typography id="modal-desc" textColor="text.tertiary">
+                                
+                                    <iframe
+                                    src={`http://10.203.14.169/dms/filesearch-${state.docNumber}`}
+                                    width="100%"
+                                    height="500px"
+                                    title="Document Viewer"
+                                    style={{ marginTop: '20px' }}
+                                    />
+
+                                
+                            </Typography>
+                            </Sheet>
+                    </Modal>
+                 
+                    
+                    {/* Approval modal */}
+                    <Modal
+                            aria-labelledby="modal-title"
+                            aria-describedby="modal-desc"
+                            open={modals.approvalDetails} onClose={() => handleClose("approvalDetails")}
+                            slotProps={{
+                            backdrop: {
+                                sx: {
+                                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                backdropFilter: "none",
+                                },
+                            },
+                            }}
+                            sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginLeft: "15%",
+                            }}
+                        >
+                            <Sheet
+                            variant="outlined"
+                            sx={{
+                                maxWidth: '50%',
+                                width: "40%",
+                                borderRadius: "md",
+                                p: 3,
+                                boxShadow: "lg",
+                            }}
+                            >
+                            <ModalClose variant="plain" sx={{ m: 1 }} />
+                            <Typography id="modal-desc" textColor="text.tertiary">
+                                
+                                <Box sx={{ mb: 1 }}>
+                                    <Typography level="title-md">
+                                     Approval
+                                    </Typography>
+                                </Box>
+                                <Divider sx={{ marginBottom: 2 }} />
+                                <Stack spacing={4}>
+                                    <Stack direction="row" spacing={4}>
+                                        <FormControl sx={{ width: "100%" }}>
+                                            <FormLabel>Recommended Amount</FormLabel>
+                                            <Input
+                                                size="sm"
+                                                type="text"
+                                                value={state.recommended_amount}
+                                                placeholder="Enter a recommended Amount"
+                                                onChange={(newValue) => handleInputChange("recommended_amount",newValue)} 
+                                            />
+                                            
+                                        </FormControl>
+                                        
+                                    </Stack>
+                                    <Stack direction="row" spacing={4}>
+                                        <FormControl sx={{ width: "100%" }}>
+                                            <FormLabel>Remarks</FormLabel>
+                                            <Textarea
+                                            color="neutral"
+                                            minRows={4}
+                                            value={state.remarks}
+                                            placeholder="Enter Approval Remarks"
+                                            onChange={(e) => handleRemarksChange(e.target.value)}
+                                            />
+                                            <Typography level="body-sm">
+                                            {remainingChars} characters left
+                                            </Typography>
+                                        </FormControl>
+                                    </Stack>
+                                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            sx={{ backgroundColor: "#00357A" }}
+                                            onClick={() => {
+                                            handleApprove();
+                                            }}
+                                        >
+                                            Approve
+                                        </Button>
+                                    </CardActions>
+                                </Stack>
+
+                                
+                            </Typography>
+                            </Sheet>
+                    </Modal>
+
+                    {/* Modal for viewing doc details */}
                     <Modal
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
@@ -334,7 +515,7 @@ const ApprovalActivity = () => {
                                             ))}
                                         </Select>
                                         </FormControl>
-                                        <FormControl sx={{ width: "100%" }}>
+                                        {/* <FormControl sx={{ width: "100%" }}>
                                         <FormLabel >Branch</FormLabel>
                                         <Select
                                             size="sm"
@@ -350,7 +531,27 @@ const ApprovalActivity = () => {
                                             </Option>
                                             ))}
                                         </Select>
+                                        </FormControl> */}
+                                        <FormControl sx={{ width: "80%" }}>
+                                            <FormLabel >Document Id (Upload file to generate id)</FormLabel>
+                                            <Input
+                                                size="sm"
+                                                value={state.docNumber}
+                                                placeholder="document id"
+                                                disabled
+                                                sx={{ backgroundColor: "#eaecee" }}
+                                                onChange={(e) => handleInputChange("doc_id",e.target.value)}
+                                            />
                                         </FormControl>
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            sx={{ height: '30px', marginTop: '24px!important', backgroundColor: "#229954" }}
+                                            color="neutral"
+                                            onClick={() => handleOpen("viewDoc")}
+                                        >
+                                            <RemoveRedEyeIcon/>
+                                        </Button>
                                     </Stack>
                                     {state.requestedAmount !== null && (
                                     <Stack direction="row" spacing={4}>
@@ -397,17 +598,17 @@ const ApprovalActivity = () => {
                                         />
                                         </FormControl>
                                     </Stack>
-                                    <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
-                                    <FormControl sx={{ width: "44%" }}>
-                                        <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
-                                        <Input
-                                            size="sm"
-                                            value={state.docNumber}
-                                            placeholder="document id"
-                                            disabled
-                                            sx={{ backgroundColor: "#eaecee" }}
-                                            onChange={(e) => handleInputChange("doc_id",e.target.value)}
-                                        />
+                                    {/* <Stack direction="row" spacing={2} sx={{display: "flex",justifyContent: "center"}}>
+                                        <FormControl sx={{ width: "44%" }}>
+                                            <FormLabel >Document Id (Upload doc to generate new id)</FormLabel>
+                                            <Input
+                                                size="sm"
+                                                value={state.docNumber}
+                                                placeholder="document id"
+                                                disabled
+                                                sx={{ backgroundColor: "#eaecee" }}
+                                                onChange={(e) => handleInputChange("doc_id",e.target.value)}
+                                            />
                                         </FormControl>
                                         <Button
                                             size="sm"
@@ -418,37 +619,113 @@ const ApprovalActivity = () => {
                                         >
                                             View Doc
                                         </Button>
-                                    </Stack>
+                                    </Stack> */}
                                     
                                 </Stack>
                                     <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                                         <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
                                         
-                                        <Button
-                                            size="sm"
-                                            variant="solid"
-                                            sx={{ backgroundColor: "#00357A",marginLeft: "8px" }}
-                                            onClick={() => {
-                                            handleOpen("approval",state.selectedDocId);
-                                            }}
-                                        >
-                                            Approve
-                                        </Button><Button
-                                            size="sm"
-                                            variant="solid"
-                                            sx={{ backgroundColor: "#00357A",marginLeft: "8px" }}
-                                            onClick={() => {
-                                            handleOpen("decline",state.selectedDocId);
-                                            }}
-                                        >
-                                            Reject
-                                        </Button>
+                                            <Button size="sm"  sx={{ml:"3px"}} variant="outlined" onClick={() => {handleOpen("decline",state.selectedDocId);}}>Decline</Button>
+                                            <Button
+                                                size="sm"
+                                                variant="solid"
+                                                sx={{ backgroundColor: "#00357A",marginLeft: "8px" }}
+                                                onClick={() => {
+                                                    handleOpen("approvalDetails","");
+                                                }}
+                                            >
+                                                Approve
+                                            </Button>
+                                        
                                         </CardActions>
                                     </CardOverflow>
                                 
                                 </Typography>
                         
 
+                            </Sheet>
+                    </Modal>
+
+                  
+                    {/* Decline Reason */}
+                    <Modal
+                            aria-labelledby="modal-title"
+                            aria-describedby="modal-desc"
+                            open={modals.decline1} onClose={() => handleClose("decline")}
+                            slotProps={{
+                            backdrop: {
+                                sx: {
+                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                    backdropFilter: "none",
+                                },
+                            },
+                            }}
+                            sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginLeft: "15%",
+                            }}
+                        >
+                            <Sheet
+                            variant="outlined"
+                            sx={{
+                                maxWidth: '80%',
+                                width: "80%",
+                                borderRadius: "md",
+                                p: 3,
+                                boxShadow: "lg",
+                            }}
+                            >
+                            <ModalClose variant="plain" sx={{ m: 1 }} />
+                            <Typography id="modal-desc" textColor="text.tertiary">
+                                
+                                <Box sx={{ mb: 1 }}>
+                                    <Typography level="title-md">
+                                    Decline Reason
+                                    </Typography>
+                                </Box>
+                                <Divider sx={{ marginBottom: 2 }} />
+                                <Stack spacing={4}>
+                                    <Stack direction="row" spacing={4}>
+                                        <FormControl sx={{ width: "100%" }}>
+                                            <FormLabel>Reason</FormLabel>
+                                            <Textarea
+                                            color="neutral"
+                                            minRows={4}
+                                            value={state.declineReason || ""}
+                                            placeholder="Enter Decline Reason"
+                                            onChange={(e) => {
+                                                if (e.target.value.length <= maxChars) {
+                                                setState((prevState) => ({
+                                                    ...prevState,
+                                                    declineReason: e.target.value,
+                                                }));
+                                                handleInputChange("decline_reason", e.target.value);
+                                                }
+                                            }}
+                                            />
+                                            <Typography variant="body2">
+                                            {maxChars - (state.declineReason?.length || 0)} characters left
+                                            </Typography>
+                                        </FormControl>
+                                    </Stack>
+                                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            sx={{ backgroundColor: "#00357A" }}
+                                            onClick={() => {
+                                            handleDecline();
+                                            }}
+                                        >
+                                            Submit
+                                        </Button>
+                                    </CardActions>
+                                </Stack>
+
+                                
+                            </Typography>
                             </Sheet>
                     </Modal>
 
@@ -497,278 +774,8 @@ const ApprovalActivity = () => {
                             </Typography>
                             </Sheet>
                     </Modal>
-                    
-                    {/* Decline Reason */}
-                    <Modal
-                            aria-labelledby="modal-title"
-                            aria-describedby="modal-desc"
-                            open={modals.decline} onClose={() => handleClose("decline")}
-                            slotProps={{
-                            backdrop: {
-                                sx: {
-                                backgroundColor: "rgba(0, 0, 0, 0.6)",
-                                backdropFilter: "none",
-                                },
-                            },
-                            }}
-                            sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginLeft: "15%",
-                            }}
-                        >
-                            <Sheet
-                            variant="outlined"
-                            sx={{
-                                maxWidth: '80%',
-                                width: "80%",
-                                borderRadius: "md",
-                                p: 3,
-                                boxShadow: "lg",
-                            }}
-                            >
-                            <ModalClose variant="plain" sx={{ m: 1 }} />
-                            <Typography id="modal-desc" textColor="text.tertiary">
-                                
-                                <Box sx={{ mb: 1 }}>
-                                    <Typography level="title-md">
-                                    Rejection Reason
-                                    </Typography>
-                                </Box>
-                                <Divider sx={{ marginBottom: 2 }} />
-                                <Stack spacing={4}>
-                                    <Stack direction="row" spacing={4}>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <FormLabel>Reason</FormLabel>
-                                            <Textarea
-                                            color="neutral"
-                                            minRows={4}
-                                            value={state.declineReason || ""}
-                                            placeholder="Enter Decline Reason"
-                                            onChange={(e) => {
-                                                if (e.target.value.length <= maxChars) {
-                                                setState((prevState) => ({
-                                                    ...prevState,
-                                                    declineReason: e.target.value,
-                                                }));
-                                                handleInputChange("decline_reason", e.target.value);
-                                                }
-                                            }}
-                                            />
-                                            <Typography variant="body2">
-                                            {maxChars - (state.declineReason?.length || 0)} characters left
-                                            </Typography>
-                                        </FormControl>
-                                    </Stack>
-                                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-                                        <Button
-                                            size="sm"
-                                            variant="solid"
-                                            sx={{ backgroundColor: "#00357A" }}
-                                            onClick={() => {
-                                            handleDecline();
-                                            }}
-                                        >
-                                            Submit
-                                        </Button>
-                                    </CardActions>
-                                </Stack>
-
-                                
-                            </Typography>
-                            </Sheet>
-                    </Modal>
-                    
-                    
-                    {/* Approval modal */}
-                    <Modal
-                            aria-labelledby="modal-title"
-                            aria-describedby="modal-desc"
-                            open={modals.approval} onClose={() => handleClose("approval")}
-                            slotProps={{
-                            backdrop: {
-                                sx: {
-                                backgroundColor: "rgba(0, 0, 0, 0.6)",
-                                backdropFilter: "none",
-                                },
-                            },
-                            }}
-                            sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginLeft: "15%",
-                            }}
-                        >
-                            <Sheet
-                            variant="outlined"
-                            sx={{
-                                maxWidth: '30%',
-                                width: "30%",
-                                borderRadius: "md",
-                                p: 3,
-                                boxShadow: "lg",
-                            }}
-                            >
-                            <ModalClose variant="plain" sx={{ m: 1 }} />
-                            <Typography id="modal-desc" textColor="text.tertiary">
-                                
-                                <Box sx={{ mb: 1 }}>
-                                    <Typography level="title-md">
-                                     Approval
-                                    </Typography>
-                                </Box>
-                                <Divider sx={{ marginBottom: 2 }} />
-                                <Stack spacing={4}>
-                                    <Stack direction="row" spacing={4}>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <FormLabel>Approved Amount</FormLabel>
-                                            {/* <Textarea
-                                            color="neutral"
-                                            minRows={4}
-                                            value={state.declineReason || ""}
-                                            placeholder="Enter Decline Reason"
-                                            onChange={(e) => {
-                                                if (e.target.value.length <= maxChars) {
-                                                setState((prevState) => ({
-                                                    ...prevState,
-                                                    declineReason: e.target.value,
-                                                }));
-                                                handleInputChange("decline_reason", e.target.value);
-                                                }
-                                            }}
-                                            /> */}
-                                            {/* <Typography variant="body2">
-                                            {maxChars - (state.declineReason?.length || 0)} characters left
-                                            </Typography> */}
-                                            <Input
-                                                size="sm"
-                                                type="text"
-                                                value={state.requestedAmount}
-                                                placeholder="Enter approved Amount"
-                                                onChange={(newValue) => handleInputChange("requested_amount",newValue)} 
-                                            />
-                                            
-                                        </FormControl>
-                                    </Stack>
-                                    <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-                                        <Button
-                                            size="sm"
-                                            variant="solid"
-                                            sx={{ backgroundColor: "#00357A" }}
-                                            onClick={() => {
-                                            handleDecline();
-                                            }}
-                                        >
-                                            Submit
-                                        </Button>
-                                    </CardActions>
-                                </Stack>
-
-                                
-                            </Typography>
-                            </Sheet>
-                    </Modal>
 
 
-                    {/* Success Modal */}
-                    {/* <Modal
-                            aria-labelledby="modal-title"
-                            aria-describedby="modal-desc"
-                            open={true} onClose={() => handleClose("response")}
-                            slotProps={{
-                            backdrop: {
-                                sx: {
-                                backgroundColor: "rgba(0, 0, 0, 0.6)",
-                                backdropFilter: "none",
-                                },
-                            },
-                            }}
-                            sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginLeft: "15%",
-                            }}
-                        >
-                            <div>
-                                <ModalClose variant="plain" sx={{ m: 1 }} />
-                                <Card
-                                    data-resizable
-                                    sx={{
-                                        textAlign: 'center',
-                                        alignItems: 'center',
-                                        width: 343,
-                                        // to make the demo resizable
-                                        overflow: 'auto',
-                                        resize: 'horizontal',
-                                        '--icon-size': '100px',
-                                    }}
-                                    >
-                                    <CardOverflow variant="solid" color="ba68c8">
-                                        <AspectRatio
-                                        variant="outlined"
-                                        //   color="warning"
-                                        ratio="1"
-                                        sx={{
-                                            m: 'auto',
-                                            transform: 'translateY(50%)',
-                                            borderRadius: '50%',
-                                            width: 'var(--icon-size)',
-                                            boxShadow: 'sm',
-                                            bgcolor: 'background.surface',
-                                            position: 'relative',
-                                            borderColor: '#5b2c6f'
-                                        }}
-                                        >
-                                        <div>
-                                        {400 === "200" ? (
-                                        <CancelOutlinedIcon sx={{ fontSize: '4rem', color: 'success.softHoverBg' }} />
-                                        ) : (
-                                        <CancelOutlinedIcon sx={{ fontSize: '4rem', color: 'error.softHoverBg' }} />
-                                        )}
-                                        </div>
-                                        </AspectRatio>
-                                    </CardOverflow>
-                                    {400 === "200" ? 
-                                    (
-                                    <Typography level="title-lg" sx={{ mt: 'calc(var(--icon-size) / 2)' }}>
-                                        Document Verified
-                                    </Typography>
-                                    ):(
-                                    <Typography level="title-lg" sx={{ mt: 'calc(var(--icon-size) / 2)' }}>
-                                        Document Declined
-                                    </Typography>
-                                    )
-                                    }
-                                    <CardContent sx={{ maxWidth: '40ch' }}>
-                                    
-                                    </CardContent>
-                                    <CardActions
-                                        orientation="vertical"
-                                        buttonFlex={1}
-                                        sx={{
-                                        '--Button-radius': '40px',
-                                        width: 'clamp(min(100%, 160px), 50%, min(100%, 200px))',
-                                        }}
-                                    >
-                                        <Button
-                                                variant="contained" // Use `contained` in Material-UI for a solid button style
-                                                sx={{
-                                                    backgroundColor: 'green',   // Set the background color to green
-                                                    color: 'white',             // Set text color to white for better contrast
-                                                    '&:hover': {
-                                                    backgroundColor: 'darkgreen', // Optional: set a darker shade on hover
-                                                    },
-                                                }}
-                                                >
-                                            Ok
-                                        </Button>
-                                    </CardActions>
-                                </Card>
-                            </div>
-                    </Modal> */}
                 </Box>
             </div>
                 )}
@@ -777,3 +784,5 @@ const ApprovalActivity = () => {
 };
 
 export default React.memo(ApprovalActivity);
+
+

@@ -346,7 +346,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       </Box>
                     </Typography>
                   </td>
-                  <td className="font-semibold text-sm " style={{ paddingLeft: '32px' }}>
+                  <td className="font-semibold text-sm " style={{ paddingLeft: '15px' }}>
                     <Typography level="body-sm">{row.doctype_name}</Typography>
                   </td>
                   <td className="font-semibold text-sm ">
