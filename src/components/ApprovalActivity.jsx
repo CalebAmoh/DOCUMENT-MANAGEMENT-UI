@@ -202,7 +202,7 @@ const ApprovalActivity = () => {
         }
       }, []);
 
-    //this function is used to handle input change
+    // This function is used to handle input change
     const handleInputChange = useCallback((key, value) => {
         setState((prevState) => ({
             ...prevState,
@@ -222,9 +222,9 @@ const ApprovalActivity = () => {
                 remarks: state.remarks
             };
 
-            console.log(data);return;
+            // console.log(data);return;
 
-            const response = await axios.put(`${API_SERVER1}/approve-doc`, {data}, {headers});
+            const response = await axios.put(`${API_SERVER1}/approve-doc`, {docId:data.docId,userId:data.userId,recommended_amount:data.recommended_amount,remarks:data.remarks}, {headers});
             
             fetchDocs();
             handleClose();
@@ -237,7 +237,7 @@ const ApprovalActivity = () => {
 
             console.error("Error:", error);
         }
-    }, [state.selectedDocId]);
+    }, [state.selectedDocId,state.recommended_amount,state.remarks]);
 
     //this function is used to handle decline
     const handleDecline = useCallback(async () => {
@@ -415,7 +415,7 @@ const ApprovalActivity = () => {
                                                 type="text"
                                                 value={state.recommended_amount}
                                                 placeholder="Enter a recommended Amount"
-                                                onChange={(newValue) => handleInputChange("recommended_amount",newValue)} 
+                                                onChange={(e) => handleInputChange("recommended_amount", e.target.value)} 
                                             />
                                             
                                         </FormControl>
