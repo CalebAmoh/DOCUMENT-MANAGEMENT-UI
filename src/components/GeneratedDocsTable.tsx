@@ -361,14 +361,14 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       size="sm"
                       startDecorator={
                         {
-                          draft: <CheckRoundedIcon />,
-                          declined: <BlockIcon />,
+                          DRAFT: <CheckRoundedIcon />,
+                          DECLINED: <BlockIcon />,
                         }[row.status]
                       }
                       color={
                         {
-                          draft: "success",
-                          declined: "danger",
+                          DRAFT: "success",
+                          DECLINED: "danger",
                         }[row.status] as ColorPaletteProp
                       }
                     >
@@ -465,17 +465,19 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                 '--Menu-decoratorChildOffset': '0.5rem',
               }}
             >
-              <MenuItem 
-                onClick={() => {
-                  handleOpen("update", selectedRow?.id);
-                  handleMenuClose();
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  Edit Document
-                  <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
-                </Box>
-              </MenuItem>
+              {selectedRow?.status !== "APPROVED" && selectedRow?.status !== "SUBMITTED" && (
+                <MenuItem 
+                  onClick={() => {
+                    handleOpen("update", selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    Edit Document
+                    <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
+                  </Box>
+                </MenuItem>
+              )}
               <MenuItem 
                 onClick={() => {
                   handleOpen("view", selectedRow?.id);
@@ -487,7 +489,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                   <ViewIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                 </Box>
               </MenuItem>
-              {selectedRow && selectedRow.status === "draft" ? (
+              {selectedRow?.status === "DRAFT" && (
                 <MenuItem 
                   onClick={() => {
                     handleOpen("submit", selectedRow.id);
@@ -499,7 +501,8 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                     <SubmitIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                   </Box>
                 </MenuItem>
-              ) : (
+              )} 
+              {selectedRow?.status === "REJECTED" && (
                 <MenuItem 
                   onClick={() => {
                     handleMessage(selectedRow?.id);
