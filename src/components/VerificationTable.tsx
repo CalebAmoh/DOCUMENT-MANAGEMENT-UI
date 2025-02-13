@@ -285,7 +285,7 @@ const VerificationTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) 
                     startDecorator={
                       {
                         draft: <CheckRoundedIcon />,
-                        submitted: <CheckRoundedIcon />,
+                        SUBMITTED: <CheckRoundedIcon />,
                         Inactive: <BlockIcon />,
                       }[row.status]
                     }

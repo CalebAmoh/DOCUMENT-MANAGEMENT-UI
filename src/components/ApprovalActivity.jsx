@@ -87,7 +87,7 @@ const ApprovalActivity = () => {
             }));
 
             const data = {
-                userId: 2,
+                userId: 4,
             };
 
             const response = await axios.post(`${API_SERVER1}/get-pending-docs`,data, { headers });
@@ -217,8 +217,8 @@ const ApprovalActivity = () => {
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
-                userId: 2,
-                recommended_amount: state.recommended_amount,
+                userId: 4,
+                // recommended_amount: state.recommended_amount,
                 remarks: state.remarks
             };
 
@@ -408,7 +408,7 @@ const ApprovalActivity = () => {
                                 <Divider sx={{ marginBottom: 2 }} />
                                 <Stack spacing={4}>
                                     <Stack direction="row" spacing={4}>
-                                        <FormControl sx={{ width: "100%" }}>
+                                        {/* <FormControl sx={{ width: "100%" }}>
                                             <FormLabel>Recommended Amount</FormLabel>
                                             <Input
                                                 size="sm"
@@ -418,7 +418,7 @@ const ApprovalActivity = () => {
                                                 onChange={(e) => handleInputChange("recommended_amount", e.target.value)} 
                                             />
                                             
-                                        </FormControl>
+                                        </FormControl> */}
                                         
                                     </Stack>
                                     <Stack direction="row" spacing={4}>

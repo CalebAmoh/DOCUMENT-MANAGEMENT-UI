@@ -293,6 +293,31 @@ const ApprovalSetup = () => {
         });
     };
 
+    //this function handles the quorum change
+    const handleQuorumChange = (index, value) => {
+        setState(prevState => {
+            const newStages = [...prevState.approvalStages];
+            const stage = { ...newStages[index] };
+            const currentMandatoryCount = stage.approvers?.filter(a => a.isMandatory).length || 0;
+            
+            // Convert value to number
+            const newQuorum = parseInt(value) || 0;
+            
+            // Check if new quorum would be less than current mandatory approvers
+            if (newQuorum < currentMandatoryCount) {
+                notifyError(`Quorum cannot be less than current required approvers (${currentMandatoryCount})`);
+                return prevState;
+            }
+            
+            stage.quorum = value;
+            newStages[index] = stage;
+            return {
+                ...prevState,
+                approvalStages: newStages
+            };
+        });
+    };
+
    
 
     // Add this new handler for mandatory status
@@ -303,16 +328,16 @@ const ApprovalSetup = () => {
             
             // Count current mandatory approvers
             const mandatoryApproversCount = stage.approvers.filter(a => a.isMandatory).length;
-    
+            const quorum = parseInt(stage.quorum) || 0;
+
             // Update the approvers' mandatory status
             stage.approvers = stage.approvers.map(approver => {
                 if (approver.userId === userId) {
-                    // Check if the current approver is being toggled to mandatory
                     const isCurrentlyMandatory = approver.isMandatory;
-                    // If toggling to mandatory, check if we can allow it
-                    if (!isCurrentlyMandatory && mandatoryApproversCount >= stage.requiredApprovers) {
-                        notifyError(`You have already selected ${stage.requiredApprovers} mandatory approvers`);
-                        return { ...approver, isMandatory: false }; // Keep it unchecked
+                    // If toggling to mandatory, check if we can allow it based on quorum
+                    if (!isCurrentlyMandatory && mandatoryApproversCount >= quorum) {
+                        notifyError(`Required approvers cannot exceed the quorum number (${quorum})`);
+                        return { ...approver }; // Keep current state
                     }
                     return { ...approver, isMandatory: !isCurrentlyMandatory };
                 }
@@ -694,16 +719,16 @@ const ApprovalSetup = () => {
                                                                     onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
                                                                 />
                                                         </FormControl>
-                                                        {/* <FormControl sx={{ flex: 1 }}>
-                                                            <FormLabel>Approvers Needed </FormLabel>
+                                                        <FormControl sx={{ flex: 1 }}>
+                                                            <FormLabel>Quorum</FormLabel>
                                                             <Input 
                                                                 size="sm" 
                                                                 type="number"
-                                                                placeholder="Select number of approvers needed"
-                                                                value={state.approvalStages[state.currentStage - 1]?.approversNeeded || ''}
-                                                                onChange={(e) => handleApproversNeededChange(state.currentStage - 1, e.target.value)}
+                                                                placeholder="Select quorum number"
+                                                                value={state.approvalStages[state.currentStage - 1]?.quorum || ''}
+                                                                onChange={(e) => handleQuorumChange(state.currentStage - 1, e.target.value)}
                                                             />
-                                                        </FormControl> */}
+                                                        </FormControl>
                                                     </Stack>
                                                 </Stack>
                                                 <Stack spacing={2}>
@@ -729,7 +754,7 @@ const ApprovalSetup = () => {
                                                         <Select
                                                             multiple
                                                             size="sm"
-                                                            sx={{ minWidth: '15rem', mb: 2, maxWidth: '550px' }}
+                                                            sx={{ minWidth: '16rem', mb: 2, maxWidth: '563px' }}
                                                             value={state.approvalStages[state.currentStage - 1]?.approvers?.map(a => a.userId) || []}
                                                             onChange={(e, newValues) => {
                                                                 const currentStageIndex = state.currentStage - 1;
@@ -784,9 +809,7 @@ const ApprovalSetup = () => {
                                                                 </Option>
                                                             ))}
                                                         </Select>
-                                                        
-                                                        
-
+                
                                                         {/* Selected Approvers List */}
                                                         {state.approvalStages[state.currentStage - 1]?.approvers.length > 0 ? (
                                                             <Card variant="outlined" sx={{ p: 1.5,maxWidth: '550px',mt:2 }}>
@@ -1026,6 +1049,16 @@ const ApprovalSetup = () => {
                                                                     value={state.approvalStages[state.currentStage - 1]?.name || ''}
                                                                     onChange={(e) => handleStageNameChange(state.currentStage - 1, e.target.value)}
                                                                 />
+                                                        </FormControl>
+                                                        <FormControl sx={{ flex: 1 }}>
+                                                            <FormLabel>Quorum</FormLabel>
+                                                            <Input 
+                                                                size="sm" 
+                                                                type="number"
+                                                                placeholder="Select quorum number"
+                                                                value={state.approvalStages[state.currentStage - 1]?.quorum || ''}
+                                                                onChange={(e) => handleQuorumChange(state.currentStage - 1, e.target.value)}
+                                                            />
                                                         </FormControl>
                                                         {/* <FormControl sx={{ flex: 1 }}>
                                                             <FormLabel>Approvers Needed </FormLabel>
@@ -1268,3 +1301,4 @@ const ApprovalSetup = () => {
 };
 
 export default React.memo(ApprovalSetup);
+
