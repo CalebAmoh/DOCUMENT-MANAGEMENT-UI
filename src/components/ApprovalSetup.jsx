@@ -422,7 +422,7 @@ const ApprovalSetup = () => {
         
 
         return Boolean(
-            stage.name?.trim() && 
+            stage.name?.trim() && stage.quorum?.trim &&
             // stage.approversNeeded && 
             // stage.requiredApprovers && 
             stage.approvers?.length > 0
@@ -437,6 +437,16 @@ const ApprovalSetup = () => {
         const stage = state.approvalStages[state.currentStage - 1];
         
         if(state.currentStage > 0){
+
+            //ensures the selected approvers is not less than the quorum
+            const selectedApproversCount = stage.approvers?.length || 0;
+            const quorum = parseInt(stage.quorum) || 0;
+
+            if (quorum > 0 && selectedApproversCount < quorum) {
+                notifyError(`You need at least ${quorum} approvers to match the quorum requirement`);
+                return false;
+            }
+
             // Add required vs needed approvers validation
 
             const neededApprovers = parseInt(stage.approversNeeded) || 0;
@@ -814,7 +824,7 @@ const ApprovalSetup = () => {
                                                         {state.approvalStages[state.currentStage - 1]?.approvers.length > 0 ? (
                                                             <Card variant="outlined" sx={{ p: 1.5,maxWidth: '550px',mt:2 }}>
                                                                 <Typography level="body-sm" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                                                    Selected Approvers:
+                                                                    Select Mandatory Approvers:
                                                                 </Typography>
                                                                 <Stack spacing={1}>
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
@@ -1157,7 +1167,7 @@ const ApprovalSetup = () => {
                                                         {state.approvalStages[state.currentStage - 1]?.approvers.length > 0 ? (
                                                             <Card variant="outlined" sx={{ p: 1.5,maxWidth: '550px',mt:2 }}>
                                                                 <Typography level="body-sm" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                                                    Selected Approvers:
+                                                                    Select Mandatory Approvers:
                                                                 </Typography>
                                                                 <Stack spacing={1}>
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
