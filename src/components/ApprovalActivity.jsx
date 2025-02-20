@@ -87,7 +87,7 @@ const ApprovalActivity = () => {
             }));
 
             const data = {
-                userId: 4,
+                userId: 2,
             };
 
             const response = await axios.post(`${API_SERVER1}/get-pending-docs`,data, { headers });
@@ -217,7 +217,7 @@ const ApprovalActivity = () => {
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
-                userId: 4,
+                userId: 2,
                 // recommended_amount: state.recommended_amount,
                 remarks: state.remarks
             };
@@ -230,11 +230,20 @@ const ApprovalActivity = () => {
             handleClose();
             const notify = openNotification(true);
             notify(response.data.message);
+            //clear the approval form
+            setState((prevState) => ({
+                ...prevState,
+                remarks: ""
+            }));
         } catch (error) {
             handleClose();
             const notify = openErrorNotification(true);
             notify(error.response.data.message);
-
+            //clear the approval form
+            setState((prevState) => ({
+                ...prevState,
+                remarks: ""
+            }));
             console.error("Error:", error);
         }
     }, [state.selectedDocId,state.recommended_amount,state.remarks]);
@@ -242,21 +251,38 @@ const ApprovalActivity = () => {
     //this function is used to handle decline
     const handleDecline = useCallback(async () => {
         try {
-            const response = await axios.put(`${API_SERVER}/decline-doc/${state.selectedDocId}`, {
-                decline_reason: state.declineReason
-            }, {headers: headers})
+
+            //holds data to be sent to the server
+            const data = {
+                docId: state.selectedDocId,
+                userId: 2,
+                // recommended_amount: state.recommended_amount,
+                remarks: state.remarks
+            };
+            const response = await axios.put(`${API_SERVER1}/reject-doc`, {data}, {headers: headers})
             fetchDocs();
             handleClose();
             handleOpen("response");
             const notify = openNotification(true);
             notify(response.data.message);
+
+            //clear the approval form
+            setState((prevState) => ({
+                ...prevState,
+                remarks: ""
+            }));
         } catch (error) {
             handleClose();
             const notify = openErrorNotification(true);
             notify(error.response.data.message);
+            //clear the approval form
+            setState((prevState) => ({
+                ...prevState,
+                remarks: ""
+            }));
             console.error("Error:", error);
         }
-    }, [state.selectedDocId, state.declineReason]);
+    }, [state.selectedDocId, state.declineReason, state.remarks]);
 
 
     
@@ -625,7 +651,7 @@ const ApprovalActivity = () => {
                                     <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                                         <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
                                         
-                                            <Button size="sm"  sx={{ml:"3px"}} variant="outlined" onClick={() => {handleOpen("decline",state.selectedDocId);}}>Decline</Button>
+                                            <Button size="sm"  sx={{ml:"3px"}} variant="outlined" onClick={() => {handleOpen("decline","");}}>Decline</Button>
                                             <Button
                                                 size="sm"
                                                 variant="solid"
@@ -651,7 +677,7 @@ const ApprovalActivity = () => {
                     <Modal
                             aria-labelledby="modal-title"
                             aria-describedby="modal-desc"
-                            open={modals.decline1} onClose={() => handleClose("decline")}
+                            open={modals.decline} onClose={() => handleClose("decline")}
                             slotProps={{
                             backdrop: {
                                 sx: {
@@ -670,8 +696,8 @@ const ApprovalActivity = () => {
                             <Sheet
                             variant="outlined"
                             sx={{
-                                maxWidth: '80%',
-                                width: "80%",
+                                maxWidth: '50%',
+                                width: "40%",
                                 borderRadius: "md",
                                 p: 3,
                                 boxShadow: "lg",
@@ -688,25 +714,17 @@ const ApprovalActivity = () => {
                                 <Divider sx={{ marginBottom: 2 }} />
                                 <Stack spacing={4}>
                                     <Stack direction="row" spacing={4}>
-                                        <FormControl sx={{ width: "100%" }}>
-                                            <FormLabel>Reason</FormLabel>
+                                    <FormControl sx={{ width: "100%" }}>
+                                            <FormLabel>Remarks</FormLabel>
                                             <Textarea
                                             color="neutral"
                                             minRows={4}
-                                            value={state.declineReason || ""}
-                                            placeholder="Enter Decline Reason"
-                                            onChange={(e) => {
-                                                if (e.target.value.length <= maxChars) {
-                                                setState((prevState) => ({
-                                                    ...prevState,
-                                                    declineReason: e.target.value,
-                                                }));
-                                                handleInputChange("decline_reason", e.target.value);
-                                                }
-                                            }}
+                                            value={state.remarks}
+                                            placeholder="Enter Approval Remarks"
+                                            onChange={(e) => handleRemarksChange(e.target.value)}
                                             />
-                                            <Typography variant="body2">
-                                            {maxChars - (state.declineReason?.length || 0)} characters left
+                                            <Typography level="body-sm">
+                                            {remainingChars} characters left
                                             </Typography>
                                         </FormControl>
                                     </Stack>

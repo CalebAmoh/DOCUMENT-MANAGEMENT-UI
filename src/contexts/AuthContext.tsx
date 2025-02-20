@@ -11,8 +11,11 @@ import React, {
 interface User {
   id: string;
   name: string;
+  roles: string[];
   // Add other fields as necessary
 }
+
+
 
 // Define the AuthContext type
 interface AuthContextType {
@@ -21,11 +24,14 @@ interface AuthContextType {
 }
 
 // Create a context with the defined type
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  setUser: () => {},
+});
 
 // Define the props type for AuthProvider
 interface AuthProviderProps {
-  children: ReactNode;
+  children: string[] | ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -38,6 +44,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
+
+
+export default AuthContext;
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

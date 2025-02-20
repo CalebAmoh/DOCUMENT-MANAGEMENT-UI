@@ -37,7 +37,7 @@ import { NavLink } from "react-router-dom";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import KeyIcon from "@mui/icons-material/Key";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-
+import useAuth from "../hooks/useAuth";
 import ColorSchemeToggle from "./ColorSxhemeToggle";
 import { closeSidebar } from "../utils/utils";
 
@@ -78,6 +78,9 @@ const getNavLinkStyles = ({ isActive }: { isActive: boolean }) => ({
   color: isActive ? "var(--joy-palette-primary-softColor)" : "inherit",
 });
 export default function Sidebar() {
+
+  const { user } = useAuth();
+
   return (
     <Sheet
       className="Sidebar"
@@ -175,7 +178,7 @@ export default function Sidebar() {
           }}
         >
           <ListItem>
-            <ListItemButton component={NavLink} to="/" style={getNavLinkStyles}>
+            <ListItemButton component={NavLink} to="/dashboard" style={getNavLinkStyles}>
               <DashboardRoundedIcon sx={{ color: "#FFFFFF" }} />
               <ListItemContent>
                 <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
@@ -199,6 +202,7 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
+          {user?.roles.includes("approver") && (
           <ListItem>
             <ListItemButton
               component={NavLink}
@@ -213,11 +217,12 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
+          )}
           <ListItem>
             <ListItemButton
               // selected
               component={NavLink}
-              to="/orders"
+              to="/approval-history"
               style={getNavLinkStyles}
             >
               <MenuBookIcon sx={{ color: "#FFFFFF" }} />
