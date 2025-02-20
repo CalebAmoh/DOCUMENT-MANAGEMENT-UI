@@ -34,7 +34,7 @@ const Login = () =>{
 
   //function to setAuth to true
   const handleLogin = () => {
-    setUser({ id: '1', name: 'John Doe', roles: ['approver'] });
+    setUser({ id: '1', name: 'John Doe', roles: ['admin'] });
 
     // Navigate to the dashboard
     navigate(from);

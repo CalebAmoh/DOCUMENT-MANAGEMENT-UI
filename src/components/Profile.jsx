@@ -25,7 +25,7 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import Autocomplete from '@mui/joy/Autocomplete';
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
-import {API_SERVER, headers} from "../constant";
+import {API_SERVER,API_SERVER1, headers} from "../constant";
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 // import Layout from "../components/layout";
@@ -65,8 +65,8 @@ const Profile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER}/users`, { headers });
-        setApprovers(response.data.users);
+        const response = await axios.get(`${API_SERVER1}/get-users`, { headers });
+        setApprovers(response.data.results);
         setIsFetching(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -98,13 +98,14 @@ const Profile = () => {
     const fetchEmployees = async () => {
       try {
 
+
+        //fetch roles for employees
+        const response_roles = await axios.get(API_SERVER1 + `/get-users-roles`, {headers: headers});
+        setRoles(response_roles.data.results);
+        
         //fetch employees
         const response = await axios.get(`http://10.203.14.73/hr/api/employees_rest.php`);
         setEmployees(response.data);
-
-        //fetch roles for employees
-        const response_roles = await axios.get(ENDPOINT + `/users/roles`, {headers: headers});
-        setRoles(response_roles.data.roles);
         
 
       } catch (error) {
@@ -347,8 +348,9 @@ const Profile = () => {
       const first_name = response_emp.data.first_name;
       const last_name = response_emp.data.last_name;
       const branch = response_emp.data.branch;
+      const posted_by = 1;
 
-      const response = await axios.post(ENDPOINT + `/users/register`, {
+      const response = await axios.post(API_SERVER1 + `/user/register`, {
         employee_id: formValues.employee_id,
         role: formValues.role,
         status: formValues.Status,
@@ -358,22 +360,26 @@ const Profile = () => {
         rank: ranking,
         first_name: first_name,
         last_name: last_name,
-        branch:branch
+        branch:branch,
+        posted_by: posted_by
       },{headers: headers});
 
 
       // handleOpen('result');
       // setSuccess(response.data);
-      notifySuccess(response.data.message);
-      setModalType(null);
+      
 
       if(response.data.code === "200") {
+        notifySuccess(response.data.result);
+        setModalType(null);
         setIsFetching(true);
+      }else{
+        notifyError(response.data.result);
       }
     } catch (error) {
       // handleOpen('result');
       // setSuccess(error.response.data);
-      notifyError(error.response.data.message)
+      notifyError(error.response.data.result)
       console.error("Error:", error);
     }
   };

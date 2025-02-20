@@ -3,5 +3,5 @@ export const API_SERVER1 = "http://localhost:3006/v1/api/dms"
 
 export const headers = {
     "Accept": 'application/json', 
-    'Authorization': 'Bearer 1|KnUZKh4E3VM2lunulo2jsDBOI3ojQAv4nMMET2E514c6c6de'
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhucmFtb2hAZ21haWwuY29tIiwiaWF0IjoxNzQwMDgzNDQ2LCJleHAiOjE3NDAwODQzNDZ9.BKsvz6fC_JF7_BOF6RtaQwHKxu-D9jc4WLwxVX9AWa8'
 }
