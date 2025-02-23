@@ -39,6 +39,7 @@ import KeyIcon from "@mui/icons-material/Key";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import useAuth from "../hooks/useAuth";
 import ColorSchemeToggle from "./ColorSxhemeToggle";
+import refresh from "../hooks/useRefreshToken";
 import { closeSidebar } from "../utils/utils";
 
 function Toggler({
@@ -374,7 +375,7 @@ export default function Sidebar() {
           </Typography>
         </Box>
         <IconButton size="sm" variant="plain" color="neutral">
-          <LogoutRoundedIcon />
+          <LogoutRoundedIcon onClick={(refresh())} />
         </IconButton>
       </Box>
     </Sheet>

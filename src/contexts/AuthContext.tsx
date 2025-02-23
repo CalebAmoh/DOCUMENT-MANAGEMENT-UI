@@ -10,8 +10,12 @@ import React, {
 // Define the User type
 interface User {
   id: string;
-  name: string;
+  employee: string;
+  first_name: string;
+  last_name: string;
+  email: string;
   roles: string[];
+  accessToken: string;
   // Add other fields as necessary
 }
 
