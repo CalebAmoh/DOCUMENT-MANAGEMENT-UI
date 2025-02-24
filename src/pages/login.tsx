@@ -17,7 +17,8 @@ import useAuth from '../hooks/useAuth';
 import bgimg from '../utils/images/organised-documents-references_23-2149396678.avif'
 import { useLocation, useNavigate } from 'react-router-dom';
 import {API_SERVER1, headers} from '../constant'
-import axios from 'axios';
+import axios from '../constant'
+// import axios from 'axios';
 
 
 interface FormElements extends HTMLFormControlsCollection {
@@ -97,7 +98,7 @@ const Login = () =>{
         return;
       }
 
-      const response = await axios.post(`${API_SERVER1}/user/login`, {
+      const response = await axios.post('/user/login', {
         email: state.email.trim(),
         password: state.password
       }, { 
@@ -106,21 +107,21 @@ const Login = () =>{
       });
 
       if (response.data.code === "200") {
-        const userData = response.data.user[0];
-        setUser({
-          id: userData.id,
-          employee: userData.employee,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          email: userData.email,
-          roles: userData.name,
-          accessToken: response.data.accessToken
-        });
-        
-        notifySuccess(response.data.message || "Login successful");
-        navigate('/dashboard');
+          const userData = response.data.user[0];
+          setUser({
+            id: userData.id,
+            employee: userData.employee,
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            email: userData.email,
+            roles: [userData.name],
+            accessToken: response.data.accessToken
+          });
+          
+          notifySuccess(response.data.message || "Login successful");
+          navigate(from, {replace:true});
       } else {
-        notifyError(response.data.result || "Login failed");
+          notifyError(response.data.result || "Login failed");
       }
     } catch (error: any) {
       console.error("Login error:", error);

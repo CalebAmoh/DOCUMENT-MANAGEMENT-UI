@@ -22,7 +22,7 @@ const useRefreshToken = () => {
                     first_name: userData.first_name,
                     last_name: userData.last_name,
                     email: userData.email,
-                    roles: userData.name,
+                    roles: [userData.name],
                     accessToken: accessToken
                 });
                 return accessToken;

@@ -25,7 +25,9 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import Autocomplete from '@mui/joy/Autocomplete';
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
-import {API_SERVER,API_SERVER1, headers} from "../constant";
+import {API_SERVER, headers} from "../constant";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { Navigate,useLocation, useNavigate } from "react-router-dom";
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
 // import Layout from "../components/layout";
@@ -53,6 +55,9 @@ const Profile = () => {
   const [validationError, setValidationError] = useState(""); // State to manage validation error
   const [response, setResponse] = useState(null); // State to manage response
   const [error, setError] = useState(null); // State to manage error
+  const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formValues, setFormValues] = useState({
     employee_id: "",
     role: "",
@@ -65,11 +70,14 @@ const Profile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER1}/get-users`, { headers });
+
+        console.log("the axios value",axiosPrivate);
+        const response = await axiosPrivate.get('/get-users');
         setApprovers(response.data.results);
         setIsFetching(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        navigate('/login',{state:{from:location},replace:true})
       }
     };
 
@@ -100,9 +108,9 @@ const Profile = () => {
 
 
         //fetch roles for employees
-        const response_roles = await axios.get(API_SERVER1 + `/get-users-roles`, {headers: headers});
+        const response_roles = await axiosPrivate.get(`/get-users-roles`);
         setRoles(response_roles.data.results);
-        
+
         //fetch employees
         const response = await axios.get(`http://10.203.14.73/hr/api/employees_rest.php`);
         setEmployees(response.data);
@@ -350,7 +358,7 @@ const Profile = () => {
       const branch = response_emp.data.branch;
       const posted_by = 1;
 
-      const response = await axios.post(API_SERVER1 + `/user/register`, {
+      const response = await axiosPrivate.post(`/user/register`, {
         employee_id: formValues.employee_id,
         role: formValues.role,
         status: formValues.Status,
