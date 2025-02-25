@@ -9,6 +9,7 @@ import Settings from "./pages/settings";
 import Login from "./pages/login";
 import RequireAuth from "./components/RequireAuth";
 import useAuth from "./hooks/useAuth";
+import PersistLogin from "./components/PersistLogin";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ const AppRoutes = () => {
       {/* public routes */}
       <Route path="/" element={<Login />} />
 
+      <Route element={<PersistLogin/>}>
       {/* private routes */}
       <Route element={<RequireAuth children={['admin']}/>}>
         <Route path="/settings" element={<Settings />} />
@@ -36,7 +38,7 @@ const AppRoutes = () => {
       </Route>
 
       <Route path="/customers" element={<Customers />} />
-        
+        </Route>
       {/* catch all route */}
       <Route path="*" element={<Login />} />
     </Routes>

@@ -22,7 +22,8 @@ import { Outlet } from "react-router-dom";
     const isLoginPage = location.pathname === "/" || location.pathname === "/login";
 
     // Show Routes only when on login page or not authenticated
-    if (isLoginPage || !user) {
+    if (isLoginPage) {
+      {console.log(user)}
       return(
         <div className="flex flex-col min-h-screen">
           <CssVarsProvider disableTransitionOnChange>

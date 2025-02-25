@@ -5,7 +5,9 @@ import React, {
   ReactNode,
   Dispatch,
   SetStateAction,
+  useEffect,
 } from "react";
+import refreshToken from '../hooks/useRefreshToken';
 
 // Define the User type
 interface User {
@@ -40,6 +42,18 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+
+  // const [loading, setLoading] = useState(true);
+
+  // useEffect(() => {
+  //   const initializeAuth = async () => {
+  //     const refreshedUser = await refreshToken(); // Call the function
+  //     console.log("user",refreshedUser);
+  //     setLoading(false);
+  //   };
+
+  //   initializeAuth();
+  // }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>

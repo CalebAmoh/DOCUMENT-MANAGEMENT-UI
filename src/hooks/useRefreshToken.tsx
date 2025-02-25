@@ -4,14 +4,14 @@ import useAuth from "./useAuth";
 import { API_SERVER1 } from "../constant";
 
 const useRefreshToken = () => {
-    const { setUser } = useAuth();
+    const { user,setUser } = useAuth();
     
     const refresh = async () => {
         try {
             const response = await axios.get(`${API_SERVER1}/user/refresh-token`, {
                 withCredentials: true
             });
-            console.log(response);
+            console.log("refresh token response",response);
             if (response.status === 200) {
                 const userData = response.data.user[0];
                 const accessToken = response.data.accessToken;
@@ -25,7 +25,7 @@ const useRefreshToken = () => {
                     roles: [userData.name],
                     accessToken: accessToken
                 });
-                return accessToken;
+                return user;
             }
         } catch (error) {
             console.error("Refresh token error:", error);

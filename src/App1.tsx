@@ -17,7 +17,7 @@ import Approval from "./pages/approvals";
 import ApprovalHistory from "./pages/approval-history";
 import Customers from "./pages/customers";
 import RequireAuth from "./components/RequireAuth";
-
+import PersistLogin from "./components/PersistLogin";
 
 
 // Main App component
@@ -28,19 +28,21 @@ const App = () => (
       <CssBaseline />
       <Routes>
         <Route path="/" element={<Layout />}>
-            <Route path="login" element={<Login />} />
 
-            <Route element={<RequireAuth children={['admin']}/>}> 
-                <Route path="/settings" element={<Settings />} />
-            </Route>
-            <Route element={<RequireAuth children={['approver']}/>}>
-                <Route path="/approvals" element={<Approval />} />
-                <Route path="/approval-history" element={<ApprovalHistory />} />
-            </Route>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/document-portal" element={<Portal />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="*" element={<Login />} />
+                <Route path="login" element={<Login />} />
+                <Route element={<PersistLogin/>}>
+                    <Route element={<RequireAuth children={['admin']}/>}> 
+                        <Route path="/settings" element={<Settings />} />
+                    </Route>
+                    <Route element={<RequireAuth children={['approver']}/>}>
+                        <Route path="/approvals" element={<Approval />} />
+                        <Route path="/approval-history" element={<ApprovalHistory />} />
+                    </Route>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/document-portal" element={<Portal />} />
+                    <Route path="/customers" element={<Customers />} />
+                </Route>
+            {/* <Route path="*" element={<Login />} /> */}
         </Route>
       </Routes>
     </CssVarsProvider>
