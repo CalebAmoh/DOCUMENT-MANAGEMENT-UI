@@ -5,8 +5,12 @@ import Card from '@mui/joy/Card';
 import CardContent from '@mui/joy/CardContent';
 import Typography from '@mui/joy/Typography';
 import { styled } from '@mui/joy/styles';
-import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
-import { ReactComponent as FolderOpenIcon } from "../utils/icons/folder-open-svgrepo-com.svg";
+// import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
+// import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-white-svgrepo-com.svg";
+import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-green-svgrepo-com.svg";
+// import { ReactComponent as FolderOpenIcon } from "../utils/icons/folder-open-svgrepo-com.svg";
+import { ReactComponent as FolderOpenIcon } from "../utils/icons/folder-open-purple-svgrepo-com.svg";
+import useAuth from "../hooks/useAuth";
 
 // Styled component for the dashboard container
 const DashboardContainer = styled(Box)({
@@ -27,8 +31,8 @@ const StyledCard = styled(Card)({
     transform: 'translateY(-5px)',
   },
 });
-
 const Dashboard = () => {
+  const {user} = useAuth();
   const folders = [
     { title: 'Generated Documents', count: '23 Files', size: '50MB' },
     { title: 'Approved Documents', count: '170 Files', size: '129MB' },
@@ -45,8 +49,8 @@ const Dashboard = () => {
 
   return (
     <DashboardContainer>
-      <Typography level="h2" component="h1" sx={{ mb: 2 }}>
-        Dashboard
+      <Typography level="h3" component="h1" sx={{ mb: 2 }}>
+        Welcome, {user?.first_name}
       </Typography>
       <Grid container spacing={2} sx={{ flexGrow: 1 }}>
         {folders.map((item, index) => (
@@ -73,8 +77,8 @@ const Dashboard = () => {
         {recentFiles.map((item, index) => (
           <Grid xs={12} sm={6} md={3} key={index}>
             <StyledCard variant="outlined" sx={{
-              // boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.3)',
-              // color: '#fdfefe',
+              boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.3)',
+              color: '#fdfefe',
               mr: 2
             }}>
               <CardContent>

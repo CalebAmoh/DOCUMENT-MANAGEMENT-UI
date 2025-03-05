@@ -56,6 +56,8 @@ function Toggler({
   }) => React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(defaultExpanded);
+
+  const {user} = useAuth();
   return (
     <React.Fragment>
       {renderToggle({ open, setOpen })}
@@ -345,7 +347,7 @@ export default function Sidebar() {
               Support
             </ListItemButton>
           </ListItem> */}
-          
+          {user?.roles.includes("admin") && (
           <ListItem sx={{ color: "#FFFFFF" }}>
             <ListItemButton
               component={NavLink}
@@ -358,6 +360,7 @@ export default function Sidebar() {
               </Typography>
             </ListItemButton>
           </ListItem>
+          )}
         </List>
       </Box>
       <Divider />
@@ -369,10 +372,10 @@ export default function Sidebar() {
         />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-            Admin
+            {user?.first_name} {user?.last_name} {user?.id}
           </Typography>
           <Typography level="body-xs" sx={{ color: "#FFFFFF" }}>
-            Admin@test.com
+            {user?.email}
           </Typography>
         </Box>
         <IconButton size="sm" variant="plain" color="neutral">

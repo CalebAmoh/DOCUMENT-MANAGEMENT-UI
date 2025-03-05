@@ -10,6 +10,7 @@ import { API_SERVER1,API_SERVER, headers } from "../constant";
 import { SearchableSelect } from './SearchableSelect';
 import axios from "axios";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 const Params = () => {
 
@@ -20,6 +21,8 @@ const Params = () => {
         decline: false,
         response: false,
     });
+
+    const axiosPrivate = useAxiosPrivate();
 
      // this handles the state of the component
     const [state, setState] = useState({
@@ -227,7 +230,7 @@ const Params = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
+            const response = await axiosPrivate.get('get-doc-types');
             const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,

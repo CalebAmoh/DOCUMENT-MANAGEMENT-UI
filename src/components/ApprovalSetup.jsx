@@ -13,7 +13,7 @@ import { SearchableSelect } from './SearchableSelect';
 import { ReactComponent as UpdateIcon } from "../utils/icons/update-page-svgrepo-com.svg";
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { ReactComponent as NextIcon } from "../utils/icons/next-svgrepo-com.svg";
-
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 const ApprovalSetup = () => {
 
@@ -29,7 +29,7 @@ const ApprovalSetup = () => {
 
     const actionRef = useRef(null);
     const anchorRef = useRef(null);
-
+    
      // this handles the state of the component
     const [state, setState] = useState({
         docs: [], // Array to store the generated documents
@@ -50,6 +50,7 @@ const ApprovalSetup = () => {
         availableUsers: [], // Array to store the approvers
     });
 
+    const axiosPrivate = useAxiosPrivate();
     
     // Initialize notification
     const [api, contextHolder] = notification.useNotification();
@@ -156,7 +157,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-available-doc-types`, { headers });
+            const response = await axiosPrivate.get('get-available-doc-types');
             const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
@@ -180,7 +181,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-doc-types`, { headers });
+            const response = await axiosPrivate.get(`get-doc-types`);
             const data = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
@@ -204,7 +205,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-approver-users`, { headers });
+            const response = await axiosPrivate.get(`get-approver-users`);
             const data = response.data.approvers;
             console.log("users data",data);
             setState((prevState) => ({
@@ -230,7 +231,7 @@ const ApprovalSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-approver-setups`, { headers });
+            const response = await axiosPrivate.get(`get-approver-setups`);
             const data = response.data.setups;
             setState((prevState) => ({
                 ...prevState,

@@ -9,8 +9,10 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ApprovalActivityTable from './ApprovalActivityTable';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import { API_SERVER, API_SERVER1, headers } from "../constant";
+import useAuth from '../hooks/useAuth';
 
 import axios from "axios";
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 const ApprovalActivity = () => {
 
@@ -23,6 +25,9 @@ const ApprovalActivity = () => {
         approval: false,
         response: false,
     });
+
+    const { user } = useAuth();
+    const axiosPrivate = useAxiosPrivate();
 
     // Initialize notification
     const [api, contextHolder] = notification.useNotification();
@@ -86,11 +91,12 @@ const ApprovalActivity = () => {
                 loading: true
             }));
 
+            console.log("user id for approver", user.id);
             const data = {
-                userId: 2,
+                userId: user.id,
             };
 
-            const response = await axios.post(`${API_SERVER1}/get-pending-docs`,data, { headers });
+            const response = await axiosPrivate.post(`/get-pending-docs`,data, {withCredentials: true });
             const pending_docs = response.data.documents;
             setState((prevState) => ({
                 ...prevState,
@@ -217,14 +223,14 @@ const ApprovalActivity = () => {
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
-                userId: 2,
+                userId: user.id,
                 // recommended_amount: state.recommended_amount,
                 remarks: state.remarks
             };
 
             // console.log(data);return;
 
-            const response = await axios.put(`${API_SERVER1}/approve-doc`, {docId:data.docId,userId:data.userId,recommended_amount:data.recommended_amount,remarks:data.remarks}, {headers});
+            const response = await axiosPrivate.put(`/approve-doc`, {docId:data.docId,userId:data.userId,recommended_amount:data.recommended_amount,remarks:data.remarks}, {withCredentials: true });
             
             fetchDocs();
             handleClose();

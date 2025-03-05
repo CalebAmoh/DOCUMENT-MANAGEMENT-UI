@@ -6,13 +6,14 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import GlSetupTable from './GlSetupTable';
 import AddIcon from "@mui/icons-material/Add";
-import { API_SERVER1,API_SERVER, headers } from "../constant";
+import { API_SERVER1,API_SERVER, headers, axiosPrivate } from "../constant";
 import axios from "axios";
 import Checkbox from '@mui/joy/Checkbox';
 import { SearchableSelect } from './SearchableSelect';
 import { ReactComponent as UpdateIcon } from "../utils/icons/update-page-svgrepo-com.svg";
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { ReactComponent as NextIcon } from "../utils/icons/next-svgrepo-com.svg";
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 
 const GlSetup = () => {
@@ -29,7 +30,7 @@ const GlSetup = () => {
 
     const actionRef = useRef(null);
     const anchorRef = useRef(null);
-
+    const axiosPrivate = useAxiosPrivate();
      // this handles the state of the component
     const [state, setState] = useState({
         setups: [], // Array to store the accounts
@@ -140,7 +141,7 @@ const GlSetup = () => {
                 loading: true
             }));
 
-            const response = await axios.get(`${API_SERVER1}/get-all-accounts`, { headers });
+            const response = await axiosPrivate.get(`get-all-accounts`);
             const data = response.data.accounts;
             setState((prevState) => ({
                 ...prevState,

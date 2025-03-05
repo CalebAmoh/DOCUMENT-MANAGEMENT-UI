@@ -75,6 +75,7 @@ interface ApproversTableProps {
     details: string;
     doc_id: string;
     doctype_id: string;
+    approval_stage: string;
     status: string;
     created_at: string;
   }>;
@@ -247,8 +248,9 @@ const ApprovalActivityTable: React.FC<ApproversTableProps> = ({ data, handleOpen
                   </Link>
                 </th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Document</th>
-                <th style={{ width: 140, padding: "12px 30px" }}>Type</th>
+                {/* <th style={{ width: 140, padding: "12px 30px" }}>Type</th> */}
                 <th style={{ width: 140, padding: "12px 6px" }}>Description</th>
+                <th style={{ width: 140, padding: "12px 6px" }}>Approval Stage</th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
                 <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
               </tr>
@@ -299,15 +301,15 @@ const ApprovalActivityTable: React.FC<ApproversTableProps> = ({ data, handleOpen
                       </Box>
                     </Typography>
                   </td>
-                  <td className="font-semibold text-sm " style={{ paddingLeft: '32px' }}>
+                  {/* <td className="font-semibold text-sm " style={{ paddingLeft: '32px' }}>
                     <Typography level="body-sm">{row.doctype_name}</Typography>
-                  </td>
+                  </td> */}
                   <td className="font-semibold text-sm ">
                     <Typography level="body-sm">{truncateText(row.details,10)}</Typography>
                   </td>
-                  {/* <td className="font-semibold text-sm ">
-                    <Typography level="body-sm">{row.status}</Typography>
-                  </td> */}
+                  <td className="font-semibold text-sm ">
+                    <Typography level="body-sm">{row.approval_stage}</Typography>
+                  </td>
                   <td>
                     <Chip
                       variant="soft"

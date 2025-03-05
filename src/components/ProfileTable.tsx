@@ -55,6 +55,7 @@ interface ApproversTableProps {
   data: Array<{
     first_name: string;
     last_name: string;
+    email: string;
     role: string;
     id: number;
     status: string;
@@ -211,7 +212,8 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                   ID
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Approver</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Username</th>
+              <th style={{ width: 140, padding: "12px 6px" }}>Email</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Role</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
               <th style={{ width: 140, padding: "12px 6px" }}>Actions</th>
@@ -226,6 +228,9 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 </td>
                 <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.first_name} {row.last_name}</Typography>
+                </td>
+                <td className="font-semibold text-sm ">
+                  <Typography level="body-sm">{row.email}</Typography>
                 </td>
                 <td className="font-semibold text-sm ">
                   <Typography level="body-sm">{row.role}</Typography>

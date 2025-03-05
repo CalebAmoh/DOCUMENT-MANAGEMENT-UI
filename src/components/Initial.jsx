@@ -145,8 +145,9 @@ const Initial = () => {
             const response = await axios.get(API_SERVER + `/code_creation_details/${selectedDocType}`, {
               headers: headers
             });
-            
+            console.log("Document Type Details:", response);
             const transType = response.data[0].trans_type;
+            // const transType = response.data.code_details[0].trans_type;
 
             //checks to see if the document type is a transactional document 
             if(transType === "1"){

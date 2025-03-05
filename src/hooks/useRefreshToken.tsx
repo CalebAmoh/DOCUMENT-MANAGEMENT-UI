@@ -17,12 +17,12 @@ const useRefreshToken = () => {
                 const accessToken = response.data.accessToken;
                 
                 setUser({
-                    id: userData.id,
+                    id: userData.user_id,
                     employee: userData.employee,
                     first_name: userData.first_name,
                     last_name: userData.last_name,
                     email: userData.email,
-                    roles: [userData.name],
+                    roles: [userData.role_name],
                     accessToken: accessToken
                 });
                 return user;

@@ -21,10 +21,11 @@ import CardActions from "@mui/joy/CardActions";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
-import {API_SERVER, headers,API_SERVER1} from "../constant";
+import {API_SERVER, headers,API_SERVER1, axiosPrivate} from "../constant";
 import CircularProgress from "@mui/material/CircularProgress";
 import DocumentScan from "./DocumentScan";
 import InfoIcon from '@mui/icons-material/Info';
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
@@ -69,12 +70,14 @@ const GeneratedDocs = () => {
     details: ""
   });
 
+  const axiosPrivate = useAxiosPrivate();
+
 
   //fetches approvers
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API_SERVER1}/get-generated-docs`, { headers });
+        const response = await axiosPrivate.get(`/get-generated-docs`);
         setApprovers(response.data.documents);
         console.log("Approvers:", response.data.documents);
         setIsFetching(false);
@@ -140,7 +143,8 @@ const GeneratedDocs = () => {
               headers: headers
             });
             
-            const transType = response.data.code_detail[0].trans_type;
+            console.log("trans type",response);
+            const transType = response.data[0].trans_type;
 
             //checks to see if the document type is a transactional document 
             if(transType === "1"){
