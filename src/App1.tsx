@@ -38,9 +38,11 @@ const App = () => (
                         <Route path="/approvals" element={<Approval />} />
                         <Route path="/approval-history" element={<ApprovalHistory />} />
                     </Route>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/document-portal" element={<Portal />} />
-                    <Route path="/customers" element={<Customers />} />
+                    <Route element={<RequireAuth children={['admin','approver','originator']}/>}> 
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/document-portal" element={<Portal />} />
+                        <Route path="/customers" element={<Customers />} />
+                    </Route>
                 </Route>
             {/* <Route path="*" element={<Login />} /> */}
         </Route>

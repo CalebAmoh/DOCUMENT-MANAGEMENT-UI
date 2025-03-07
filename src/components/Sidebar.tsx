@@ -57,7 +57,6 @@ function Toggler({
 }) {
   const [open, setOpen] = React.useState(defaultExpanded);
 
-  const {user} = useAuth();
   return (
     <React.Fragment>
       {renderToggle({ open, setOpen })}
@@ -173,7 +172,7 @@ export default function Sidebar() {
           },
         }}
       >
-        <List
+       {user && ( <List
           size="sm"
           sx={{
             gap: 2.5,
@@ -181,6 +180,7 @@ export default function Sidebar() {
             "--ListItem-radius": (theme) => theme.vars.radius.sm,
           }}
         >
+          
           <ListItem>
             <ListItemButton component={NavLink} to="/dashboard" style={getNavLinkStyles}>
               <DashboardRoundedIcon sx={{ color: "#FFFFFF" }} />
@@ -222,6 +222,7 @@ export default function Sidebar() {
             </ListItemButton>
           </ListItem>
           )}
+          
           <ListItem>
             <ListItemButton
               // selected
@@ -237,6 +238,7 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
+          
           {/* <ListItem>
             <ListItemButton
               component={NavLink}
@@ -330,7 +332,7 @@ export default function Sidebar() {
             </Toggler>
           </ListItem> */}
         </List>
-
+        )}
         <List
           size="sm"
           sx={{

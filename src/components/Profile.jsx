@@ -26,6 +26,7 @@ import Autocomplete from '@mui/joy/Autocomplete';
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
 import {API_SERVER, headers} from "../constant";
+import useAuth from "../hooks/useAuth";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { Navigate,useLocation, useNavigate } from "react-router-dom";
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
@@ -33,7 +34,7 @@ const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 // import Layout from "../components/layout";
 
 const Profile = () => {
-
+  const { user } = useAuth();
   const [api, contextHolder] = notification.useNotification();
   //use state setups
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update' | 'result'
@@ -395,13 +396,14 @@ const Profile = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/users/${id}`, {
+      const response = await axiosPrivate.put(`/update-user${id}`, {
         employee_id: selectedEmployee,
+        posted_by:user.id,
         role: selectedRole,
         status: selectedStatus
-      },{
-        headers: headers});
+      },{withCredentials:true});
 
+      console.log("user update response",response);
       //if the response is successful, fetch the approvers again
       if(response.data.code === "200") {
         setIsFetching(true);
@@ -409,13 +411,14 @@ const Profile = () => {
 
       // handleOpen('result');
       // setSuccessModal(true);
-      notifySuccess(response.data.message);
+      notifySuccess(response.data.result);
       // setSuccess(response.data);
       
     } catch (error) {
       // handleOpen('result');
       // setSuccess(response.data);
-      notifyError(error.response.data.message);
+      console.log("user update response",error);
+      notifyError(error.response.data.result);
       console.error("Error:", error);
     }
   };
@@ -424,13 +427,13 @@ const Profile = () => {
   //fetches approvers details based on idd
   const fetchUserDetails = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/users/${id}`, {
-        headers: headers
+      const response = await axiosPrivate.get(`/get-user${id}`, {
+        withCredentials:true
       });
-      
-      setSelectedUserId(response.data.user.employee_id);
-      setSelectedRole(response.data.user.role_name);
-      setSelectedStatus(response.data.user.status);
+      console.log("user reponse",response)
+      setSelectedUserId(response.data.result[0].employee_id);
+      setSelectedRole(response.data.result[0].role_name);
+      setSelectedStatus(response.data.result[0].status);
       
       //open update modal
       setModalType("update");

@@ -18,6 +18,7 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Typography from "@mui/joy/Typography";
 import CardActions from "@mui/joy/CardActions";
+import useAuth from "../hooks/useAuth";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
@@ -40,7 +41,7 @@ const GeneratedDocs = () => {
   const [branches, setBranches] = useState([]); // State to manage branches
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [success, setSuccess] = useState(false);
-  const [approvers, setApprovers] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
   const [details, setDetails] = useState("");
@@ -60,7 +61,8 @@ const GeneratedDocs = () => {
   const [loading, setLoading] = useState(false); // State to manage loading
   const [showIframe, setShowIframe] = useState(false); // State to manage iframe modal opened
   const [progress, setProgress] = useState(false);
-  
+  const {user} = useAuth();
+
   const [formValues, setFormValues] = useState({
     user_id: "",
     doctype_id: "",
@@ -73,15 +75,16 @@ const GeneratedDocs = () => {
   const axiosPrivate = useAxiosPrivate();
 
 
-  //fetches approvers
+  //fetches documents
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axiosPrivate.get(`/get-generated-docs`);
-        setApprovers(response.data.documents);
-        console.log("Approvers:", response.data.documents);
+        const response = await axiosPrivate.get(`/get-generated-docs`,{withCredentials:true});
+        console.log("all documents11",response.data.result);
+        setDocuments(response.data.result);
         setIsFetching(false);
       } catch (error) {
+        console.log("Error fetching data:", error);
         if (error.response && error.response.data && error.response.data.message) {
           notifyError(error.response.data.message);
         } else {
@@ -98,10 +101,10 @@ const GeneratedDocs = () => {
   useEffect(() => {
     const fetchParameters = async () => {
       try {
-        const response = await axios.get(ENDPOINT + `/get-parameters`, {headers: headers});
-        setDocTypes(response.data.doc_types);
-        setBranches(response.data.branches);
-        console.log("Bank names:", response.data);
+        const response = await axiosPrivate.get(`/get-parameters`, {withCredentials: true});
+        setDocTypes(response.data.result.doctypes.data);
+        // setBranches(response.data.branches);
+        // console.log("Bank names:", response.data);
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
           notifyError(error.response.data.message);
@@ -139,12 +142,12 @@ const GeneratedDocs = () => {
     const getTransType = async () => {
       try {
           if(selectedDocTypeId != null){
-            const response = await axios.get(API_SERVER + `/code_creation_details/${selectedDocTypeId}`, {
-              headers: headers
+            const response = await axiosPrivate.get(`/get-code-creation-details${selectedDocTypeId}`, {
+              withCredentials: true,
             });
             
             console.log("trans type",response);
-            const transType = response.data[0].trans_type;
+            const transType = response.data.result[0].trans_type;
 
             //checks to see if the document type is a transactional document 
             if(transType === "1"){
@@ -392,16 +395,16 @@ const GeneratedDocs = () => {
   const handleSubmit = () => {
     try{
       //post request to update parameter
-      axios.put(`${ENDPOINT}/submit-doc/${tempDocId}`, {}, {
-        headers: headers
+      axiosPrivate.put(`/submit-doc${tempDocId}`, {}, {
+        withCredentials:true
       }).then((response) => {
-        console.log("Response:", response.data);
+        console.log("Response submit:", response);
         setIsFetching(true);
-        notifySuccess(response.data.message);
+        notifySuccess(response.data.result);
         handleClose(true);
       }).catch((error) => {
         console.error("Error:", error);
-        notifyError(error.response.data.message);
+        notifyError(error.response.data.result);
       });
     }catch (error) {
       console.error("Error updating parameter:", error);
@@ -412,36 +415,40 @@ const GeneratedDocs = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
-      const response = await axios.put(`${ENDPOINT}/update-doc/${id}`, {
+      const response = await axiosPrivate.put(`/update-doc${id}`, {
         doctype_id: selectedDocTypeId,
         branch: selectedBranchId,
         requested_amount: isTransType === "1" ? selectedRequestedAmount: null,
         customer_no: isTransType === "1" ? selectedCustomerNumber: null,
         details: details,
-        doc_id: selectedDocId
-      },{
-        headers: headers});
+        doc_id: selectedDocId,
+        user_id: user.id
+      },{withCredentials:true});
 
       //if the response is successful, fetch the approvers again
       if(response.data.code === "200") {
         setIsFetching(true);
+        console.log("update response",response);
+        notifySuccess(response.data.result) 
+      }else{
+        notifyError(response.data.message);
       }
 
-      notifySuccess(response.data.message);
       handleClose(true);
       
     } catch (error) {
-      notifyError(error.response.data.message);
+      notifyError(error.response.data.result);
       console.error("Error:", error);
     }
   };
 
   const handleMessage = async (id) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
-        headers: headers
+      const response = await axiosPrivate.get(`/get-doc${id}`, {
+        withCredentials: true,
       });
-      notifyDecline(response.data.document.decline_reason);
+      console.log("Response doc details:", response.data.result[0].decline_reason);
+      notifyDecline(response.data.result[0].decline_reason);
     } catch (error) {
       notifyError(error.response.data.message);
       console.error("Error:", error);
@@ -451,17 +458,17 @@ const GeneratedDocs = () => {
   //fetches doc details based on idd
   const fetchDocDetails = async (id,type) => {
     try {
-      const response = await axios.get(`${ENDPOINT}/get-doc/${id}`, {
-        headers: headers
+      const response = await axiosPrivate.get(`/get-doc${id}`, {
+        withCredentials: true,
       });
-      console.log("Response doc details:", response.data.document.requested_amount);
+      console.log("Response doc details:", response);
       
-      setSelectedDocId(response.data.document.doc_id);
-      setSelectedDocTypeId(response.data.document.doctype_id);
-      setSelectedBranchId(response.data.document.branch);
-      setSelectedRequestedAmount(response.data.document.requested_amount);
-      setSelectedCustomerNumber(response.data.document.customer_no);
-      setDetails(response.data.document.details);
+      setSelectedDocId(response.data.result[0].doc_id);
+      setSelectedDocTypeId(response.data.result[0].doctype_id);
+      setSelectedBranchId(response.data.result[0].branch);
+      setSelectedRequestedAmount(response.data.result[0].requested_amount);
+      setSelectedCustomerNumber(response.data.result[0].customer_no);
+      setDetails(response.data.result[0].details);
       // setSelectedStatus(response.data.approver.status);
       if(type === "view") {
           //open update modal
@@ -471,7 +478,7 @@ const GeneratedDocs = () => {
         setModalType("update");
       }
     } catch (error) {
-      notifyError(error.response.data.message);
+      // notifyError(error.response.data.message);
       console.error("Error:", error);
     }
   };
@@ -521,7 +528,7 @@ const GeneratedDocs = () => {
           </Typography> */}
           
         </Box>
-        <GeneratedDocsTable  data={approvers} handleOpen={handleOpen} handleMessage={handleMessage}/>
+        <GeneratedDocsTable  data={documents} handleOpen={handleOpen} handleMessage={handleMessage}/>
 
         {/* <OrderList /> */}
       </Box>

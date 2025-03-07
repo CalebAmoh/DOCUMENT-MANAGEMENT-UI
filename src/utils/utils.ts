@@ -1,3 +1,6 @@
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function openSidebar() {
   if (typeof window !== "undefined") {
     document.body.style.overflow = "hidden";
@@ -23,4 +26,11 @@ export function toggleSidebar() {
       openSidebar();
     }
   }
+}
+
+/**
+ * Combines multiple class names into a single string, merging Tailwind classes properly
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

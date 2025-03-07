@@ -28,9 +28,11 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { ReactComponent as AddDocIcon } from "../utils/icons/add-file-svgrepo.svg";
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { Add } from "@mui/icons-material";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAuth";
+
 // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 
 const Initial = () => {
   const [open, setOpen] = useState(false);
@@ -41,6 +43,7 @@ const Initial = () => {
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
   const [details, setDetails] = useState("");
+  const {user} = useAuth();
   const [docId, setGeneratedDocId] = useState("");
   const [response, setResponse] = useState(null);
   const [isTransType, setIsTransType] = useState("");
@@ -55,20 +58,21 @@ const Initial = () => {
   const [api, contextHolder] = notification.useNotification();
 
 
+  const axiosPrivate = useAxiosPrivate();
   
   //handle document uploads and generating od doc id
   const handleGenerateDocId = async  (doc) => {
     setModalType('progress');
     setProgress(true); // Set loading to true before making the API call
     try {
-      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
-        file: doc,
-      }, {
-        timeout: 30000 // 30 seconds timeout
-      });
+      // const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+      //   file: doc,
+      // }, {
+      //   timeout: 30000 // 30 seconds timeout
+      // });
       
-      setGeneratedDocId(response.data.token);
-      // setGeneratedDocId("0028373779");
+      // setGeneratedDocId(response.data.token);
+      setGeneratedDocId("0028373779");
 
       
     } catch (error) {
@@ -124,11 +128,11 @@ const Initial = () => {
   useEffect(() => {
     const fetchParameters = async () => {
       try {
-        const response = await axios.get(API_SERVER + `/get-parameters`, {
-          headers: headers
+        const response = await axiosPrivate.get(`/get-parameters`, {
+          withCredentials: true
         });
-        setCodeTypes(response.data.doc_types);
-        setBranches(response.data.branches);
+        setCodeTypes(response.data.result.doctypes.data);
+        // setBranches(response.data.branches);
       } catch (error) {
         console.error("Error fetching bank names:", error);
       }
@@ -142,11 +146,11 @@ const Initial = () => {
     const fetchDocDetails = async () => {
       try {
           if(selectedDocType != null){
-            const response = await axios.get(API_SERVER + `/code_creation_details/${selectedDocType}`, {
-              headers: headers
+            const response = await axiosPrivate.get(`/get-code-creation-details${selectedDocType}`, {
+              withCredentials:true
             });
             console.log("Document Type Details:", response);
-            const transType = response.data[0].trans_type;
+            const transType = response.data.result[0].trans_type;
             // const transType = response.data.code_details[0].trans_type;
 
             //checks to see if the document type is a transactional document 
@@ -262,49 +266,28 @@ const Initial = () => {
     // Reset validation error if the date is valid
     setValidationError("");
 
-    const formData = {
-      doctype_id: selectedDocType,
-      // branch: selectedBranch,
-      requested_amount: selectedRequestedAmount,
-      customer_number: selectedCustomerNumber,
-      details: details,
-      doc_id: docId
-    };
-
-    // console.log("Form Data:", formData);
-
-    // Uncomment the below code for actual API call
     try {
       
+          const response = await axiosPrivate.post(`/generate-doc`,{
+            doctype_id: selectedDocType,
+            // branch: selectedBranch,
+            requested_amount: selectedRequestedAmount,
+            customer_number: selectedCustomerNumber,
+            details: details,
+            doc_id: docId,
+            user_id: user.id
+          },{withCredentials: true});
 
-          let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: API_SERVER + `/generate-doc`,
-            headers: headers,
-            data: formData
-          };
-
-          axios.request(config)
-            .then((response) => {
-              console.log(JSON.stringify(response.data));
-              // setModalType('result');
-              // setSuccess(response.data);
-              notifySuccess(response.data.message)
-
-              // Reset the form after successful posting
-              resetForm();
-          })
-          .catch((error) => {
-            // setModalType('result');
-            // setSuccess(error.response.data);
-            notifyError(error.response.data.message);
-            console.log(error);
-          });
-
+          console.log("Response:", response);
+          if(response.data.code === "201") {
+            notifySuccess(response.data.result);
+            setModalType(null);
+          }else{
+            notifyError(response.data.result);
+          }
+          resetForm();
     } catch (error) {
-      console.error("Error generating document:", error);
-      setError(error);
+      notifyError(error.response?.data?.result || "An error occurred while generating document");
       setResponse(null);
       setOpen(true); // Open the modal to show the error
     }
