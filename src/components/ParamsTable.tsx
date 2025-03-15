@@ -1,15 +1,10 @@
 import React, {useState, useEffect,useRef,Fragment} from 'react';
-import Box from "@mui/joy/Box";
-import Link from "@mui/joy/Link";
-import Button from "@mui/joy/Button";
-import Tooltip from "@mui/joy/Tooltip";
-import { Menu, MenuItem } from '@mui/joy';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CallMadeIcon from '@mui/icons-material/CallMade';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import {Table, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
+import {Table, Option,Button,Box,Link,Menu,Tooltip, MenuItem, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
 import BlockIcon from "@mui/icons-material/Block";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -330,12 +325,12 @@ const ParamsTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
               </tr>
             )))}
           </tbody>
-          <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              ref={menuRef}
-            >
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                ref={menuRef}
+              >
               <Tooltip title="Edit">
               <MenuItem onClick={() => handleOpen("edit",selectedRow)} >Edit Parameter <EditIcon style={{ width: 25, height: 25 }}/></MenuItem>
               </Tooltip>

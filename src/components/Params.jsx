@@ -11,6 +11,7 @@ import { SearchableSelect } from './SearchableSelect';
 import axios from "axios";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
+import useAuth from '../hooks/useAuth';
 
 const Params = () => {
 
@@ -23,6 +24,7 @@ const Params = () => {
     });
 
     const axiosPrivate = useAxiosPrivate();
+    const { user } = useAuth();
 
      // this handles the state of the component
     const [state, setState] = useState({
@@ -129,6 +131,7 @@ const Params = () => {
                 { field: state.description?.trim(), name: 'Description' },
                 { field: state.trans_type?.toString(), name: 'Is this a transactional type of document?' }, // Convert to string
                 { field: state.status?.toString(), name: 'Status' }, // Convert to string
+                { field: user?.id, name: 'User'},
                 state.trans_type === "1" ? { field: state.expense_code, name: 'Expense code' } : { field: "data", name: "" }
             ];
 
@@ -154,16 +157,19 @@ const Params = () => {
                 description: state.description.trim(),
                 trans_type: state.trans_type,
                 expense_code: state.trans_type === "1" ? state.expense_code : null,
-                status: state.status
+                status: state.status,
+                posted_by: user.id
             };
 
             // Make API call
-            const response = await axios.post(`${API_SERVER}/code_creation_details`, data, { headers });
+            const response = await axiosPrivate.post(`/add-doc-type`, data, { withCredentials:true });
            
             if (response.data.code === '200') {
                 notifySuccess(response.data.message);
                 handleClose("add"); // Close modal
                 fetchDocs(); // Refresh the list
+            }else{
+                notifyError(response.data.message);
             }
         } catch (error) {
             notifyError(error.response.data.message);
@@ -179,6 +185,7 @@ const Params = () => {
                 { field: state.description?.trim(), name: 'Description' }, // Check for empty strings after trimming
                 { field: state.trans_type, name: 'Is this a transactional type of document?' },
                 { field: state.status, name: 'Status' },
+                { field: user?.id, name: 'User'},
                 //if the document type is a transactional document, then the expense code is required
                 state.trans_type === "1" ? { field: state.expense_code, name: 'Expense code' } : { field: "data", name: "" }
             ];
@@ -205,16 +212,20 @@ const Params = () => {
                 description: state.description.trim(),
                 trans_type: state.trans_type,
                 expense_code: state.trans_type === "1" ? state.expense_code : null,
-                status: state.status
+                status: state.status,
+                id:state.selectedDocId,
+                posted_by:user.id
             };
             
             // Make API call
-            const response = await axios.put(`${API_SERVER}/code_creation_details/${state.selectedDocId}`, data, { headers });
+            const response = await axiosPrivate.put(`/update-doc-type`, data, { withCredentials:true });
            
             if (response.data.code === '200') {
                 notifySuccess(response.data.message);
                 handleClose("edit"); // Close modal
                 fetchDocs(); // Refresh the list
+            }else{
+                notifyError(response.data.message)
             }
         } catch (error) {
             notifyError(error.response.data.message);
@@ -251,7 +262,7 @@ const Params = () => {
         try {
            
 
-            const response = await axios.get(`${API_SERVER1}/get-all-accounts`, { headers });
+            const response = await axiosPrivate.get(`/get-all-active-accounts`, { withCredentials:true });
             const data = response.data.accounts;
             setState((prevState) => ({
                 ...prevState,

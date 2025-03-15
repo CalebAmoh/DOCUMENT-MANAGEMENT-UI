@@ -79,7 +79,7 @@ const GeneratedDocs = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axiosPrivate.get(`/get-generated-docs`,{withCredentials:true});
+        const response = await axiosPrivate.get(`/get-generated-docs/${user.id}/${user.roles}`,{withCredentials:true});
         console.log("all documents11",response.data.result);
         setDocuments(response.data.result);
         setIsFetching(false);
@@ -631,7 +631,7 @@ const GeneratedDocs = () => {
                           </Select>
                         </FormControl> */}
                     </Stack>
-                    {selectedRequestedAmount !== null && (
+                    {isTransType === "1" && (
                       <Stack direction="row" spacing={4}>
                         <FormControl sx={{ width: "100%" }}>
                           <FormLabel>Requested Amount</FormLabel>

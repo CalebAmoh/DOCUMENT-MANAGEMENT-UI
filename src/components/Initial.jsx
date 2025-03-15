@@ -37,6 +37,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const Initial = () => {
   const [open, setOpen] = useState(false);
   const [codeTypes, setCodeTypes] = useState([]);
+  const [availableDocTypes, setAvailableDocTypes] = useState([]);
   const [branches, setBranches] = useState([]);
   const [selectedDocType, setSelectedDocType] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -65,14 +66,14 @@ const Initial = () => {
     setModalType('progress');
     setProgress(true); // Set loading to true before making the API call
     try {
-      // const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
-      //   file: doc,
-      // }, {
-      //   timeout: 30000 // 30 seconds timeout
-      // });
+      const response = await axios.post(`http://10.203.14.169/dms/scan/insert_doc_api.php`, {
+        file: doc,
+      }, {
+        timeout: 30000 // 30 seconds timeout
+      });
       
-      // setGeneratedDocId(response.data.token);
-      setGeneratedDocId("0028373779");
+      setGeneratedDocId(response.data.token);
+      // setGeneratedDocId("66788373779");
 
       
     } catch (error) {
@@ -139,6 +140,26 @@ const Initial = () => {
     };
 
     fetchParameters();
+  }, []);
+  
+  
+  useEffect(() => {
+    const fetchDocTypesWithApprovalSetups = async () => {
+      try {
+        const response = await axiosPrivate.get(`/get-doctype-with-approval-setup`, {
+          withCredentials: true
+        });
+        console.log("testsss",response)
+        // setCodeTypes(response.data.result.doctypes.data);
+        // setBranches(response.data.branches);
+        setAvailableDocTypes(response.data.results)
+      } catch (error) {
+        notifyError(error.response.data.message)
+        console.error("Error fetching bank names:", error.response.data.message);
+      }
+    };
+
+    fetchDocTypesWithApprovalSetups();
   }, []);
 
   //get the details of a selected document type
@@ -337,9 +358,9 @@ const Initial = () => {
                   placeholder="Select Document Type"
                   onChange={(e, newValue) => setSelectedDocType(newValue)}
                 >
-                  {codeTypes.map((codeType) => (
-                    <Option key={codeType.id} value={codeType.id}>
-                      {codeType.description}
+                  {availableDocTypes.map((availableDocType) => (
+                    <Option key={availableDocType.id} value={availableDocType.id}>
+                      {availableDocType.description}
                     </Option>
                   ))}
                 </Select>

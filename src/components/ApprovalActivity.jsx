@@ -39,6 +39,7 @@ const ApprovalActivity = () => {
         selectedDocId: null, // Selected document id
         docNumber: null, // Selected document number
         docTypeId: null, // Selected document type id
+        docTypeName: null, // Selected document type name
         branchId: null, // Selected branch id
         requestedAmount: null, // Selected requested amount
         customerNumber: null, // Selected customer number
@@ -49,7 +50,8 @@ const ApprovalActivity = () => {
         success: null, // Success message
         loading : false,
         recommended_amount : "",
-        remarks : null
+        remarks : null,
+        db_account: null,
     });
 
     // the maximum number of characters allowed
@@ -116,10 +118,10 @@ const ApprovalActivity = () => {
     //this function fetches document types
     const fetchDocTypes = useCallback(async () => {
         try {
-            const response = await axios.get(`${API_SERVER}/get-parameters`, { headers });
-            const doc_types = response.data.doc_types;
+            const response = await axiosPrivate.get(`/get-parameters`, { withCredentials:true });
+            
+            const doc_types = response.data.result.doctypes.data;
             const branches = response.data.branches;
-            // console.log("Data", data);
             setState((prevState) => ({
                 ...prevState,
                 docTypes: doc_types,
@@ -134,16 +136,23 @@ const ApprovalActivity = () => {
     //this function fetches details of a document
     const fetchDocDetails = useCallback(async (docId) => {
         try {
-            const response = await axios.get(`${API_SERVER}/get-doc/${docId}`, { headers });
-            const data = response.data.document;
+            const response = await axiosPrivate.get(`/get-doc${docId}`, {
+                withCredentials: true,
+              });
+            const data = response.data.result[0];
+            const expense = response.data.expense_details;
+            console.log("check what's here",response.data)
+            console.log("check what's here for expensse",expense)
             setState((prevState) => ({
                 ...prevState,
                 docNumber: data.doc_id,
                 docTypeId: data.doctype_id,
+                docTypeName: data.doctype_name,
                 branchId: data.branch,
                 requestedAmount: data.requested_amount,
                 customerNumber: data.customer_no,
-                details: data.details
+                details: data.details,
+                db_account: expense ? expense.account_number : null
             }));
         } catch (error) {
             console.error("Error:", error);
@@ -220,17 +229,22 @@ const ApprovalActivity = () => {
     const handleApprove = useCallback(async () => {
         try {
 
+            console.log("approve",state.requested_amount)
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
                 userId: user.id,
-                // recommended_amount: state.recommended_amount,
-                remarks: state.remarks
+                recommended_amount: state.recommended_amount,
+                requested_amount: state.requestedAmount,
+                remarks: state.remarks,
+                db_account: state.db_account,
+                cr_account: state.customerNumber,
+                trans_type: state.docTypeName
             };
 
             // console.log(data);return;
 
-            const response = await axiosPrivate.put(`/approve-doc`, {docId:data.docId,userId:data.userId,recommended_amount:data.recommended_amount,remarks:data.remarks}, {withCredentials: true });
+            const response = await axiosPrivate.put(`/approve-doc`, {data}, {withCredentials: true });
             
             fetchDocs();
             handleClose();
@@ -252,7 +266,7 @@ const ApprovalActivity = () => {
             }));
             console.error("Error:", error);
         }
-    }, [state.selectedDocId,state.recommended_amount,state.remarks]);
+    }, [state.selectedDocId,state.recommended_amount,state.remarks,state.requestedAmount]);
 
     //this function is used to handle decline
     const handleDecline = useCallback(async () => {
@@ -261,7 +275,7 @@ const ApprovalActivity = () => {
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
-                userId: 2,
+                userId: user.id,
                 // recommended_amount: state.recommended_amount,
                 remarks: state.remarks
             };
@@ -440,7 +454,8 @@ const ApprovalActivity = () => {
                                 <Divider sx={{ marginBottom: 2 }} />
                                 <Stack spacing={4}>
                                     <Stack direction="row" spacing={4}>
-                                        {/* <FormControl sx={{ width: "100%" }}>
+                                    {state.requestedAmount && (  
+                                        <FormControl sx={{ width: "100%" }}>
                                             <FormLabel>Recommended Amount</FormLabel>
                                             <Input
                                                 size="sm"
@@ -450,7 +465,7 @@ const ApprovalActivity = () => {
                                                 onChange={(e) => handleInputChange("recommended_amount", e.target.value)} 
                                             />
                                             
-                                        </FormControl> */}
+                                        </FormControl>)}
                                         
                                     </Stack>
                                     <Stack direction="row" spacing={4}>
@@ -585,10 +600,10 @@ const ApprovalActivity = () => {
                                             <RemoveRedEyeIcon/>
                                         </Button>
                                     </Stack>
-                                    {state.requestedAmount !== null && (
+                                    {state.requestedAmount && (
                                     <Stack direction="row" spacing={4}>
                                         <FormControl sx={{ width: "100%" }}>
-                                        <FormLabel>Requested Amount</FormLabel>
+                                        <FormLabel>Requested </FormLabel>
                                         <Input
                                             size="sm"
                                             type="text"
@@ -604,8 +619,6 @@ const ApprovalActivity = () => {
                                         <FormLabel>Customer number</FormLabel>
                                         <Input
                                             size="sm"
-                                            disabled
-                                            sx={{ backgroundColor: "#eaecee" }}
                                             value={state.customerNumber}
                                             placeholder="Enter customer number"
                                             onChange={(newValue) => handleInputChange("customer_no",newValue)}

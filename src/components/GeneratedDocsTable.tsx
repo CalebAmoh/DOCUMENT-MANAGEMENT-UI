@@ -361,14 +361,16 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       size="sm"
                       startDecorator={
                         {
+                          APPROVED: <CheckRoundedIcon />,
                           DRAFT: <CheckRoundedIcon />,
-                          DECLINED: <BlockIcon />,
+                          REJECTED: <BlockIcon />,
                         }[row.status]
                       }
                       color={
                         {
-                          DRAFT: "success",
-                          DECLINED: "danger",
+                          APPROVED: "success",
+                          DRAFT: "primary",
+                          REJECTED: "danger",
                         }[row.status] as ColorPaletteProp
                       }
                     >
@@ -530,66 +532,16 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
       },
     }}
   >
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      startDecorator={<KeyboardArrowLeftIcon />}
-    >
-      Previous
-    </Button>
+   
 
     <Box sx={{ flex: 1 }} />
-    {["1", "2", "3", "…", "8", "9", "10"].map((page) => (
-      <IconButton
-        key={page}
-        size="sm"
-        variant={Number(page) ? "outlined" : "plain"}
-        color="neutral"
-      >
-        {page}
-      </IconButton>
-    ))}
+    
     <Box sx={{ flex: 1 }} />
 
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      endDecorator={<KeyboardArrowRightIcon />}
-    >
-      Next
-    </Button>
+    
     </Box>
 
-    {/* Mobile pagination */}
-    <Box
-      className="Pagination-mobile"
-      sx={{
-        display: { xs: 'flex', md: 'none' },
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        p: 2,
-      }}
-    >
-      <Button
-        size="sm"
-        variant="outlined"
-        color="neutral"
-        startDecorator={<KeyboardArrowLeftIcon />}
-      >
-        Previous
-      </Button>
-      <Typography level="body-sm">Page 1 of 10</Typography>
-      <Button
-        size="sm"
-        variant="outlined"
-        color="neutral"
-        endDecorator={<KeyboardArrowRightIcon />}
-      >
-        Next
-      </Button>
-    </Box>
+    
   </React.Fragment>
   );
 };

@@ -72,7 +72,6 @@ const Profile = () => {
     const fetchData = async () => {
       try {
 
-        console.log("the axios value",axiosPrivate);
         const response = await axiosPrivate.get('/get-users');
         setApprovers(response.data.results);
         setIsFetching(false);
@@ -679,7 +678,7 @@ const Profile = () => {
                           placeholder="Select User"
                           value={selectedEmployee}
                           onChange={(e,newValue) => handleInputChange("employee_id", newValue)}
-                          disabled
+                          // disabled
                           sx={{ backgroundColor: "#eaecee" }}
                         >
                           {employees.map((user) => (

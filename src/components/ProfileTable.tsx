@@ -1,12 +1,12 @@
-import React from 'react';
+import React,{useState,useRef,useEffect} from 'react';
 import Box from "@mui/joy/Box";
 import Link from "@mui/joy/Link";
 import Button from "@mui/joy/Button";
-import Tooltip from "@mui/joy/Tooltip";
+import { Menu, MenuItem } from '@mui/joy';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import {Table, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
+import {Table,Tooltip, Option, Sheet,Input,Chip,FormControl,Typography,ColorPaletteProp,FormLabel,Select} from "@mui/joy";
 import BlockIcon from "@mui/icons-material/Block";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -14,6 +14,8 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import IconButton, { iconButtonClasses } from "@mui/joy/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
 import {Edit,Delete, Recycling} from "@mui/icons-material";
+import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
+import { ReactComponent as Kebab } from "../utils/icons/kebab-svgrepo.svg";
 
 type Order = "asc" | "desc";
 
@@ -67,6 +69,34 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
 
   const [order, setOrder] = React.useState<Order>("desc");
   const [open, setOpen] = React.useState(false);
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedRow, setSelectedRow] = useState<any | null>(null)
+  const [tabValue, setTabValue] = useState(3)
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, data: any) => {
+        setAnchorEl(event.currentTarget)
+        setSelectedRow(data)
+      }
+    
+      const handleMenuClose = () => {
+        setAnchorEl(null)
+        setSelectedRow(null)
+      }
+    
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            handleMenuClose();
+          }
+        };
+    
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }, [menuRef]);
 
   const renderFilters = () => (
     <React.Fragment>
@@ -259,7 +289,7 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                 <td>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Link level="body-xs" component="button">
-                    <Tooltip title="Edit">
+                    {/* <Tooltip title="Edit">
                       <Button
                         sx={{ backgroundColor: "#00357A", width: 35, marginRight: 1 }}
                         onClick={() => handleOpen("update",row.id)}
@@ -295,14 +325,62 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
                           </Button>
                       </Tooltip>
                        )
-                      }
-                     
-                    </Link>
+                      } */}
+                     <IconButton onClick={(event) => handleMenuClick(event, row)} /*onClick={() => handleOpen("edit",row)}*/>
+                          <Kebab style={{ width: 25, height: 25 }} />
+                        </IconButton>
+                     </Link>
                   </Box>
                 </td>
               </tr>
             ))}
           </tbody>
+          <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              placement="bottom-end"
+              sx={{
+                zIndex: 9999,
+                minWidth: '200px',
+                '--Menu-decoratorChildOffset': '0.5rem',
+              }}
+            >
+              <MenuItem 
+                  onClick={() => {
+                    handleOpen("update", selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    Edit User
+                    <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
+                  </Box>
+              </MenuItem>
+              {/* {selectedRow?.status === "ACTIVE" ?(
+                <MenuItem 
+                  onClick={() => {
+                    handleOpen("activate", selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    Activate User
+                    <Recycling style={{ width: 25, height: 25, marginLeft: '8px' }} />
+                  </Box>
+                </MenuItem>):(
+              <MenuItem 
+                onClick={() => {
+                  handleOpen("delete", selectedRow?.id);
+                  handleMenuClose();
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  Deactivate User
+                  <Delete style={{ width: 25, height: 25, marginLeft: '8px',color: "#920505" }} />
+                </Box>
+              </MenuItem>)} */}
+            </Menu>
         </Table>
     </Sheet>
     <Box
@@ -317,36 +395,13 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
       },
     }}
   >
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      startDecorator={<KeyboardArrowLeftIcon />}
-    >
-      Previous
-    </Button>
+    
 
     <Box sx={{ flex: 1 }} />
-    {["1", "2", "3", "…", "8", "9", "10"].map((page) => (
-      <IconButton
-        key={page}
-        size="sm"
-        variant={Number(page) ? "outlined" : "plain"}
-        color="neutral"
-      >
-        {page}
-      </IconButton>
-    ))}
+   
     <Box sx={{ flex: 1 }} />
 
-    <Button
-      size="sm"
-      variant="outlined"
-      color="neutral"
-      endDecorator={<KeyboardArrowRightIcon />}
-    >
-      Next
-    </Button>
+    
     </Box>
   </React.Fragment>
   );

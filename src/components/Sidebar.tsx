@@ -222,7 +222,7 @@ export default function Sidebar() {
             </ListItemButton>
           </ListItem>
           )}
-          
+          {user?.roles.includes("approver")&& (
           <ListItem>
             <ListItemButton
               // selected
@@ -238,7 +238,24 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
-          
+          )}
+          {user?.roles.includes("admin")&& (
+          <ListItem>
+            <ListItemButton
+              // selected
+              component={NavLink}
+              to="/approval-history"
+              style={getNavLinkStyles}
+            >
+              <MenuBookIcon sx={{ color: "#FFFFFF" }} />
+              <ListItemContent>
+                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                  History
+                </Typography>
+              </ListItemContent>
+            </ListItemButton>
+          </ListItem>
+          )}
           {/* <ListItem>
             <ListItemButton
               component={NavLink}

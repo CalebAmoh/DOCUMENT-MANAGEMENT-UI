@@ -14,6 +14,8 @@ import { ReactComponent as UpdateIcon } from "../utils/icons/update-page-svgrepo
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { ReactComponent as NextIcon } from "../utils/icons/next-svgrepo-com.svg";
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
+import useAuth from '../hooks/useAuth';
+
 
 const ApprovalSetup = () => {
 
@@ -26,7 +28,7 @@ const ApprovalSetup = () => {
         edit: false,
     });
 
-
+    const { user } = useAuth();
     const actionRef = useRef(null);
     const anchorRef = useRef(null);
     
@@ -152,6 +154,7 @@ const ApprovalSetup = () => {
     //this function fetches all available doc types
     const fetchAvailableDocTypes = useCallback(async () => {
         try {
+            console.log("helpppp!!!!")
             setState((prevState) => ({
                 ...prevState,
                 loading: true
@@ -500,10 +503,11 @@ const ApprovalSetup = () => {
             const payload = {
                 doctype_id: state.doc_type, // Document type ID
                 stages: state.approvalStages, // Array of approval stages
+                posted_by: user.id
             };
             // console.log(payload);return;
             // Send the payload to the server
-            const response = await axios.post(`${API_SERVER}/approvers`, payload, { headers });
+            const response = await axiosPrivate.post(`/create-doc-approvers-setup`, payload, { withCredentials:true });
             if (response.status === 200) {
                 notifySuccess("Document approval stages saved successfully");
                 // Reset the form
@@ -541,10 +545,11 @@ const ApprovalSetup = () => {
             const payload = {
                 doctype_id: state.doc_type, // Document type ID
                 stages: state.approvalStages, // Array of approval stages
+                posted_by: user.id
             };
             // console.log(payload);return;
             // Send the payload to the server
-            const response = await axios.post(`${API_SERVER}/approvers/update`, payload, { headers });
+            const response = await axiosPrivate.put(`/update-doc-approvers-setup`, payload, { withCredentials:true });
             if (response.status === 200) {
                 notifySuccess("Document approval stages updated successfully");
                 // Reset the form

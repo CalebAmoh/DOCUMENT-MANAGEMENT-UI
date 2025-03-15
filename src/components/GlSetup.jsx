@@ -14,6 +14,7 @@ import { ReactComponent as UpdateIcon } from "../utils/icons/update-page-svgrepo
 import { ReactComponent as PreviousIcon } from "../utils/icons/previous-svgrepo-com.svg";
 import { ReactComponent as NextIcon } from "../utils/icons/next-svgrepo-com.svg";
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
+import useAuth from '../hooks/useAuth';
 
 
 const GlSetup = () => {
@@ -28,6 +29,7 @@ const GlSetup = () => {
     });
 
 
+    const {user} = useAuth();
     const actionRef = useRef(null);
     const anchorRef = useRef(null);
     const axiosPrivate = useAxiosPrivate();
@@ -203,14 +205,15 @@ const GlSetup = () => {
                 account_name: state.account_name.trim(),
                 account_number: state.account_number.trim(),
                 account_type: state.account_type,
-                status: state.status
+                status: state.status,
+                posted_by: user.id
             };
 
             // Make API call
-            const response = await axios.post(`${API_SERVER}/account-setup`, data, { headers });
+            const response = await axiosPrivate.post(`/add-account`, data, { withCredentials:true });
            
             if (response.data.code === '200') {
-                notifySuccess(response.data.results);
+                notifySuccess(response.data.message);
                 handleClose("add"); // Close modal
                 fetchAccounts(); // Refresh the list
             }
@@ -253,11 +256,12 @@ const GlSetup = () => {
                 account_name: state.account_name.trim(),
                 account_number: state.account_number,
                 account_type: state.account_type,
-                status: state.status
+                status: state.status,
+                posted_by: user.id
             };
             
             // Make API call
-            const response = await axios.put(`${API_SERVER}/account-setup/${state.selectedDocId}`, data, { headers });
+            const response = await axiosPrivate.put(`/update-account${state.selectedDocId}`, data, { withCredentials:true });
            
             if (response.data.code === '200') {
                 notifySuccess(response.data.message);
