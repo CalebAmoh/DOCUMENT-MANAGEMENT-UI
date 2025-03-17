@@ -42,6 +42,8 @@ import ColorSchemeToggle from "./ColorSxhemeToggle";
 import refresh from "../hooks/useRefreshToken";
 import logout from "../hooks/useLogout";
 import { closeSidebar } from "../utils/utils";
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { useState } from "react";
 
 function Toggler({
   defaultExpanded = false,
@@ -81,8 +83,8 @@ const getNavLinkStyles = ({ isActive }: { isActive: boolean }) => ({
   color: isActive ? "var(--joy-palette-primary-softColor)" : "inherit",
 });
 export default function Sidebar() {
-
   const { user } = useAuth();
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   return (
     <Sheet
@@ -388,6 +390,8 @@ export default function Sidebar() {
           variant="outlined"
           size="sm"
           // src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286"
+          sx={{ cursor: 'pointer' }}
+          onClick={() => setPasswordModalOpen(true)}
         />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
@@ -401,6 +405,10 @@ export default function Sidebar() {
           <LogoutRoundedIcon onClick={(logout())} />
         </IconButton>
       </Box>
+      <ChangePasswordModal 
+        open={passwordModalOpen} 
+        onClose={() => setPasswordModalOpen(false)} 
+      />
     </Sheet>
   );
 }

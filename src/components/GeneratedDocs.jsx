@@ -1028,7 +1028,7 @@ const GeneratedDocs = () => {
             <Sheet
               variant="outlined"
               sx={{
-                maxWidth: '100%',
+                maxWidth: '90%',
                 width: "100%",
                 borderRadius: "md",
                 p: { xs: 1, sm: 3 },
