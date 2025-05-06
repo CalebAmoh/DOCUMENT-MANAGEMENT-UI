@@ -61,32 +61,9 @@ const CARD_COLORS = {
   }
 };
 
-// Update the chart colors to match the cooler palette
-const chartData = [
-  { name: "Loan", value: 400, color: "#3a7bd5" },
-  { name: "Project", value: 400, color: "#4ca1af" },
-  { name: "Sponsorship", value: 300, color: "#516395" },
-  { name: "Other", value: 200, color: "#49a09d" },
-];
 
-const chartConfig = {
-  loan: {
-    label: "Loan",
-    color: "#3a7bd5",
-  },
-  project: {
-    label: "Project",
-    color: "#4ca1af",
-  },
-  sponsorship: {
-    label: "Sponsorship",
-    color: "#516395",
-  },
-  other: {
-    label: "Other",
-    color: "#49a09d",
-  },
-} satisfies ChartConfig;
+
+
 
 // Define the color key type
 type ColorKey = 'generated' | 'approved' | 'unapproved' | 'rejected';
@@ -101,14 +78,33 @@ interface RecentDoc {
 
 }
 
-const barChartData = [
-  { name: "Loan", value: 400, color: "#3a7bd5" },
-  { name: "Sponsorship", value: 450, color: "#4ca1af" },
-  { name: "Projects", value: 200, color: "#516395" },
-  // { name: "Apr", value: 278, color: "#49a09d" },
-  // { name: "May", value: 189, color: "#3a7bd5" },
-  // { name: "Jun", value: 239, color: "#4ca1af" },
-];
+interface Expenses {
+
+  color_code: string;
+  description: string;
+  requested_amount: string;
+
+}
+
+
+interface CategoryCount {
+
+  color_code: string;
+  description: string;
+  quantity: number;
+
+}
+
+// const barChartData = [
+//   // { name: "Loan", value: 400, color: "#3a7bd5" },
+//   // { name: "Sponsorship", value: 450, color: "#4ca1af" },
+//   // { name: "Projects", value: 200, color: "#516395" },
+//   // { name: "Apr", value: 278, color: "#49a09d" },
+//   // { name: "May", value: 189, color: "#3a7bd5" },
+//   // { name: "Jun", value: 239, color: "#4ca1af" },
+// ];
+
+
 
 const Dashboard = () => {
   const [currentDateTime, setCurrentDateTime] = useState<string>('');
@@ -121,6 +117,8 @@ const Dashboard = () => {
     unapprovedDocs: number;
     rejectedDocs: number;
     recentDocs: RecentDoc[];
+    expenses: Expenses[];
+    categoryCount: CategoryCount[];
     docId: string;
     showIframe: boolean;
   }>({
@@ -129,9 +127,13 @@ const Dashboard = () => {
     unapprovedDocs: 0,
     rejectedDocs: 0,
     recentDocs: [],
+    expenses: [],
+    categoryCount: [],
     docId:"",
     showIframe:false
   });
+
+
 
   // This function is used to handle input change
   const handleDocId = useCallback((value:string) => {
@@ -160,7 +162,7 @@ const Dashboard = () => {
           
 
           const response = await axiosPrivate.get(`/get-dashbaord-stats/${user?.id}/${user?.roles}`, { withCredentials:true });
-          console.log(response.data.result[4]);
+          console.log(response.data.result[6]);
           const stats = response.data.result;
           setState((prevState) => ({
               ...prevState,
@@ -168,7 +170,9 @@ const Dashboard = () => {
               unapprovedDocs: stats[1][0].unapproveddocs,
               approvedDocs: stats[2][0].approveddocs,
               generatedDocs: stats[3][0].generateddocs,
-              recentDocs: stats[4]
+              recentDocs: stats[4],
+              expenses: stats[5],
+              categoryCount: stats[6] || [] 
           }));
       } catch (error) {
           console.error("Error:", error);
@@ -206,6 +210,58 @@ const Dashboard = () => {
     { title: '50,000 loan request', doctype: 'Loan Request', size: '155KB' },
     { title: 'Student Sponsorship', doctype: 'Sponsorship', size: '155KB' },
   ];
+
+  const barChartData = state.expenses.map((item) => ({
+    name: item.description,
+    value: parseInt(item.requested_amount),
+    color: item.color_code,
+  }));
+
+
+
+  // Update the chart colors to match the cooler palette
+  const chartData = state.categoryCount.map((item) => ({
+    name: item.description,
+    value: item.quantity,
+    color: item.color_code,
+  }));
+  
+  // [
+  //   { name: "Loan", value: 400, color: "#3a7bd5" },
+  //   { name: "Project", value: 400, color: "#4ca1af" },
+  //   { name: "Sponsorship", value: 300, color: "#516395" },
+  //   { name: "Other", value: 200, color: "#49a09d" },
+  // ];
+
+  const chartConfig = state.categoryCount.reduce((acc, item) => {
+    console.log("my item",item)
+    return {
+      ...acc,
+      [item.description.toLowerCase()]: {
+        label: item.description,
+        color: item.color_code,
+      },
+    };
+  }, {});
+  
+  // {
+  //   loan: {
+  //     label: "Loan",
+  //     color: "#3a7bd5",
+  //   },
+  //   project: {
+  //     label: "Project",
+  //     color: "#4ca1af",
+  //   },
+  //   sponsorship: {
+  //     label: "Sponsorship",
+  //     color: "#516395",
+  //   },
+  //   other: {
+  //     label: "Other",
+  //     color: "#49a09d",
+  //   },
+  // } satisfies ChartConfig;
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -330,46 +386,10 @@ const Dashboard = () => {
       </Grid>
 
       <Grid container spacing={2} sx={{ flexGrow: 1, mt: 2 }}>
-        {/* First Chart */}
-        <Grid xs={12} sm={6} md={4}>
-          <StyledCard variant="plain" sx={{
-            background: 'white',
-            color: '#333',
-            mr: 2,
-            boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
-            overflow: 'hidden',
-            position: 'relative'
-          }}>
-            <Box 
-              sx={{
-                position: 'absolute',
-                top: -30,
-                left: -30,
-                width: 150,
-                height: 150,
-                borderRadius: '50%',
-                background: 'rgba(0,0,0,0.02)',
-                zIndex: 0
-              }}
-            />
-            <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-              <Typography level="title-md" sx={{ mb: 2, color: '#333', fontWeight: 'bold' }}>
-                Document Categories
-              </Typography>
-              <ShadcnPieChart 
-                data={chartData}
-                config={chartConfig}
-                height={220}
-                innerRadius={60}
-                outerRadius={90}
-                showLabels={true}
-              />
-            </CardContent>
-          </StyledCard>
-        </Grid>
+        
 
         {/* Second Chart */}
-        <Grid xs={12} sm={6} md={4}>
+        <Grid xs={12} sm={6} md={8}>
           <StyledCard variant="plain" sx={{
             background: 'white',
             color: '#333',
@@ -426,7 +446,7 @@ const Dashboard = () => {
             />
             <CardContent sx={{ position: 'relative', zIndex: 1 }}>
               <Typography level="title-md" sx={{ mb: 2, color: '#333', fontWeight: 'bold' }}>
-                Status Overview
+                Document Categories
               </Typography>
               <ShadcnPieChart 
                 data={chartData}

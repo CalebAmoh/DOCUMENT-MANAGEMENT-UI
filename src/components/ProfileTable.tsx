@@ -118,6 +118,7 @@ const UsersTable: React.FC<ApproversTableProps> = ({ data, handleOpen }) => {
           <Option value="Bank of America">Approver</Option>
           <Option value="Chase Bank">Admin</Option>
           <Option value="Wells Fargo">Originator</Option>
+          <Option value="Wells Fargo">Finance</Option>
         </Select>
       </FormControl>
     </React.Fragment>

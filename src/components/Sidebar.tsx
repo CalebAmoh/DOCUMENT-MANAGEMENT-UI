@@ -193,8 +193,7 @@ export default function Sidebar() {
               </ListItemContent>
             </ListItemButton>
           </ListItem>
-          
-          <ListItem>
+          {((!user?.roles.includes("finance"))||(!user?.roles.includes("approver"))) && (<ListItem>
             <ListItemButton
               component={NavLink}
               to="/document-portal"
@@ -203,11 +202,12 @@ export default function Sidebar() {
               <KeyIcon sx={{ color: "#FFFFFF" }} />
               <ListItemContent>
                 <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Document Portal
+                   Document Capture
                 </Typography>
               </ListItemContent>
             </ListItemButton>
-          </ListItem>
+          </ListItem>)}
+          
           {user?.roles.includes("approver") && (
           <ListItem>
             <ListItemButton
@@ -224,40 +224,57 @@ export default function Sidebar() {
             </ListItemButton>
           </ListItem>
           )}
-          {user?.roles.includes("approver")&& (
+          {/* {user?.roles.includes("approver")&& (
           <ListItem>
             <ListItemButton
               // selected
               component={NavLink}
-              to="/approval-history"
+              to="/finance-approval"
               style={getNavLinkStyles}
             >
               <MenuBookIcon sx={{ color: "#FFFFFF" }} />
               <ListItemContent>
                 <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  History
+                  Finance Approval
                 </Typography>
               </ListItemContent>
             </ListItemButton>
           </ListItem>
-          )}
-          {user?.roles.includes("admin")&& (
+          )} */}
+          {user?.roles.includes("finance")&& (
           <ListItem>
             <ListItemButton
               // selected
               component={NavLink}
-              to="/approval-history"
+              to="/finance-approval"
               style={getNavLinkStyles}
             >
               <MenuBookIcon sx={{ color: "#FFFFFF" }} />
               <ListItemContent>
                 <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  History
+                  Finance Approval
                 </Typography>
               </ListItemContent>
             </ListItemButton>
           </ListItem>
           )}
+          {/*{user?.roles.includes("admin")&& (
+          // <ListItem>
+          //   <ListItemButton
+          //     // selected
+          //     component={NavLink}
+          //     to="/finance-approval"
+          //     style={getNavLinkStyles}
+          //   >
+          //     <MenuBookIcon sx={{ color: "#FFFFFF" }} />
+          //     <ListItemContent>
+          //       <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+          //         Finance Approval
+          //       </Typography>
+          //     </ListItemContent>
+          //   </ListItemButton>
+          // </ListItem>
+          )}*/}
           {/* <ListItem>
             <ListItemButton
               component={NavLink}

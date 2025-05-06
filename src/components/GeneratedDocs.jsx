@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Result,notification } from "antd";
+import { Result,notification,Skeleton } from "antd";
 import { CloseCircleOutlined, EyeInvisibleFilled } from '@ant-design/icons';
 import GeneratedDocsTable from "../components/GeneratedDocsTable";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import CardOverflow from "@mui/joy/CardOverflow";
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import Sheet from "@mui/joy/Sheet";
 import ModalClose from "@mui/joy/ModalClose";
@@ -13,7 +14,7 @@ import Divider from "@mui/joy/Divider";
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import Stack from "@mui/joy/Stack";
 import FormControl from "@mui/joy/FormControl";
-import {FormLabel,Input,Textarea} from "@mui/joy";
+import {FormLabel,Input,Textarea,FormHelperText} from "@mui/joy";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Typography from "@mui/joy/Typography";
@@ -22,11 +23,12 @@ import useAuth from "../hooks/useAuth";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import axios from "axios";
 import Modal from "@mui/joy/Modal";
-import {API_SERVER, headers,API_SERVER1, axiosPrivate} from "../constant";
+import {API_SERVER, headers,API_SERVER1, axiosPrivate,headers_core} from "../constant";
 import CircularProgress from "@mui/material/CircularProgress";
 import DocumentScan from "./DocumentScan";
 import InfoIcon from '@mui/icons-material/Info';
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import swal from "sweetalert";
 
 const ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
 
@@ -39,13 +41,17 @@ const GeneratedDocs = () => {
   const [modalType, setModalType] = useState(null); // 'add' | 'view' | 'update'
   const [modalProgress, setModalProgress] = useState(null); // 'add' | 'view' | 'update'
   const [branches, setBranches] = useState([]); // State to manage branches
+  const [selected, setSelected] = useState("");
   const [docTypes, setDocTypes] = useState([]); // State to manage doc types
   const [success, setSuccess] = useState(false);
   const [documents, setDocuments] = useState([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedRequestedAmount, setSelectedRequestedAmount] = useState("");
   const [selectedCustomerNumber, setSelectedCustomerNumber] = useState("");
+  const [selectedCustomerName, setSelectedCustomerName] = useState("");
   const [details, setDetails] = useState("");
   const [generatedDocId, setGeneratedDocId] = useState("");
+   const [loading1, setLoading1] = useState(false);
   const [validationError, setValidationError] = useState("");
   const [isFetching, setIsFetching] = useState(false); // State to manage fetching approvers
   const [docId, setDocId] = useState(null); // State to manage approver id
@@ -60,8 +66,11 @@ const GeneratedDocs = () => {
   const [modalOpened, setModalOpened] = useState(false); // State to manage modal opened
   const [loading, setLoading] = useState(false); // State to manage loading
   const [showIframe, setShowIframe] = useState(false); // State to manage iframe modal opened
+  const [showCustomers, setShowCustomers] = useState(false); // State to manage iframe modal opened
   const [progress, setProgress] = useState(false);
   const {user} = useAuth();
+  const [accountDescription, setAccountDescription] = useState("");
+  const [filter, setFilter] = useState([]);
 
   const [formValues, setFormValues] = useState({
     user_id: "",
@@ -200,6 +209,71 @@ const GeneratedDocs = () => {
     });
   };
 
+  function handleSelected(value) {
+    console.log(value);
+    setSelectedCustomerName(value.accountNumber+"-"+value.accountName);
+    setSelectedCustomerNumber(value.accountNumber);
+    setFilter([]);
+    setShowCustomers(false);
+    // setAccountNumber(value.accountNumber);
+    // setAccountNumberFromSearchModal(value.accountNumber);
+    // document.getElementById("accNumber11").value = value.accountNumber;
+    // setFindById(false);
+  }
+
+  async function handleFind(e) {
+      setLoading1(true);
+      try {
+        // const response = await axios.post(
+        //   API_SERVER_CORE + "/api/find-by-name",
+        //   {
+        //     accountName: accountDescription,
+        //   },
+        //   { 
+        //     "x-api-key":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        //     "Content-Type": "application/json"
+        //   }
+        // );
+        let config = {
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: 'http://10.203.14.195:3320/api/find-by-name',
+          headers: headers_core,
+          data : {'accountName': accountDescription}
+        };
+        
+        axios.request(config)
+        .then((response) => {
+          console.log("dataaa",JSON.stringify(response.data));
+  
+          if (response.data?.length > 0) {
+            
+            setLoading1(false);
+    
+            setFilter(response.data);
+          } else {
+            swal({
+              title: "Oops !!!",
+              text: `No record match for account name '${accountDescription}' `,
+              icon: "warning",
+              buttons: "Ok",
+              dangerMode: true,
+            }).then((result) => {
+              setFilter([]);
+              setLoading(false);
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+  
+  
+      } catch (error) {
+        console.log(error);
+      }
+  }
+
   const notifySuccess = openNotification(true);
   const notifyError = openErrorNotification(true);
   const notifyDecline = openDeclineNotification(true);
@@ -236,6 +310,11 @@ const GeneratedDocs = () => {
   const handleButtonClick = () => {
     setShowIframe(true);
   };
+
+  //modal to show customers
+  const handleShowCustom = async  () => {
+    setShowCustomers(true);
+  }
 
   //function to handle file drop event
   const handleFileDrop = (event) => {
@@ -315,7 +394,8 @@ const GeneratedDocs = () => {
       'Status': setSelectedStatus,
       'details': setDetails,
       'requested_amount': setSelectedRequestedAmount,
-      'customer_no': setSelectedCustomerNumber
+      'customer_no': setSelectedCustomerNumber,
+      'customer_name': setSelectedCustomerName
       // 'user_id': setSelectedUserId,
     };
     
@@ -337,6 +417,7 @@ const GeneratedDocs = () => {
   //handles updating of approver's details
   const handleUpdate = () => {
     try{
+      setIsSubmitted(true);
       
       // Validate form values
       // Define an array of required fields with their corresponding display names
@@ -415,11 +496,13 @@ const GeneratedDocs = () => {
   //handles post update request
   const handlePostUpdate = async (id) => {
     try {
+      
       const response = await axiosPrivate.put(`/update-doc${id}`, {
         doctype_id: selectedDocTypeId,
         branch: selectedBranchId,
         requested_amount: isTransType === "1" ? selectedRequestedAmount: null,
-        customer_no: isTransType === "1" ? selectedCustomerNumber: null,
+        customer_number: isTransType === "1" ? selectedCustomerNumber: null,
+        customer_desc: isTransType === "1" ? selectedCustomerName: null,
         details: details,
         doc_id: selectedDocId,
         user_id: user.id
@@ -455,6 +538,22 @@ const GeneratedDocs = () => {
     }
   };
 
+  //function to return validation messages
+  const getFieldError = (fieldValue, fieldName) => {
+    if (isSubmitted && !fieldValue) {
+      return (
+        <FormHelperText sx={{ color: 'var(--joy-palette-danger-500)' }}>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+            <InfoOutlined sx={{color: 'var(--joy-palette-danger-500)'}}/>
+            {fieldName} is required
+          </Box>
+        </FormHelperText>
+      );
+    }
+    return null;
+  };
+  
+
   //fetches doc details based on idd
   const fetchDocDetails = async (id,type) => {
     try {
@@ -468,6 +567,7 @@ const GeneratedDocs = () => {
       setSelectedBranchId(response.data.result[0].branch);
       setSelectedRequestedAmount(response.data.result[0].requested_amount);
       setSelectedCustomerNumber(response.data.result[0].customer_no);
+      setSelectedCustomerName(response.data.result[0].customer_desc);
       setDetails(response.data.result[0].details);
       // setSelectedStatus(response.data.approver.status);
       if(type === "view") {
@@ -652,9 +752,9 @@ const GeneratedDocs = () => {
                             size="sm"
                             disabled
                             sx={{ backgroundColor: "#eaecee" }}
-                            value={selectedCustomerNumber}
+                            value={selectedCustomerName}
                             placeholder="Enter customer number"
-                            onChange={(newValue) => handleInputChange("customer_no",newValue)}
+                            onChange={(newValue) => handleInputChange("customer_name",newValue)}
                           />
                         </FormControl>
                       
@@ -769,6 +869,7 @@ const GeneratedDocs = () => {
                             </Option>
                           ))}
                         </Select>
+                        {getFieldError(selectedDocTypeId, 'Document Type')}
                       </FormControl>
                       <FormControl sx={{ width: "80%" }}>
                         <FormLabel required>Document Id (Upload file to generate id)</FormLabel>
@@ -778,8 +879,9 @@ const GeneratedDocs = () => {
                           placeholder="document id"
                           disabled
                           sx={{ backgroundColor: "#eaecee" }}
-                          onChange={(e) => setSelectedCustomerNumber(e.target.value)}
+                          onChange={(e) => setSelectedDocId(e.target.value)}
                         />
+                        {getFieldError(selectedDocId, 'Document Id')}
                       </FormControl>
                       <Button
                         size="sm"
@@ -802,16 +904,30 @@ const GeneratedDocs = () => {
                             placeholder="Enter requested Amount"
                             onChange={(e) => handleInputChange("requested_amount",e.target.value)} 
                           />
+                          {getFieldError(selectedRequestedAmount, 'Requested Amount')}
                         </FormControl>
 
                         <FormControl sx={{ width: "100%" }}>
                           <FormLabel>Customer number</FormLabel>
+                          <Stack direction="row" spacing={1}>
                           <Input
                             size="sm"
-                            value={selectedCustomerNumber}
+                            value={selectedCustomerName}
                             placeholder="Enter customer number"
-                            onChange={(e) => handleInputChange("customer_no",e.target.value)}
+                            disabled
+                            onChange={(e) => handleInputChange("customer_name",e.target.value)}
+                            sx={{ flex: 1,backgroundColor: "#eaecee",fontWeight: "bold" }}
                           />
+                          <Button
+                            size="sm"
+                            variant="solid"
+                            sx={{ backgroundColor: "#229954" }}
+                            color="neutral"
+                            onClick={handleShowCustom}>
+                            SEARCH
+                          </Button>
+                          </Stack>
+                          {getFieldError(selectedCustomerName, 'Account Number')}
                         </FormControl>
                       
                       </Stack>
@@ -828,6 +944,7 @@ const GeneratedDocs = () => {
                             placeholder="Enter Document Details"
                             onChange={(e) => handleInputChange("details",e.target.value)}
                           />
+                          {getFieldError(details, 'Details')}
                         </FormControl>
                       </Stack>
                       <div className="w-full">
@@ -1096,6 +1213,232 @@ const GeneratedDocs = () => {
                   </Typography>
                 </Sheet>
        </Modal>
+
+       <Modal
+        open={showCustomers}
+        aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+            onClose={handleClose}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "none",
+                },
+              },
+            }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              margin: { xs: 2, sm: '15%' },
+            }}
+      >
+        <Sheet
+              variant="outlined"
+              sx={{
+                maxWidth: { xs: '95%', sm: 500 },
+                borderRadius: "md",
+                p: { xs: 2, sm: 3 },
+                boxShadow: "lg",
+              }}
+            >
+        <div className=" text-gray-700  " style={{ zoom: "85%" }}>
+          <div>
+            <div
+              style={{
+                backgroundColor: "#b8b6b6",
+              }}
+              className=" w-full  shadow"
+            >
+              <div className=" flex justify-between py-[6px] px-2 items-center ">
+                <div className="text-white font-semibold">
+                  SEARCH ACCOUNT BY NAME
+                </div>
+
+                <svg
+                  onClick={() => handleClose()}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  // style={{ padding: "10px" }}
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-6 h-6 cursor-pointer fill-cyan-500 stroke-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            {/* <hr style={{ marginTop: "-10%" }} /> */}
+          </div>
+          <div className="bg-gray-200 rounded-b ">
+            <div className="bg-white shadow rounded px-2 pt-1 pb-8   ">
+              <div className="rounded p-2 space-y-2 border-2 mb-3 ">
+                <div>
+                  Find a partial value to limit the list , %% to see all values
+                </div>
+                <div className="border-l-4 border-yellow-500 rounded leading-6  px-3 py-2 bg-yellow-50">
+                  <span className="font-semibold flex items-center space-x-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-6 h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
+                    </svg>
+                    <div>Warning</div>
+                  </span>{" "}
+                  Entering % to see all values may take a very long time <br />
+                  Entering criteria that can be used to reduce the list may be
+                  significantly faster
+                </div>
+              </div>
+              <div className="">
+                <div className="mb-3 flex items-center space-x-2">
+                  <Input
+                    label={"Find"}
+                    labelWidth={"10%"}
+                    inputWidth={"70%"}
+                    onChange={(e) => {
+                      setAccountDescription(e.target.value);
+                    }}
+                    onKeyPress={(e) => {
+                      e.key === "Enter" && handleFind();
+                    }}
+                  />
+                  <Button
+                    label={"Find"}
+                    onClick={handleFind}
+                    buttonWidth={"15%"}
+                    buttonHeight={"30px"}
+                  />
+                </div>
+                <div style={{ maxHeight: "400px", overflow: "auto" }} className>
+                  {/* <DataTable
+                  data={filter}
+                  rowsPerPage={10}
+                  columns={[
+                    "Account Name",
+                    "Account Number",
+                    "ISO code",
+                    "Customer Number",
+                    "Status Indicator",
+                  ]}
+                /> */}
+
+                  <table className="w-full text-[90%]  bg-white rounded-sm   even:bg-gray-100  border-spacing-2 border border-gray-400">
+                    <thead>
+                      <tr
+                        className="py-1 uppercase font-semibold text-gray-100  "
+                        // style={{
+                        //   background:
+                        //     `url(` +
+                        //     window.location.origin +
+                        //     `/assets/images/background/` +
+                        //     getTheme.theme.backgroundImage +
+                        //     `)`,
+                        // }}
+                        style={{
+                          backgroundColor: "#0580c0",
+                        }}
+                      >
+                        <th className=" px-2 py-2 border border-gray-400">
+                          Account Name
+                        </th>
+                        <th className=" px-2 py-2 border border-gray-400">
+                          Account Number
+                        </th>
+                        <th className=" px-2 py-2 border w-32 border-gray-400">
+                          ISO Code
+                        </th>
+                        <th className=" px-2 py-2 border border-gray-400">
+                          Customer Number
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="">
+                      {!loading1 &&
+                        filter.map((i, key) => {
+                          return (
+                            <tr
+                              // onDoubleClick={() => {
+                              //   handleSelected(i);
+                              //   setSelected("");
+                              // }}
+                              onClick={() => {
+                                handleSelected(i);
+                              }}
+                              key={key}
+                              className={`${
+                                selected === i.accountNumber
+                                  ? "bg-blue-400 text-white"
+                                  : "bg-[#f9f9f9] hover:bg-zinc-200"
+                              } h-8 border-spacing-2   cursor-pointer border border-gray-400`}
+                            >
+                              <td
+                                // style={{
+                                //   background: getTheme.theme.navBarColor,
+                                // }}
+                                className="   capitalize px-2 py-1"
+                              >
+                                {i.accountName}
+                              </td>
+                              <td className="    px-2 py-1">
+                                {i.accountNumber === "null"
+                                  ? "0.00"
+                                  : i.accountNumber}
+                              </td>
+                              <td className="    px-2 py-1">
+                                {i.isoCode === "null" ? "0.00" : i.isoCode}
+                              </td>
+                              <td className="    px-2 py-1">
+                                {i.customer_number === "null"
+                                  ? "0.00"
+                                  : i.customer_number}
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                      {loading1 && (
+                        <tr className="">
+                          <td className="px-2 pt-2">
+                            <Skeleton active />
+                          </td>
+                          <td className="px-2">
+                            <Skeleton active />
+                          </td>
+                          <td className="px-2">
+                            <Skeleton active />
+                          </td>
+                          <td className="px-2">
+                            <Skeleton active />
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </Sheet>
+      </Modal>
+
+       
     </div>
   )
 };

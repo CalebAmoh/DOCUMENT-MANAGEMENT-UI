@@ -2,20 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GeneratedDocsTable from "../components/GeneratedDocsTable"; // Child component for table
 import { Stack, Modal, ModalClose, Sheet, Divider, Typography, Box, CardActions, Button, FormControl,FormLabel
     ,Select,Option,Input,Textarea,CardOverflow,Card,CardContent,AspectRatio} from "@mui/joy";
-import { Result,notification,Skeleton } from "antd";
+import { Result,notification } from "antd";
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import ApprovalActivityTable from './ApprovalActivityTable';
+import FinanceApprovalActivityTable from './FinanceApprovalActivityTable';
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
-import { API_SERVER, API_SERVER1, headers,headers_core } from "../constant";
+import { API_SERVER, API_SERVER1, headers } from "../constant";
 import useAuth from '../hooks/useAuth';
-import swal from "sweetalert";
 
 import axios from "axios";
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
-const ApprovalActivity = () => {
+const FinanceApprovalActivity = () => {
 
     // Initialize state with an object to track modals
     const [modals, setModals] = useState({
@@ -43,10 +42,8 @@ const ApprovalActivity = () => {
         docTypeName: null, // Selected document type name
         branchId: null, // Selected branch id
         requestedAmount: null, // Selected requested amount
+        requestedAmount: null, // Selected approved amount
         customerNumber: null, // Selected customer number
-        customerDesc: null, // Selected customer number
-        selectedCustomerName: null, // Selected customer number
-        selectedCustomerNumber: null, // Selected customer number
         details: null, // Selected details
         docTypes: [], // Array to store the document types
         branches: [], // Array to store the branches
@@ -56,15 +53,7 @@ const ApprovalActivity = () => {
         recommended_amount : "",
         remarks : null,
         db_account: null,
-        approvalComments: [], // Array to store approval comments
     });
-    const [showCustomers, setShowCustomers] = useState(false); // State to manage iframe modal opened
-    const [accountDescription, setAccountDescription] = useState("");
-    const [loading1, setLoading1] = useState(false);
-    const [filter, setFilter] = useState([]);
-    const [loading, setLoading] = useState(false); // State to manage loading spinner
-    const [selected, setSelected] = useState("");
-
 
     // the maximum number of characters allowed
     const maxChars = 255;
@@ -96,75 +85,6 @@ const ApprovalActivity = () => {
             setRemainingChars(maxChars - (value?.length || 0));
         }
     };
-
-    async function handleFind(e) {
-          setLoading1(true);
-          try {
-            // const response = await axios.post(
-            //   API_SERVER_CORE + "/api/find-by-name",
-            //   {
-            //     accountName: accountDescription,
-            //   },
-            //   { 
-            //     "x-api-key":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            //     "Content-Type": "application/json"
-            //   }
-            // );
-            let config = {
-              method: 'post',
-              maxBodyLength: Infinity,
-              url: 'http://10.203.14.195:3320/api/find-by-name',
-              headers: headers_core,
-              data : {'accountName': accountDescription}
-            };
-            
-            axios.request(config)
-            .then((response) => {
-              console.log("dataaa",JSON.stringify(response.data));
-      
-              if (response.data?.length > 0) {
-                
-                setLoading1(false);
-        
-                setFilter(response.data);
-              } else {
-                swal({
-                  title: "Oops !!!",
-                  text: `No record match for account name '${accountDescription}' `,
-                  icon: "warning",
-                  buttons: "Ok",
-                  dangerMode: true,
-                }).then((result) => {
-                  setFilter([]);
-                  setLoading(false);
-                });
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-      
-      
-          } catch (error) {
-            console.log(error);
-          }
-    }
-
-    function handleSelected(value) {
-        setState((prevState) => ({
-            ...prevState,
-            customerDesc:value.accountNumber+"-"+value.accountName,
-            selectedCustomerNumber:value.accountNumber,
-            customerNumber:value.accountNumber,
-        }));
-        
-        setFilter([]);
-        setShowCustomers(false);
-        // setAccountNumber(value.accountNumber);
-        // setAccountNumberFromSearchModal(value.accountNumber);
-        // document.getElementById("accNumber11").value = value.accountNumber;
-        // setFindById(false);
-    }
 
     //this function fetches submitted documents
     const fetchDocs = useCallback(async () => {
@@ -222,8 +142,9 @@ const ApprovalActivity = () => {
                 withCredentials: true,
               });
             const data = response.data.result[0];
-            console.log("doc details",data);
             const expense = response.data.expense_details;
+            console.log("check what's here",response.data)
+            console.log("check what's here for expensse",expense)
             setState((prevState) => ({
                 ...prevState,
                 docNumber: data.doc_id,
@@ -231,8 +152,8 @@ const ApprovalActivity = () => {
                 docTypeName: data.doctype_name,
                 branchId: data.branch,
                 requestedAmount: data.requested_amount,
+                approvedAmount: data.approved_amount,
                 customerNumber: data.customer_no,
-                customerDesc:data.customer_desc,
                 details: data.details,
                 db_account: expense ? expense.account_number : null
             }));
@@ -241,22 +162,6 @@ const ApprovalActivity = () => {
         }
     }, []);
 
-    // this function fetches approval comments for a document
-    const fetchApprovalComments = useCallback(async (docId) => {
-        try {
-            const response = await axiosPrivate.get(`/get-approval-comments/${docId}`, {
-                withCredentials: true,
-            });
-            console.log(response.data.comments);
-            const comments = response.data.comments; // Assuming the API returns comments in this format
-            setState((prevState) => ({
-                ...prevState,
-                approvalComments: comments, // Store comments in state
-            }));
-        } catch (error) {
-            console.error("Error fetching approval comments:", error);
-        }
-    }, []);
 
     //handle success notification
     const openNotification = (pauseOnHover) => (message) => {
@@ -315,11 +220,6 @@ const ApprovalActivity = () => {
         }
       }, []);
 
-    //modal to show customers
-    const handleShowCustom = async  () => {
-        setShowCustomers(true);
-    }  
-
     // This function is used to handle input change
     const handleInputChange = useCallback((key, value) => {
         setState((prevState) => ({
@@ -332,23 +232,21 @@ const ApprovalActivity = () => {
     const handleApprove = useCallback(async () => {
         try {
 
-            console.log("approve",state.requested_amount)
             //holds data to be sent to the server
             const data = {
                 docId: state.selectedDocId,
                 userId: user.id,
                 recommended_amount: state.recommended_amount,
-                requested_amount: state.requestedAmount,
+                requested_amount: state.approvedAmount? state.approvedAmount : state.requestedAmount,
                 remarks: state.remarks,
                 db_account: state.db_account,
-                customerDesc: state.customerDesc,
                 cr_account: state.customerNumber,
                 trans_type: state.docTypeName
             };
 
             // console.log(data);return;
 
-            const response = await axiosPrivate.put(`/approve-doc`, {data}, {withCredentials: true });
+            const response = await axiosPrivate.post(`/make-transaction`, {data}, {withCredentials: true });
             
             fetchDocs();
             handleClose();
@@ -418,14 +316,13 @@ const ApprovalActivity = () => {
         fetchDocs();
     }, []);
 
-    //when the selectedDocId changes, fetch the details of the document and comments
+    //when the selectedDocId changes, fetch the details of the document
     useEffect(() => {
         if (state.selectedDocId) {
             fetchDocDetails(state.selectedDocId);
             fetchDocTypes();
-            fetchApprovalComments(state.selectedDocId);
         }
-    }, [state.selectedDocId, fetchDocDetails, fetchDocTypes, fetchApprovalComments]);
+    }, [state.selectedDocId, fetchDocDetails]);
 
     return (
         <div>
@@ -466,7 +363,7 @@ const ApprovalActivity = () => {
                         }}
                     >
                     </Box>
-                    <ApprovalActivityTable data={state.docs} handleOpen={handleOpen} />
+                    <FinanceApprovalActivityTable data={state.docs} handleOpen={handleOpen} />
 
                     {/* Modal for viewing doc details */}
                    
@@ -597,7 +494,7 @@ const ApprovalActivity = () => {
                                             handleApprove();
                                             }}
                                         >
-                                            Submit
+                                            Approve
                                         </Button>
                                     </CardActions>
                                 </Stack>
@@ -719,37 +616,34 @@ const ApprovalActivity = () => {
                                             onChange={(newValue) => handleInputChange("requested_amount",newValue)} 
                                         />
                                         </FormControl>
-
+                                        
                                         <FormControl sx={{ width: "100%" }}>
-                                        <FormLabel>Customer number</FormLabel>
-                                        {/* <Input
+                                        <FormLabel>Approved Amount</FormLabel>
+                                        <Input
                                             size="sm"
-                                            text="test"
+                                            type="text"
+                                            disabled
+                                            sx={{ backgroundColor: "#eaecee" }}
+                                            value={state.approvedAmount}
+                                            placeholder="Enter requested Amount"
+                                            onChange={(newValue) => handleInputChange("requested_amount",newValue)} 
+                                        />
+                                        </FormControl>
+
+                                       
+                                    
+                                    </Stack>
+                                    )}
+                                    {state.requestedAmount && (
+                                        <FormControl sx={{ width: "48%" }}>
+                                        <FormLabel>Customer number</FormLabel>
+                                        <Input
+                                            size="sm"
                                             value={state.customerNumber}
                                             placeholder="Enter customer number"
                                             onChange={(newValue) => handleInputChange("customer_no",newValue)}
-                                        /> */}
-                                        <Stack direction="row" spacing={1}>
-                                            <Input
-                                            size="sm"
-                                            value={state.customerDesc}
-                                            placeholder="Enter customer number"
-                                            disabled
-                                            onChange={(e) => handleInputChange("customer_name",e.target.value)}
-                                            sx={{ flex: 1,backgroundColor: "#eaecee",fontWeight: "bold" }}
-                                            />
-                                            <Button
-                                                size="sm"
-                                                variant="solid"
-                                                sx={{ backgroundColor: "#229954" }}
-                                                color="neutral"
-                                                onClick={handleShowCustom}>
-                                                SEARCH
-                                            </Button>
-                                        </Stack>
+                                        />
                                         </FormControl>
-                                    
-                                    </Stack>
                                     )}        
                                     <Stack direction="row" spacing={4}>
                                         <FormControl sx={{ width: "100%" }}>
@@ -790,22 +684,6 @@ const ApprovalActivity = () => {
                                         </Button>
                                     </Stack> */}
                                     
-                                    {/* Display Approval Comments */}
-                                    <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-                                        <Typography level="title-sm" sx={{ mb: 1 }}>Approval Comments:</Typography>
-                                        {state.approvalComments.length > 0 ? (
-                                            <Stack spacing={0.5} sx={{ maxHeight: '150px', overflowY: 'auto' }}>
-                                                {state.approvalComments.map((commentObj, index) => (
-                                                    <Box key={index} sx={{ p: 1, borderLeft: '4px solid #00357A', backgroundColor: '#e3f2fd', borderRadius: '4px', mb: 0.5 }}>
-                                                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#00357A', fontSize: '0.9rem' }}>{commentObj.approver}</Typography>
-                                                        <Typography variant="body2" sx={{ color: '#333', fontSize: '0.85rem' }}>{commentObj.comment}</Typography>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        ) : (
-                                            <Typography level="body-md">No comments available.</Typography>
-                                        )}
-                                    </Box>
                                 </Stack>
                                     <CardOverflow sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                                         <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
@@ -953,230 +831,6 @@ const ApprovalActivity = () => {
                     </Modal>
 
 
-                    <Modal
-                        open={showCustomers}
-                        aria-labelledby="modal-title"
-                            aria-describedby="modal-desc"
-                            onClose={handleClose}
-                            slotProps={{
-                                backdrop: {
-                                sx: {
-                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
-                                    backdropFilter: "none",
-                                },
-                                },
-                            }}
-                            sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                margin: { xs: 2, sm: '15%' },
-                            }}
-                        >
-                        <Sheet
-                                variant="outlined"
-                                sx={{
-                                maxWidth: { xs: '95%', sm: 500 },
-                                borderRadius: "md",
-                                p: { xs: 2, sm: 3 },
-                                boxShadow: "lg",
-                                }}
-                            >
-                        <div className=" text-gray-700  " style={{ zoom: "85%" }}>
-                            <div>
-                            <div
-                                style={{
-                                backgroundColor: "#b8b6b6",
-                                }}
-                                className=" w-full  shadow"
-                            >
-                                <div className=" flex justify-between py-[6px] px-2 items-center ">
-                                <div className="text-white font-semibold">
-                                    SEARCH ACCOUNT BY NAME
-                                </div>
-                
-                                <svg
-                                    onClick={() => handleClose()}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    // style={{ padding: "10px" }}
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={1.5}
-                                    stroke="currentColor"
-                                    className="w-6 h-6 cursor-pointer fill-cyan-500 stroke-white"
-                                >
-                                    <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                                </div>
-                            </div>
-                            {/* <hr style={{ marginTop: "-10%" }} /> */}
-                            </div>
-                            <div className="bg-gray-200 rounded-b ">
-                            <div className="bg-white shadow rounded px-2 pt-1 pb-8   ">
-                                <div className="rounded p-2 space-y-2 border-2 mb-3 ">
-                                <div>
-                                    Find a partial value to limit the list , %% to see all values
-                                </div>
-                                <div className="border-l-4 border-yellow-500 rounded leading-6  px-3 py-2 bg-yellow-50">
-                                    <span className="font-semibold flex items-center space-x-2">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.5}
-                                        stroke="currentColor"
-                                        className="w-6 h-6"
-                                    >
-                                        <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                                        />
-                                    </svg>
-                                    <div>Warning</div>
-                                    </span>{" "}
-                                    Entering % to see all values may take a very long time <br />
-                                    Entering criteria that can be used to reduce the list may be
-                                    significantly faster
-                                </div>
-                                </div>
-                                <div className="">
-                                <div className="mb-3 flex items-center space-x-2">
-                                    <Input
-                                    label={"Find"}
-                                    labelWidth={"10%"}
-                                    inputWidth={"70%"}
-                                    onChange={(e) => {
-                                        setAccountDescription(e.target.value);
-                                    }}
-                                    onKeyPress={(e) => {
-                                        e.key === "Enter" && handleFind();
-                                    }}
-                                    />
-                                    <Button
-                                    onClick={handleFind}
-                                    buttonWidth={"15%"}
-                                    buttonHeight={"30px"}
-                                    >Find</Button>
-                                </div>
-                                <div style={{ maxHeight: "400px", overflow: "auto" }} className>
-                                    {/* <DataTable
-                                    data={filter}
-                                    rowsPerPage={10}
-                                    columns={[
-                                    "Account Name",
-                                    "Account Number",
-                                    "ISO code",
-                                    "Customer Number",
-                                    "Status Indicator",
-                                    ]}
-                                /> */}
-                
-                                    <table className="w-full text-[90%]  bg-white rounded-sm   even:bg-gray-100  border-spacing-2 border border-gray-400">
-                                    <thead>
-                                        <tr
-                                        className="py-1 uppercase font-semibold text-gray-100  "
-                                        // style={{
-                                        //   background:
-                                        //     `url(` +
-                                        //     window.location.origin +
-                                        //     `/assets/images/background/` +
-                                        //     getTheme.theme.backgroundImage +
-                                        //     `)`,
-                                        // }}
-                                        style={{
-                                            backgroundColor: "#0580c0",
-                                        }}
-                                        >
-                                        <th className=" px-2 py-2 border border-gray-400">
-                                            Account Name
-                                        </th>
-                                        <th className=" px-2 py-2 border border-gray-400">
-                                            Account Number
-                                        </th>
-                                        <th className=" px-2 py-2 border w-32 border-gray-400">
-                                            ISO Code
-                                        </th>
-                                        <th className=" px-2 py-2 border border-gray-400">
-                                            Customer Number
-                                        </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="">
-                                        {!loading1 &&
-                                        filter.map((i, key) => {
-                                            return (
-                                            <tr
-                                                // onDoubleClick={() => {
-                                                //   handleSelected(i);
-                                                //   setSelected("");
-                                                // }}
-                                                onClick={() => {
-                                                handleSelected(i);
-                                                }}
-                                                key={key}
-                                                className={`${
-                                                selected === i.accountNumber
-                                                    ? "bg-blue-400 text-white"
-                                                    : "bg-[#f9f9f9] hover:bg-zinc-200"
-                                                } h-8 border-spacing-2   cursor-pointer border border-gray-400`}
-                                            >
-                                                <td
-                                                // style={{
-                                                //   background: getTheme.theme.navBarColor,
-                                                // }}
-                                                className="   capitalize px-2 py-1"
-                                                >
-                                                {i.accountName}
-                                                </td>
-                                                <td className="    px-2 py-1">
-                                                {i.accountNumber === "null"
-                                                    ? "0.00"
-                                                    : i.accountNumber}
-                                                </td>
-                                                <td className="    px-2 py-1">
-                                                {i.isoCode === "null" ? "0.00" : i.isoCode}
-                                                </td>
-                                                <td className="    px-2 py-1">
-                                                {i.customer_number === "null"
-                                                    ? "0.00"
-                                                    : i.customer_number}
-                                                </td>
-                                            </tr>
-                                            );
-                                        })}
-                
-                                        {loading1 && (
-                                        <tr className="">
-                                            <td className="px-2 pt-2">
-                                            <Skeleton active />
-                                            </td>
-                                            <td className="px-2">
-                                            <Skeleton active />
-                                            </td>
-                                            <td className="px-2">
-                                            <Skeleton active />
-                                            </td>
-                                            <td className="px-2">
-                                            <Skeleton active />
-                                            </td>
-                                        </tr>
-                                        )}
-                                    </tbody>
-                                    </table>
-                                </div>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                        </Sheet>
-                    </Modal>
-
-
                 </Box>
             </div>
                 )}
@@ -1184,6 +838,6 @@ const ApprovalActivity = () => {
     );
 };
 
-export default React.memo(ApprovalActivity);
+export default React.memo(FinanceApprovalActivity);
 
 

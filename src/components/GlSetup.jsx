@@ -40,7 +40,8 @@ const GlSetup = () => {
         account_number: "", // Description of the document type
         account_type: "", // Transaction type of the document
         status: "", // Status of the document
-        openMenu:false,
+        openMenu: false,
+        expenseAccounts: [] // Initialize with empty array
     });
 
     
@@ -159,6 +160,28 @@ const GlSetup = () => {
         }
     }, []);
     
+    
+    //this function fetches all accounts
+    const fetchExpenseAccounts = useCallback(async () => {
+        
+        try {
+            
+            const response = await axiosPrivate.get(`get-expense-accounts`);
+            const data = response.data.expenseAccounts.data;
+            console.log("Expense Accounts:", response.data.expenseAccounts.data);
+            setState((prevState) => ({
+                ...prevState,
+                expenseAccounts: data
+            }));
+        } catch (error) {
+            console.error("Error:", error);
+            setState((prevState) => ({
+                ...prevState,
+                loading: false
+            }));
+        }
+    }, []);
+    
 
 
    
@@ -166,6 +189,7 @@ const GlSetup = () => {
     //this useEffect fetches the submitted documents
     useEffect(() => {
         fetchAccounts();
+        fetchExpenseAccounts();
     }, []);
 
   
@@ -383,13 +407,19 @@ const GlSetup = () => {
                                             </FormControl>
                                             <FormLabel>Account Number</FormLabel>
                                             <FormControl sx={{ width: "100%" }}>
-                                                <Input
+                                                {/* <Input
                                                 size="sm"
                                                 placeholder="Enter Account Number"
                                                 value={state.account_number}
                                                 onChange={(e) =>
                                                     handleInputChange("account_number", e.target.value)
                                                 }
+                                                /> */}
+                                                <SearchableSelect 
+                                                    options={(state.expenseAccounts || []).map(acct => ({ label: acct.ACCOUNT_DESCRP+"-"+acct.TACCT, value: acct.TACCT}))}
+                                                    onChange={(newValue) => handleInputChange("account_number", newValue)}
+                                                    label="Select Account"
+                                                    placeholder="Select Account"
                                                 />
                                             </FormControl>
                                             
@@ -479,15 +509,37 @@ const GlSetup = () => {
                                                     placeholder="Enter Account Name"
                                                     value={state.account_name}
                                                     onChange={(e) => handleInputChange("account_name", e.target.value)}/>
+                                                    {/* <SearchableSelect 
+                                                        options={(state.expenseAccounts || []).map(acct => ({ label: acct.ACCOUNT_DESCRP+"-"+acct.ACCOUNT_NUMBER, value: acct.ACCOUNT_NUMBER}))}
+                                                        onChange={(newValue) => handleInputChange("account_number", newValue)}
+                                                        label="Document Type"
+                                                        placeholder="Select Account"
+                                                        initialValue={state.account_name ? {
+                                                            label: state.account_number,
+                                                            // label: state.expenseAccounts.find(acct => acct.ACCOUNT_NUMBER === state.account_name)?.ACCOUNT_DESCRP || '',
+                                                            value: state.account_name
+                                                        } : null}
+                                                    /> */}
                                                 </FormControl>
                                                 
                                                 <FormLabel>Account Number</FormLabel>
                                                 <FormControl sx={{ width: "100%" }}>
-                                                    <Input
+                                                    {/* <Input
                                                     size="sm"
                                                     placeholder="Enter Account Number"
                                                     value={state.account_number}
-                                                    onChange={(e) => handleInputChange("account_number", e.target.value)}/>
+                                                    onChange={(e) => handleInputChange("account_number", e.target.value)}/> */}
+                                                    <SearchableSelect 
+                                                        options={(state.expenseAccounts || []).map(acct => ({ label: acct.ACCOUNT_DESCRP+" - "+acct.ACCOUNT_NUMBER, value: acct.ACCOUNT_NUMBER}))}
+                                                        onChange={(newValue) => handleInputChange("account_number", newValue)}
+                                                        label="Document Type"
+                                                        placeholder="Select Account"
+                                                        initialValue={state.account_name ? {
+                                                            // label: state.account_name,
+                                                            label: (state.expenseAccounts.find(acct => acct.TACCT === state.account_number)?.ACCOUNT_DESCRP || '') +" - "+ state.account_number,
+                                                            value: state.account_number
+                                                        } : null}
+                                                    />
                                                 </FormControl>
                                                 
                                                 

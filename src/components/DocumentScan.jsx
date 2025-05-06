@@ -139,7 +139,7 @@ function DocumentScan({
                   <Box sx={{ mb: 1 }}>
                     <img src="https://media.licdn.com/dms/image/C4D0BAQFyneLvWM12fg/company-logo_200_200/0/1630474848751?e=2147483647&v=beta&t=MkU6tTOVPg9u5fSNAOmsL0QNwav6jsycqP72-wTjwt0" className="h-6 w-6 sm:h-8 sm:w-8" alt="" srcset=""/>
                     <Typography level="title-md">
-                      Update Details
+                      SCAN DOCUMENT
                     </Typography>
                   </Box>
                   <Divider sx={{ marginBottom: 2 }} />
@@ -203,7 +203,7 @@ function DocumentScan({
                     }}
                     onClick={convertToBase64}
                   >
-                    Save
+                    Scan
                   </Button>
                   <Button
                     sx={{

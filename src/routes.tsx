@@ -20,25 +20,25 @@ const AppRoutes = () => {
       <Route path="/" element={<Login />} />
 
       <Route element={<PersistLogin/>}>
-      {/* private routes */}
-      <Route element={<RequireAuth children={['admin']}/>}>
-        <Route path="/settings" element={<Settings />} />
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-        <Route path="/document-portal" element={<Categories />} />
-      </Route>
-
-      <Route element={<RequireAuth children={['approvers']}/>}>
-        <Route path="/approvals" element={<Products />} />
-        <Route path="/orders" element={<Orders />} />
-      </Route>
-
-      <Route element = {<RequireAuth/>}>
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-        {/* <Route path="/document-portal" element={<Categories />} /> */}
-      </Route>
-
-      <Route path="/customers" element={<Customers />} />
+        {/* private routes */}
+        <Route element={<RequireAuth children={['admin']}/>}>
+          <Route path="/settings" element={<Settings />} />
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          <Route path="/document-portal" element={<Categories />} />
         </Route>
+
+        <Route element={<RequireAuth children={['approvers','finance']}/>}>
+          <Route path="/approvals" element={<Products />} />
+          <Route path="/orders" element={<Orders />} />
+        </Route>
+
+        <Route element = {<RequireAuth/>}>
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          {/* <Route path="/document-portal" element={<Categories />} /> */}
+        </Route>
+
+        <Route path="/customers" element={<Customers />} />
+      </Route>
       {/* catch all route */}
       <Route path="*" element={<Login />} />
     </Routes>

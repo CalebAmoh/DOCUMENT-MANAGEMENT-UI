@@ -34,11 +34,14 @@ const App = () => (
                     <Route element={<RequireAuth children={['admin']}/>}> 
                         <Route path="/settings" element={<Settings />} />
                     </Route>
-                    <Route element={<RequireAuth children={['approver']}/>}>
+                    <Route element={<RequireAuth children={['approver','finance']}/>}>
                         <Route path="/approvals" element={<Approval />} />
-                        <Route path="/approval-history" element={<ApprovalHistory />} />
+                        {/* <Route path="/finance-approval" element={<ApprovalHistory /> } /> */}
                     </Route>
-                    <Route element={<RequireAuth children={['admin','approver','originator']}/>}> 
+                    <Route element={<RequireAuth children={['approver','finance']}/>}>
+                        <Route path="/finance-approval" element={<ApprovalHistory /> } />
+                    </Route>
+                    <Route element={<RequireAuth children={['admin','approver','originator','finance']}/>}> 
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/document-portal" element={<Portal />} />
                         <Route path="/customers" element={<Customers />} />
