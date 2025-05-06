@@ -86,6 +86,19 @@ export default function Sidebar() {
   const { user } = useAuth();
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
+  // Helper functions to check roles
+  const isApprover = user?.roles.includes("approver");
+  const isAdmin = user?.roles.includes("admin");
+  const isFinance = user?.roles.includes("finance");
+
+  // Function to determine if a role is exclusively assigned
+  const hasOnlyRole = (role: string) =>
+    user?.roles.length === 1 && user?.roles[0] === role;
+
+  // Function to check if user is exclusively admin or originator
+  const hasOnlyAdminOrOriginator = () =>
+    user?.roles.length === 1 && (user?.roles[0] === "admin" || user?.roles[0] === "originator");
+
   return (
     <Sheet
       className="Sidebar"
@@ -174,201 +187,84 @@ export default function Sidebar() {
           },
         }}
       >
-       {user && ( <List
-          size="sm"
-          sx={{
-            gap: 2.5,
-            "--List-nestedInsetStart": "30px",
-            "--ListItem-radius": (theme) => theme.vars.radius.sm,
-          }}
-        >
-          
-          <ListItem>
-            <ListItemButton component={NavLink} to="/dashboard" style={getNavLinkStyles}>
-              <DashboardRoundedIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Dashboard
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem>
-          {((!user?.roles.includes("finance"))||(!user?.roles.includes("approver"))) && (<ListItem>
-            <ListItemButton
-              component={NavLink}
-              to="/document-portal"
-              style={getNavLinkStyles}
-            >
-              <KeyIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                   Document Capture
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem>)}
-          
-          {user?.roles.includes("approver") && (
-          <ListItem>
-            <ListItemButton
-              component={NavLink}
-              to="/approvals"
-              style={getNavLinkStyles}
-            >
-              <EditNoteIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Approval Requests
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem>
-          )}
-          {/* {user?.roles.includes("approver")&& (
-          <ListItem>
-            <ListItemButton
-              // selected
-              component={NavLink}
-              to="/finance-approval"
-              style={getNavLinkStyles}
-            >
-              <MenuBookIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Finance Approval
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem>
-          )} */}
-          {user?.roles.includes("finance")&& (
-          <ListItem>
-            <ListItemButton
-              // selected
-              component={NavLink}
-              to="/finance-approval"
-              style={getNavLinkStyles}
-            >
-              <MenuBookIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Finance Approval
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem>
-          )}
-          {/*{user?.roles.includes("admin")&& (
-          // <ListItem>
-          //   <ListItemButton
-          //     // selected
-          //     component={NavLink}
-          //     to="/finance-approval"
-          //     style={getNavLinkStyles}
-          //   >
-          //     <MenuBookIcon sx={{ color: "#FFFFFF" }} />
-          //     <ListItemContent>
-          //       <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-          //         Finance Approval
-          //       </Typography>
-          //     </ListItemContent>
-          //   </ListItemButton>
-          // </ListItem>
-          )}*/}
-          {/* <ListItem>
-            <ListItemButton
-              component={NavLink}
-              to="/customers"
-              style={getNavLinkStyles}
-            >
-              <PeopleIcon sx={{ color: "#FFFFFF" }} />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Amendment
-                </Typography>
-              </ListItemContent>
-            </ListItemButton>
-          </ListItem> */}
-          {/* <ListItem nested>
-            <Toggler
-              renderToggle={({ open, setOpen }) => (
-                <ListItemButton onClick={() => setOpen(!open)}>
-                  <AssignmentRoundedIcon />
-                  <ListItemContent>
-                    <Typography level="title-sm">Tasks</Typography>
-                  </ListItemContent>
-                  <KeyboardArrowDownIcon
-                    sx={{ transform: open ? "rotate(180deg)" : "none" }}
-                  />
-                </ListItemButton>
-              )}
-            >
-              <List sx={{ gap: 0.5 }}>
-                <ListItem sx={{ mt: 0.5 }}>
-                  <ListItemButton>All tasks</ListItemButton>
-                </ListItem>
-                <ListItem>
-                  <ListItemButton>Backlog</ListItemButton>
-                </ListItem>
-                <ListItem>
-                  <ListItemButton>In progress</ListItemButton>
-                </ListItem>
-                <ListItem>
-                  <ListItemButton>Done</ListItemButton>
-                </ListItem>
-              </List>
-            </Toggler>
-          </ListItem> */}
-          {/* <ListItem>
-            <ListItemButton role="menuitem">
-              <QuestionAnswerRoundedIcon />
-              <ListItemContent>
-                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                  Messages
-                </Typography>
-              </ListItemContent>
-              <Chip size="sm" color="primary" variant="solid">
-                4
-              </Chip>
-            </ListItemButton>
-          </ListItem>
-          <ListItem nested>
-            <Toggler
-              renderToggle={({ open, setOpen }) => (
-                <ListItemButton onClick={() => setOpen(!open)}>
-                  <AdminPanelSettingsIcon />
+        {user && (
+          <List
+            size="sm"
+            sx={{
+              gap: 2.5,
+              "--List-nestedInsetStart": "30px",
+              "--ListItem-radius": (theme) => theme.vars.radius.sm,
+            }}
+          >
+            {/* Dashboard is visible to all roles */}
+            <ListItem>
+              <ListItemButton component={NavLink} to="/dashboard" style={getNavLinkStyles}>
+                <DashboardRoundedIcon sx={{ color: "#FFFFFF" }} />
+                <ListItemContent>
+                  <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                    Dashboard
+                  </Typography>
+                </ListItemContent>
+              </ListItemButton>
+            </ListItem>
+
+            {/* Approval Requests: Only for exclusive approver */}
+            {hasOnlyRole("approver") && (
+              <ListItem>
+                <ListItemButton
+                  component={NavLink}
+                  to="/approvals"
+                  style={getNavLinkStyles}
+                >
+                  <EditNoteIcon sx={{ color: "#FFFFFF" }} />
                   <ListItemContent>
                     <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                      Users
+                      Approval Requests
                     </Typography>
                   </ListItemContent>
-                  <KeyboardArrowDownIcon
-                    sx={{ transform: open ? "rotate(180deg)" : "none" }}
-                  />
                 </ListItemButton>
-              )}
-            >
-              <List sx={{ gap: 0.5 }}>
-                <ListItem sx={{ mt: 0.5 }}>
-                  <ListItemButton
-                    role="menuitem"
-                    component="a"
-                    href="/joy-ui/getting-started/templates/profile-dashboard/"
-                  >
-                    My profile
-                  </ListItemButton>
-                </ListItem>
-                <ListItem>
-                  <ListItemButton>Create a new user</ListItemButton>
-                </ListItem>
-                <ListItem>
-                  <ListItemButton>Roles & permission</ListItemButton>
-                </ListItem>
-              </List>
-            </Toggler>
-          </ListItem> */}
-        </List>
+              </ListItem>
+            )}
+
+            {/* Document Capture: Only for exclusive admin or originator */}
+            {hasOnlyAdminOrOriginator() && (
+              <ListItem>
+                <ListItemButton
+                  component={NavLink}
+                  to="/document-portal"
+                  style={getNavLinkStyles}
+                >
+                  <KeyIcon sx={{ color: "#FFFFFF" }} />
+                  <ListItemContent>
+                    <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                      Document Capture
+                    </Typography>
+                  </ListItemContent>
+                </ListItemButton>
+              </ListItem>
+            )}
+
+            {/* Finance Approval: Only for exclusive finance */}
+            {hasOnlyRole("finance") && (
+              <ListItem>
+                <ListItemButton
+                  component={NavLink}
+                  to="/finance-approval"
+                  style={getNavLinkStyles}
+                >
+                  <MenuBookIcon sx={{ color: "#FFFFFF" }} />
+                  <ListItemContent>
+                    <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                      Finance Approval
+                    </Typography>
+                  </ListItemContent>
+                </ListItemButton>
+              </ListItem>
+            )}
+          </List>
         )}
+
+        {/* Settings: Only for exclusive admin, at the bottom */}
         <List
           size="sm"
           sx={{
@@ -379,25 +275,19 @@ export default function Sidebar() {
             mb: 0,
           }}
         >
-          {/* <ListItem>
-            <ListItemButton>
-              <SupportRoundedIcon />
-              Support
-            </ListItemButton>
-          </ListItem> */}
-          {user?.roles.includes("admin") && (
-          <ListItem sx={{ color: "#FFFFFF" }}>
-            <ListItemButton
-              component={NavLink}
-              to="/settings"
-              style={getNavLinkStyles}
-            >
-              <SettingsRoundedIcon sx={{ color: "#FFFFFF" }} />
-              <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
-                Settings
-              </Typography>
-            </ListItemButton>
-          </ListItem>
+          {hasOnlyRole("admin") && (
+            <ListItem sx={{ color: "#FFFFFF" }}>
+              <ListItemButton
+                component={NavLink}
+                to="/settings"
+                style={getNavLinkStyles}
+              >
+                <SettingsRoundedIcon sx={{ color: "#FFFFFF" }} />
+                <Typography level="title-sm" sx={{ color: "#FFFFFF" }}>
+                  Settings
+                </Typography>
+              </ListItemButton>
+            </ListItem>
           )}
         </List>
       </Box>
