@@ -23,7 +23,10 @@ import { ReactComponent as PdfSvg } from "../utils/icons/pdf-file-svg.svg";
 import { ReactComponent as EditIcon } from "../utils/icons/edit-svgrepo-com.svg";
 import { ReactComponent as ViewIcon } from "../utils/icons/eye-password-eye-password-svgrepo-com.svg";
 import { ReactComponent as SubmitIcon } from "../utils/icons/send-svgrepo-com.svg";
+import { ReactComponent as MessageIcon_ } from "../utils/icons/message-svgrepo-com.svg";
 import { ReactComponent as MessageIcon } from "../utils/icons/message-list-svgrepo-com.svg";
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
+
 type Order = "asc" | "desc";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -60,16 +63,17 @@ function stableSort<T>(
   return stabilizedThis.map((el) => el[0]);
 }
 
+interface TableRow {
+  id: number;
+  doc_id: string;
+  doctype_name: string;
+  details: string;
+  status: string;
+  created_at: string;
+}
+
 interface ApproversTableProps {
-  data: Array<{
-    id: number;
-    doctype_name: string;
-    details: string;
-    doc_id: string;
-    doctype_id: string;
-    status: string;
-    created_at: string;
-  }>;
+  data: TableRow[];
   handleOpen: (type: string, row: any) => void;
   handleMessage: (id: number) => void;
 }
@@ -119,7 +123,13 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
   const [selectedRow, setSelectedRow] = React.useState<any | null>(null);
   const [tabValue, setTabValue] = React.useState(3)
   const menuRef = useRef<HTMLDivElement>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [docTypeFilter, setDocTypeFilter] = useState<string>('');
+  const [docTypes, setDocTypes] = useState<Array<{id: string, description: string}>>([]);
   
+
+  const axiosPrivate = useAxiosPrivate();
+
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, row: any) => {
     event.preventDefault();
     event.stopPropagation();
@@ -132,7 +142,19 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
     setSelectedRow(null);
   }
 
-  
+  useEffect(() => {
+    const fetchDocTypes = async () => {
+      try {
+        const response = await axiosPrivate.get(`/get-parameters`, { withCredentials: true });
+        setDocTypes(response.data.result.doctypes.data);
+      } catch (error) {
+        console.error("Error fetching document types:", error);
+      }
+    };
+
+    fetchDocTypes();
+  }, []);
+
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -146,6 +168,14 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
       };
   }, [menuRef]);
 
+  const filterData = (data: TableRow[]) => {
+    return data.filter((row) => {
+      const statusMatch = !statusFilter || row.status === statusFilter;
+      const docTypeMatch = !docTypeFilter || docTypeFilter === 'all' || row.doctype_name === docTypeFilter;
+      return statusMatch && docTypeMatch;
+    });
+  };
+
   const renderFilters = () => (
     <React.Fragment>
       <FormControl size="sm">
@@ -153,19 +183,32 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
         <Select
           size="sm"
           placeholder="Filter by status"
+          value={statusFilter}
+          onChange={(_, newValue) => setStatusFilter(newValue as string)}
           slotProps={{ button: { sx: { whiteSpace: "nowrap" } } }}
         >
-          <Option value="active">Active</Option>
-          <Option value="inactive">Inactive</Option>
+          <Option value="">All</Option>
+          <Option value="DRAFT">DRAFT</Option>
+          <Option value="SUBMITTED">SUBMITTED</Option>
+          <Option value="APPROVED">APPROVED</Option>
+          <Option value="REJECTED">REJECTED</Option>
+          <Option value="PAID">PAID</Option>
         </Select>
       </FormControl>
       <FormControl size="sm">
         <FormLabel>Document Type</FormLabel>
-        <Select size="sm" placeholder="All">
+        <Select 
+          size="sm" 
+          placeholder="All"
+          value={docTypeFilter}
+          onChange={(_, newValue) => setDocTypeFilter(newValue as string)}
+        >
           <Option value="all">All</Option>
-          <Option value="Bank of America">Invoice</Option>
-          <Option value="Chase Bank">Projects</Option>
-          <Option value="Wells Fargo">Loans</Option>
+          {docTypes.map((docType) => (
+            <Option key={docType.id} value={docType.description}>
+              {docType.description}
+            </Option>
+          ))}
         </Select>
       </FormControl>
     </React.Fragment>
@@ -318,7 +361,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                       <Typography level="body-md">No records found</Typography>
                     </td>
                   </tr>
-                ) :(stableSort(generatedDocs, getComparator(order, "id")).map((row) => (
+                ) :(stableSort(filterData(generatedDocs), getComparator(order, "id")).map((row) => (
                 <tr key={row.id}>
                   <td style={{ textAlign: "center", width: 120 }}></td>
                   <td className="font-semibold text-sm ">
@@ -457,6 +500,7 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
               )))}
             </tbody>
             <Menu
+              ref={menuRef}
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
@@ -503,21 +547,35 @@ const GeneratedDocsTable: React.FC<ApproversTableProps> = ({ data, handleOpen, h
                     <SubmitIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
                   </Box>
                 </MenuItem>
-              )} 
-            </Menu>
-              {selectedRow?.status === "REJECTED" && (
-                <MenuItem 
-                onClick={() => {
-                  handleOpen("update", selectedRow?.id);
-                  handleMenuClose();
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  Edit Document
-                  <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
-                </Box>
-              </MenuItem>
               )}
+              {selectedRow?.status === "REJECTED" && (
+                <div>
+                <MenuItem 
+                  onClick={() => {
+                    handleOpen("update", selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    Edit Document
+                    <EditIcon style={{ width: 25, height: 25, marginLeft: '8px' }} />
+                  </Box>
+                </MenuItem>
+                <MenuItem 
+                  onClick={() => {
+                    // handleOpen("update", selectedRow?.id);
+                    handleMessage(selectedRow?.id);
+                    handleMenuClose();
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    Declined Reason
+                    <MessageIcon_ style={{ width: 25, height: 25, marginLeft: '8px' }} />
+                  </Box>
+                </MenuItem>
+                </div>
+              )}
+            </Menu>
           </Table>
       </Sheet>
     <Box
